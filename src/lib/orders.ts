@@ -28,7 +28,15 @@ export async function listOrders(): Promise<Order[]> {
     const querySnapshot = await getDocs(q);
     const results: Order[] = [];
     querySnapshot.forEach((doc) => {
-      results.push(doc.data() as Order);
+      const data = doc.data() as Order;
+      results.push({
+        ...data,
+        id: data.id || doc.id,
+        subtotal: data.subtotal || data.total || 0,
+        gst: data.gst || 0,
+        paymentMethod: data.paymentMethod || "cash",
+        paymentStatus: data.paymentStatus || "pending",
+      });
     });
     return results;
   } catch (error) {
@@ -45,7 +53,15 @@ export async function getOrder(id: string): Promise<Order | undefined> {
     const docRef = doc(db, ORDERS_COLLECTION, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return docSnap.data() as Order;
+      const data = docSnap.data() as Order;
+      return {
+        ...data,
+        id: data.id || docSnap.id,
+        subtotal: data.subtotal || data.total || 0,
+        gst: data.gst || 0,
+        paymentMethod: data.paymentMethod || "cash",
+        paymentStatus: data.paymentStatus || "pending",
+      };
     }
     return undefined;
   } catch (error) {

@@ -20,7 +20,7 @@ export const RESTAURANT = {
 };
 
 export function formatINR(amount: number): string {
-  return `₹${amount.toLocaleString("en-IN")}`;
+  return `₹${(amount || 0).toLocaleString("en-IN")}`;
 }
 
 export function buildUpiLink(amount: number, orderId: string): string {
