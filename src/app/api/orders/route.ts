@@ -5,7 +5,7 @@ import type { CartItem, PaymentMethod } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json({ orders: listOrders() });
+  return NextResponse.json({ orders: await listOrders() });
 }
 
 export async function POST(request: Request) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid items" }, { status: 400 });
     }
 
-    const order = createOrder({
+    const order = await createOrder({
       tableNumber,
       items: sanitized,
       paymentMethod,

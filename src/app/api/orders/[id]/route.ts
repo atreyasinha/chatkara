@@ -18,7 +18,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const order = getOrder(id);
+  const order = await getOrder(id);
   if (!order) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -34,7 +34,7 @@ export async function PATCH(
     const body = await request.json();
 
     if (body.markPaid === true) {
-      const order = markOrderPaid(id);
+      const order = await markOrderPaid(id);
       if (!order) {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
@@ -45,7 +45,7 @@ export async function PATCH(
       if (!VALID_STATUSES.includes(body.status)) {
         return NextResponse.json({ error: "Invalid status" }, { status: 400 });
       }
-      const order = updateOrderStatus(id, body.status);
+      const order = await updateOrderStatus(id, body.status);
       if (!order) {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
