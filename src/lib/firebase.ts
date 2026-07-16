@@ -12,6 +12,6 @@ const firebaseConfig = {
 
 // Initialize Firebase for Server-Side or Client-Side Next.js environments
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore(app, "default");
 
 export { db };
