@@ -70,13 +70,14 @@ export async function getOrder(id: string): Promise<Order | undefined> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function cleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map((item) => cleanUndefined(item));
   } else if (obj !== null && typeof obj === "object") {
     return Object.fromEntries(
       Object.entries(obj)
-        .filter(([_, v]) => v !== undefined)
+        .filter(([, v]) => v !== undefined)
         .map(([k, v]) => [k, cleanUndefined(v)]),
     );
   }
