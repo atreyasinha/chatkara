@@ -2,10 +2,12 @@
 
 QR-code table ordering for **ChatKara — Flavours of India** (Bokaro, Jharkhand).
 
+Live URL: [https://chatkara.lagardenia.in](https://chatkara.lagardenia.in)
+
 ## Features
 
 - **Table QR ordering** — guests scan a code → `/table/1` … `/table/20`
-- **Full menu** from your PDF with estimated INR prices (editable in `src/lib/menu.ts`)
+- **Official PDF Menu & Prices** — accurate pricing configured in `src/lib/menu.ts` extracted directly from `chatkara menu (1).pdf`
 - **Payments** — UPI (GPay / PhonePe / Paytm deep link + QR) and cash at table
 - **Kitchen POS** — live order board at `/kitchen`
 - **Printable QR sheet** — `/admin/qr`
@@ -21,6 +23,9 @@ mise install   # uses Node 20 from mise
 
 ## Quick start
 
+1. Create a `.env.local` file in the root based on `.env.example` and add your Firebase credentials.
+2. Install dependencies and start the development server:
+
 ```bash
 npm install
 npm run dev
@@ -30,21 +35,25 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Before going live
 
-1. Set your real UPI ID in `src/lib/restaurant.ts` (`upiId`).
-2. Adjust menu prices in `src/lib/menu.ts`.
-3. Deploy to a public URL (Vercel works well), then print QR codes from `/admin/qr` so phones can open the links.
-4. Open `/kitchen` on a tablet/phone behind the counter.
+1. Set your real UPI ID and payee name in `src/lib/restaurant.ts` (`upiId`, `upiPayeeName`).
+2. Verify GST percentage in `src/lib/restaurant.ts` (`gstPercent`).
+3. Open `/kitchen` on a tablet or dashboard phone behind the counter to manage incoming orders.
 
-## Database (GCP)
+## Database (Firebase Firestore)
 
-Orders are currently in-memory (`src/lib/orders.ts`) for local demos. For production, the intended store is a **GCP** database — typically **Cloud SQL for PostgreSQL** (or Firestore if you prefer document style). The order API routes already sit behind a thin store layer, so swapping in Cloud SQL is the next step when you're ready.
+Orders are stored in a persistent **Cloud Firestore** NoSQL database instance (in `(default)` mode), resolving serverless in-memory data loss. 
+
+To run the application (both locally and on Vercel), the following environment variables are required:
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+
+These are loaded securely on the server side inside the Next.js API routes (`src/app/api/orders/`).
 
 ## Location
 
 - Coordinates: `23.619147660495543, 86.18070429732468`
 - City: Bokaro, Jharkhand, India
-
-## Notes
-
-- GST is set to 5% in `src/lib/restaurant.ts` — change if your rate differs.
-- Prices are **estimates** for a mid-range Bokaro restaurant; replace with your actual rates.
