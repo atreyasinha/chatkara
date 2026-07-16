@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       customerName: body.customerName ? String(body.customerName) : undefined,
       customerPhone: body.customerPhone ? String(body.customerPhone) : undefined,
       notes: body.notes ? String(body.notes) : undefined,
+      parentOrderId: body.parentOrderId ? String(body.parentOrderId) : undefined,
     });
 
     return NextResponse.json({ order }, { status: 201 });

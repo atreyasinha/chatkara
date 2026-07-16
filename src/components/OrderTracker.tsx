@@ -124,7 +124,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       </div>
 
       <Link
-        href={`/table/${order.tableNumber}`}
+        href={`/table/${order.tableNumber}?parentOrderId=${order.id}`}
         className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
       >
         Order more from this table

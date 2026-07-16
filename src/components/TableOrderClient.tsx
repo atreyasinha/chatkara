@@ -10,7 +10,13 @@ import { CATEGORIES, MENU, searchMenu } from "@/lib/menu";
 import { formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { MenuItem, VegFlag } from "@/lib/types";
 
-export function TableOrderClient({ tableNumber }: { tableNumber: number }) {
+export function TableOrderClient({
+  tableNumber,
+  parentOrderId,
+}: {
+  tableNumber: number;
+  parentOrderId?: string;
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("All");
   const [filter, setFilter] = useState<"all" | VegFlag>("all");
@@ -280,6 +286,7 @@ export function TableOrderClient({ tableNumber }: { tableNumber: number }) {
       {checkoutOpen && (
         <CheckoutSheet
           tableNumber={tableNumber}
+          parentOrderId={parentOrderId}
           onClose={() => setCheckoutOpen(false)}
         />
       )}

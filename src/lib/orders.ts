@@ -83,9 +83,6 @@ function cleanUndefined(obj: any): any {
   return obj;
 }
 
-/**
- * Write a new order to the Firestore database.
- */
 export async function createOrder(input: {
   tableNumber: number;
   items: CartItem[];
@@ -93,7 +90,66 @@ export async function createOrder(input: {
   customerName?: string;
   customerPhone?: string;
   notes?: string;
+  parentOrderId?: string;
 }): Promise<Order> {
+  const now = new Date().toISOString();
+
+  // Check if we should append to an existing active order
+  if (input.parentOrderId) {
+    try {
+      const parentOrder = await getOrder(input.parentOrderId);
+      if (
+        parentOrder &&
+        parentOrder.status !== "served" &&
+        parentOrder.status !== "cancelled" &&
+        parentOrder.paymentStatus !== "paid"
+      ) {
+        // Merge items (aggregate quantities of duplicate items)
+        const mergedItems = [...parentOrder.items];
+        for (const newItem of input.items) {
+          const existing = mergedItems.find(
+            (i) => i.itemId === newItem.itemId && i.notes === newItem.notes
+          );
+          if (existing) {
+            existing.quantity += newItem.quantity;
+          } else {
+            mergedItems.push(newItem);
+          }
+        }
+
+        const subtotal = mergedItems.reduce(
+          (sum, i) => sum + i.price * i.quantity,
+          0,
+        );
+        const gst = Math.round((subtotal * RESTAURANT.gstPercent) / 100);
+        const total = subtotal + gst;
+
+        const updatedOrder: Order = {
+          ...parentOrder,
+          items: mergedItems,
+          subtotal,
+          gst,
+          total,
+          status: "pending", // Reset to pending to alert the kitchen
+          updatedAt: now,
+        };
+
+        if (input.notes) {
+          updatedOrder.notes = parentOrder.notes
+            ? `${parentOrder.notes} | ${input.notes}`
+            : input.notes;
+        }
+
+        const docRef = doc(db, ORDERS_COLLECTION, parentOrder.id);
+        await setDoc(docRef, cleanUndefined(updatedOrder));
+        return updatedOrder;
+      }
+    } catch (err) {
+      console.error("Failed to append to parent order, fallback to new order:", err);
+    }
+  }
+
+  // Fallback: Create a new order
   const id = randomUUID();
   const subtotal = input.items.reduce(
     (sum, i) => sum + i.price * i.quantity,
@@ -101,7 +157,6 @@ export async function createOrder(input: {
   );
   const gst = Math.round((subtotal * RESTAURANT.gstPercent) / 100);
   const total = subtotal + gst;
-  const now = new Date().toISOString();
 
   const order: Order = {
     id,

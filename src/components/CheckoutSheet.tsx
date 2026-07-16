@@ -10,16 +10,28 @@ import type { Order, PaymentMethod } from "@/lib/types";
 
 export function CheckoutSheet({
   tableNumber,
+  parentOrderId,
   onClose,
 }: {
   tableNumber: number;
+  parentOrderId?: string;
   onClose: () => void;
 }) {
   const router = useRouter();
   const { items, subtotal, clear } = useCart();
   const [method, setMethod] = useState<PaymentMethod>("upi");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [name, setName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("chatkara_customer_name") || "";
+    }
+    return "";
+  });
+  const [phone, setPhone] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("chatkara_customer_phone") || "";
+    }
+    return "";
+  });
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -47,10 +59,17 @@ export function CheckoutSheet({
           customerName: name || undefined,
           customerPhone: phone || undefined,
           notes: notes || undefined,
+          parentOrderId: parentOrderId || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
+
+      if (typeof window !== "undefined") {
+        if (name) localStorage.setItem("chatkara_customer_name", name);
+        if (phone) localStorage.setItem("chatkara_customer_phone", phone);
+      }
+
       setOrder(data.order);
       clear();
     } catch (e) {
