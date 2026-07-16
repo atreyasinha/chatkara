@@ -1,0 +1,312 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { Minus, Plus, Search, ShoppingBag, X } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
+import { CheckoutSheet } from "@/components/CheckoutSheet";
+import { VegBadge } from "@/components/VegBadge";
+import { useCart } from "@/lib/cart";
+import { CATEGORIES, MENU, searchMenu } from "@/lib/menu";
+import { formatINR, RESTAURANT } from "@/lib/restaurant";
+import type { MenuItem, VegFlag } from "@/lib/types";
+
+export function TableOrderClient({ tableNumber }: { tableNumber: number }) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("All");
+  const [filter, setFilter] = useState<"all" | VegFlag>("all");
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  const { setTable, addItem, items, itemCount, subtotal, setQuantity, removeItem } =
+    useCart();
+
+  useEffect(() => {
+    setTable(tableNumber);
+  }, [tableNumber, setTable]);
+
+  const filtered = useMemo(() => {
+    let list = query ? searchMenu(query) : MENU;
+    if (category !== "All") {
+      list = list.filter((m) => m.category === category);
+    }
+    if (filter !== "all") {
+      list = list.filter((m) => m.veg === filter);
+    }
+    return list;
+  }, [query, category, filter]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, MenuItem[]>();
+    for (const item of filtered) {
+      const key = item.category;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(item);
+    }
+    return map;
+  }, [filtered]);
+
+  const count = itemCount();
+  const total = subtotal();
+
+  return (
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-28">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3">
+          <BrandMark size="sm" />
+          <div className="text-right">
+            <p className="font-display text-lg text-gold">Table {tableNumber}</p>
+            <p className="text-xs text-muted">{RESTAURANT.tagline}</p>
+          </div>
+        </div>
+
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search dishes…"
+            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-3 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+          />
+        </div>
+
+        <div className="mt-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1">
+          {(["all", "veg", "nonveg", "egg"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+                filter === f
+                  ? "flame-bg text-white"
+                  : "border border-line bg-bg-soft text-muted"
+              }`}
+            >
+              {f === "all" ? "All" : f === "veg" ? "Veg" : f === "nonveg" ? "Non-veg" : "Egg"}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2 flex gap-2 overflow-x-auto scrollbar-thin pb-1">
+          <CategoryChip
+            label="All"
+            active={category === "All"}
+            onClick={() => setCategory("All")}
+          />
+          {CATEGORIES.map((c) => (
+            <CategoryChip
+              key={c}
+              label={c}
+              active={category === c}
+              onClick={() => setCategory(c)}
+            />
+          ))}
+        </div>
+      </header>
+
+      <main className="flex-1 px-4 py-4">
+        {[...grouped.entries()].map(([cat, list], idx) => (
+          <section
+            key={cat}
+            className="mb-6 animate-fade-up"
+            style={{ animationDelay: `${idx * 40}ms` }}
+          >
+            <h2 className="font-display mb-3 text-xl text-gold">{cat}</h2>
+            <ul className="space-y-2">
+              {list.map((item) => {
+                const inCart = items.find((i) => i.itemId === item.id);
+                return (
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated/80 p-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start gap-2">
+                        <VegBadge veg={item.veg} />
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink">
+                            {item.name}
+                            {item.popular && (
+                              <span className="ml-2 text-[10px] uppercase tracking-wider text-flame-from">
+                                Popular
+                              </span>
+                            )}
+                          </p>
+                          {item.subcategory && (
+                            <p className="text-xs text-muted">{item.subcategory}</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="mt-1 pl-5 text-sm font-semibold text-gold">
+                        {formatINR(item.price)}
+                      </p>
+                    </div>
+
+                    {inCart ? (
+                      <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
+                        <button
+                          type="button"
+                          aria-label="Decrease"
+                          className="rounded-full p-1 text-gold hover:bg-gold-dim"
+                          onClick={() =>
+                            setQuantity(item.id, inCart.quantity - 1)
+                          }
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">
+                          {inCart.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label="Increase"
+                          className="rounded-full p-1 text-gold hover:bg-gold-dim"
+                          onClick={() =>
+                            setQuantity(item.id, inCart.quantity + 1)
+                          }
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => addItem(item)}
+                        className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+                      >
+                        Add
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+
+        {filtered.length === 0 && (
+          <p className="py-16 text-center text-muted">No dishes match your search.</p>
+        )}
+      </main>
+
+      {count > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
+            className="flame-bg flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-white shadow-lg shadow-black/40 transition hover:brightness-110"
+          >
+            <span className="flex items-center gap-2 font-semibold">
+              <ShoppingBag className="h-5 w-5" />
+              {count} item{count === 1 ? "" : "s"}
+            </span>
+            <span className="font-semibold">{formatINR(total)} · View cart</span>
+          </button>
+        </div>
+      )}
+
+      {cartOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
+          <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up">
+            <div className="flex items-center justify-between border-b border-line px-4 py-3">
+              <h3 className="font-display text-xl text-gold">Your order</h3>
+              <button
+                type="button"
+                onClick={() => setCartOpen(false)}
+                className="rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="max-h-[50dvh] overflow-y-auto px-4 py-3 scrollbar-thin">
+              {items.map((item) => (
+                <div
+                  key={item.itemId}
+                  className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+                >
+                  <VegBadge veg={item.veg} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{item.name}</p>
+                    <p className="text-sm text-gold">
+                      {formatINR(item.price * item.quantity)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
+                    <button
+                      type="button"
+                      className="p-1 text-gold"
+                      onClick={() => setQuantity(item.itemId, item.quantity - 1)}
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="w-5 text-center text-sm">{item.quantity}</span>
+                    <button
+                      type="button"
+                      className="p-1 text-gold"
+                      onClick={() => setQuantity(item.itemId, item.quantity + 1)}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs text-muted hover:text-nonveg"
+                    onClick={() => removeItem(item.itemId)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-line px-4 py-4">
+              <div className="mb-3 flex justify-between text-sm">
+                <span className="text-muted">Subtotal</span>
+                <span>{formatINR(total)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCartOpen(false);
+                  setCheckoutOpen(true);
+                }}
+                className="flame-bg w-full rounded-xl py-3 font-semibold text-white"
+              >
+                Proceed to pay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {checkoutOpen && (
+        <CheckoutSheet
+          tableNumber={tableNumber}
+          onClose={() => setCheckoutOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function CategoryChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+        active
+          ? "bg-gold text-bg font-semibold"
+          : "border border-line text-muted hover:border-gold/50 hover:text-ink"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}

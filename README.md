@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatKara POS
 
-## Getting Started
+QR-code table ordering for **ChatKara — Flavours of India** (Bokaro, Jharkhand).
 
-First, run the development server:
+## Features
+
+- **Table QR ordering** — guests scan a code → `/table/1` … `/table/20`
+- **Full menu** from your PDF with estimated INR prices (editable in `src/lib/menu.ts`)
+- **Payments** — UPI (GPay / PhonePe / Paytm deep link + QR) and cash at table
+- **Kitchen POS** — live order board at `/kitchen`
+- **Printable QR sheet** — `/admin/qr`
+
+## Prerequisites
+
+This project uses [mise](https://mise.jdx.dev/) for Node (no global Node install). Pin is in `mise.toml` (`node = "20"`).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+mise trust
+mise install   # uses Node 20 from mise
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quick start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Before going live
 
-To learn more about Next.js, take a look at the following resources:
+1. Set your real UPI ID in `src/lib/restaurant.ts` (`upiId`).
+2. Adjust menu prices in `src/lib/menu.ts`.
+3. Deploy to a public URL (Vercel works well), then print QR codes from `/admin/qr` so phones can open the links.
+4. Open `/kitchen` on a tablet/phone behind the counter.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database (GCP)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Orders are currently in-memory (`src/lib/orders.ts`) for local demos. For production, the intended store is a **GCP** database — typically **Cloud SQL for PostgreSQL** (or Firestore if you prefer document style). The order API routes already sit behind a thin store layer, so swapping in Cloud SQL is the next step when you're ready.
 
-## Deploy on Vercel
+## Location
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Coordinates: `23.619147660495543, 86.18070429732468`
+- City: Bokaro, Jharkhand, India
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- GST is set to 5% in `src/lib/restaurant.ts` — change if your rate differs.
+- Prices are **estimates** for a mid-range Bokaro restaurant; replace with your actual rates.
