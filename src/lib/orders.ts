@@ -70,6 +70,19 @@ export async function getOrder(id: string): Promise<Order | undefined> {
   }
 }
 
+function cleanUndefined(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => cleanUndefined(item));
+  } else if (obj !== null && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => [k, cleanUndefined(v)]),
+    );
+  }
+  return obj;
+}
+
 /**
  * Write a new order to the Firestore database.
  */
@@ -110,7 +123,7 @@ export async function createOrder(input: {
 
   try {
     const docRef = doc(db, ORDERS_COLLECTION, id);
-    await setDoc(docRef, order);
+    await setDoc(docRef, cleanUndefined(order));
   } catch (error) {
     console.error("Error creating order in Firestore:", error);
     throw error;
