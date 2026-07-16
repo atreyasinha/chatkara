@@ -174,14 +174,14 @@ export function CheckoutSheet({
 
           <div>
             <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
-              Phone (optional)
+              Phone number (10-digit)
             </label>
             <input
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               inputMode="tel"
               className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
-              placeholder="10-digit mobile"
+              placeholder="Enter 10-digit mobile number"
             />
           </div>
           <div>
@@ -250,15 +250,17 @@ export function CheckoutSheet({
 
           <button
             type="button"
-            disabled={loading || items.length === 0}
+            disabled={loading || items.length === 0 || phone.trim().length !== 10}
             onClick={placeOrder}
             className="flame-bg w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50"
           >
             {loading
               ? "Placing order…"
-              : method === "upi"
-                ? `Place order · Pay ${formatINR(total)}`
-                : `Place order · Pay cash ${formatINR(total)}`}
+              : phone.trim().length !== 10
+                ? "Enter 10-digit Phone"
+                : method === "upi"
+                  ? `Place order · Pay ${formatINR(total)}`
+                  : `Place order · Pay cash ${formatINR(total)}`}
           </button>
         </div>
       </div>
