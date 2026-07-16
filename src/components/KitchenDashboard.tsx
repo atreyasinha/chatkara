@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
@@ -24,16 +24,70 @@ const LABEL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+function playChime() {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+    
+    // Pleasant double bell/chime (E5 & A5)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(659.25, now);
+    gain1.gain.setValueAtTime(0.08, now);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.4);
+    
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(880.00, now + 0.12);
+    gain2.gain.setValueAtTime(0.08, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.52);
+  } catch (e) {
+    console.warn("Audio chime blocked by autoplay policy or browser settings:", e);
+  }
+}
+
 export function KitchenDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<"active" | "all">("active");
   const [loading, setLoading] = useState(true);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  // Track seen order IDs to prevent sound triggers on initial page load or reloads
+  const seenOrderIds = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/orders");
       const data = await res.json();
-      setOrders(data.orders ?? []);
+      const newOrders = (data.orders ?? []) as Order[];
+
+      // Only trigger chime if this is NOT the initial load
+      if (seenOrderIds.current.size > 0) {
+        const hasNewPending = newOrders.some(
+          (o) => o.status === "pending" && !seenOrderIds.current.has(o.id),
+        );
+        if (hasNewPending) {
+          playChime();
+        }
+      }
+
+      // Record all order IDs we have seen
+      newOrders.forEach((o) => seenOrderIds.current.add(o.id));
+      setOrders(newOrders);
+    } catch (e) {
+      console.error("Failed to load orders:", e);
     } finally {
       setLoading(false);
     }
@@ -44,6 +98,36 @@ export function KitchenDashboard() {
     const id = setInterval(load, 3000);
     return () => clearInterval(id);
   }, [load]);
+
+  // Click listener to unlock browser AudioContext autoplay blocks
+  useEffect(() => {
+    function unlock() {
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          if (ctx.state === "running" || ctx.state === "suspended") {
+            setAudioUnlocked(true);
+            window.removeEventListener("click", unlock);
+            window.removeEventListener("touchstart", unlock);
+          }
+        }
+      } catch (e) {
+        console.warn("Error unlocking AudioContext:", e);
+      }
+    }
+    window.addEventListener("click", unlock);
+    window.addEventListener("touchstart", unlock);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+  }, []);
 
   async function setStatus(id: string, status: OrderStatus) {
     await fetch(`/api/orders/${id}`, {
@@ -84,6 +168,15 @@ export function KitchenDashboard() {
             <span className="flex items-center gap-1.5 rounded-full flame-bg px-3 py-1 text-xs font-semibold text-white animate-pulse-soft">
               <Bell className="h-3.5 w-3.5" />
               {newCount} new
+            </span>
+          )}
+          {!audioUnlocked ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1 text-[11px] font-medium text-yellow-500 animate-pulse-soft">
+              🔊 Click screen to enable alert sound
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-1 text-[11px] font-medium text-green-400">
+              🔊 Audio alerts active
             </span>
           )}
           <Link
