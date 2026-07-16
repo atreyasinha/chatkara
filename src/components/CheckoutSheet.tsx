@@ -20,12 +20,6 @@ export function CheckoutSheet({
   const router = useRouter();
   const { items, subtotal, clear } = useCart();
   const [method, setMethod] = useState<PaymentMethod>("upi");
-  const [name, setName] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("chatkara_customer_name") || "";
-    }
-    return "";
-  });
   const [phone, setPhone] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("chatkara_customer_phone") || "";
@@ -56,7 +50,6 @@ export function CheckoutSheet({
           tableNumber,
           items,
           paymentMethod: method,
-          customerName: name || undefined,
           customerPhone: phone || undefined,
           notes: notes || undefined,
           parentOrderId: parentOrderId || undefined,
@@ -66,7 +59,6 @@ export function CheckoutSheet({
       if (!res.ok) throw new Error(data.error || "Failed");
 
       if (typeof window !== "undefined") {
-        if (name) localStorage.setItem("chatkara_customer_name", name);
         if (phone) localStorage.setItem("chatkara_customer_phone", phone);
       }
 
@@ -179,17 +171,7 @@ export function CheckoutSheet({
         </div>
 
         <div className="space-y-4 px-4 py-4">
-          <div>
-            <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
-              Your name (optional)
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
-              placeholder="Name for the order"
-            />
-          </div>
+
           <div>
             <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
               Phone (optional)
