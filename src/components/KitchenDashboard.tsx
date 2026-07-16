@@ -67,37 +67,64 @@ export function KitchenDashboard() {
   // Track seen order IDs to prevent sound triggers on initial page load or reloads
   const seenOrderIds = useRef<Set<string>>(new Set());
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/orders");
-      const data = await res.json();
-      const newOrders = (data.orders ?? []) as Order[];
-
-      // Only trigger chime if this is NOT the initial load
-      if (seenOrderIds.current.size > 0) {
-        const hasNewPending = newOrders.some(
-          (o) => o.status === "pending" && !seenOrderIds.current.has(o.id),
-        );
-        if (hasNewPending) {
-          playChime();
-        }
-      }
-
-      // Record all order IDs we have seen
-      newOrders.forEach((o) => seenOrderIds.current.add(o.id));
-      setOrders(newOrders);
-    } catch (e) {
-      console.error("Failed to load orders:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Real-time Firestore subscription instead of HTTP polling
   useEffect(() => {
-    load();
-    const id = setInterval(load, 3000);
-    return () => clearInterval(id);
-  }, [load]);
+    let unsubscribe: (() => void) | undefined;
+
+    async function subscribe() {
+      try {
+        const { getClientDb } = await import("@/lib/firebase-client");
+        const { collection, onSnapshot, query, orderBy } = await import("firebase/firestore");
+
+        const db = await getClientDb();
+        const q = query(
+          collection(db, "orders"),
+          orderBy("createdAt", "desc"),
+        );
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const newOrders: Order[] = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data() as Order;
+            newOrders.push({
+              ...data,
+              id: data.id || doc.id,
+              subtotal: data.subtotal || data.total || 0,
+              gst: data.gst || 0,
+              paymentMethod: data.paymentMethod || "cash",
+              paymentStatus: data.paymentStatus || "pending",
+            });
+          });
+
+          // Play chime if a new pending order comes in
+          if (seenOrderIds.current.size > 0) {
+            const hasNewPending = newOrders.some(
+              (o) => o.status === "pending" && !seenOrderIds.current.has(o.id),
+            );
+            if (hasNewPending) {
+              playChime();
+            }
+          }
+
+          // Record seen order IDs
+          newOrders.forEach((o) => seenOrderIds.current.add(o.id));
+          setOrders(newOrders);
+          setLoading(false);
+        }, (error) => {
+          console.error("Firestore onSnapshot error:", error);
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error("Failed to setup real-time orders listener:", error);
+        setLoading(false);
+      }
+    }
+
+    subscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   // Click listener to unlock browser AudioContext autoplay blocks
   useEffect(() => {
@@ -135,7 +162,6 @@ export function KitchenDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    load();
   }
 
   async function markPaid(id: string) {
@@ -144,7 +170,6 @@ export function KitchenDashboard() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ markPaid: true }),
     });
-    load();
   }
 
   const visible = orders.filter((o) =>
@@ -187,7 +212,7 @@ export function KitchenDashboard() {
           </Link>
           <button
             type="button"
-            onClick={load}
+            onClick={() => window.location.reload()}
             className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
           >
             <RefreshCw className="h-3.5 w-3.5" />

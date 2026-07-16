@@ -29,26 +29,43 @@ export function OrderTracker({ orderId }: { orderId: string }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
 
-    async function load() {
+    async function subscribe() {
       try {
-        const res = await fetch(`/api/orders/${orderId}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Not found");
-        if (!cancelled) setOrder(data.order);
+        const { getClientDb } = await import("@/lib/firebase-client");
+        const { doc, onSnapshot } = await import("firebase/firestore");
+
+        const db = await getClientDb();
+        const docRef = doc(db, "orders", orderId);
+
+        unsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data() as Order;
+            setOrder({
+              ...data,
+              id: data.id || docSnap.id,
+              subtotal: data.subtotal || data.total || 0,
+              gst: data.gst || 0,
+              paymentMethod: data.paymentMethod || "cash",
+              paymentStatus: data.paymentStatus || "pending",
+            });
+          } else {
+            setError("Order not found");
+          }
+        }, (err) => {
+          console.error("Firestore onSnapshot error:", err);
+          setError("Failed to stream order updates");
+        });
       } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Failed to load");
-        }
+        console.error("Failed to setup real-time order listener:", e);
+        setError(e instanceof Error ? e.message : "Failed to load order");
       }
     }
 
-    load();
-    const id = setInterval(load, 4000);
+    subscribe();
     return () => {
-      cancelled = true;
-      clearInterval(id);
+      if (unsubscribe) unsubscribe();
     };
   }, [orderId]);
 
