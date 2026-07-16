@@ -123,6 +123,13 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         )}
       </div>
 
+      <Link
+        href={`/table/${order.tableNumber}`}
+        className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+      >
+        Order more from this table
+      </Link>
+
       <ul className="mt-4 space-y-2">
         {order.items.map((item) => (
           <li
@@ -164,13 +171,6 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             : "Cash · Pay at table"}
         </p>
       </div>
-
-      <Link
-        href={`/table/${order.tableNumber}`}
-        className="mt-6 block text-center text-sm text-gold underline"
-      >
-        Order more from this table
-      </Link>
     </div>
   );
 }
