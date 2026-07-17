@@ -21,6 +21,42 @@ export function QrCodesClient() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          body {
+            background: white !important;
+            color: black !important;
+          }
+          header, button, link, a {
+            display: none !important;
+          }
+          .print-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10mm !important;
+          }
+          .print-card {
+            border: 2px solid #ccc !important;
+            border-radius: 15px !important;
+            padding: 15px !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            height: 125mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          .print-card:nth-child(4n) {
+            page-break-after: always !important;
+            break-after: page !important;
+          }
+        }
+      `}} />
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <BrandMark size="md" href="/" />
         <div className="flex gap-2">
@@ -52,13 +88,13 @@ export function QrCodesClient() {
       {!origin ? (
         <p className="text-muted">Preparing QR codes…</p>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-2 print-grid">
           {tables.map((n) => {
             const url = `${origin}/table/${n}`;
             return (
               <div
                 key={n}
-                className="flex flex-col items-center rounded-3xl border border-line bg-bg-elevated p-5 print:break-inside-avoid print:border-black print:bg-white print:text-black"
+                className="print-card flex flex-col items-center rounded-3xl border border-line bg-bg-elevated p-5 print:break-inside-avoid print:border-black print:bg-white print:text-black"
               >
                 <p className="font-display text-2xl text-gold print:text-black">
                   Table {n}

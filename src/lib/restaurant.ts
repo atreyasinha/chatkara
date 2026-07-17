@@ -11,10 +11,10 @@ export const RESTAURANT = {
       "https://www.google.com/maps?q=23.619147660495543,86.18070429732468",
   },
   /** Replace with your real UPI ID before going live */
-  upiId: "chatkara@upi",
+  upiId: "gayatrisinha.ibz@icici",
   upiPayeeName: "ChatKara",
   gstPercent: 5,
-  tableCount: 20,
+  tableCount: 7,
   currency: "INR" as const,
   currencySymbol: "₹",
 };
