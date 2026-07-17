@@ -18,7 +18,7 @@ export default function HomePage() {
 
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
-        <p className="font-betania text-2xl tracking-wide text-gold-soft/90">
+        <p className="font-betania text-xl tracking-wide text-gold-soft/90">
           a La Gardenia concept
         </p>
       </nav>
