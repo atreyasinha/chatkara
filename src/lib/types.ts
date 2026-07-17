@@ -44,4 +44,5 @@ export interface Order {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
 }

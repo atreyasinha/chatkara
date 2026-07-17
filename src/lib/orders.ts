@@ -196,19 +196,23 @@ export async function updateOrderStatus(
   status: OrderStatus,
 ): Promise<Order | undefined> {
   try {
-    const docRef = doc(db, ORDERS_COLLECTION, id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return undefined;
+    const order = await getOrder(id);
+    if (!order) return undefined;
 
-    const order = docSnap.data() as Order;
     order.status = status;
-    order.updatedAt = new Date().toISOString();
-
-    await updateDoc(docRef, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: any = {
       status: order.status,
-      updatedAt: order.updatedAt,
-    });
+    };
 
+    if (status === "served") {
+      const nowStr = new Date().toISOString();
+      order.completedAt = nowStr;
+      updates.completedAt = nowStr;
+    }
+
+    const docRef = doc(db, ORDERS_COLLECTION, id);
+    await updateDoc(docRef, updates);
     return order;
   } catch (error) {
     console.error(`Error updating status for order ${id} in Firestore:`, error);
