@@ -6,7 +6,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import type { Order, OrderStatus } from "@/lib/types";
-import { Bell, RefreshCw } from "lucide-react";
+import { Bell, RefreshCw, MessageSquare } from "lucide-react";
 
 const NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   pending: "confirmed",
@@ -172,6 +172,41 @@ export function KitchenDashboard() {
     });
   }
 
+  function shareOnWhatsApp(order: Order) {
+    const phone = window.prompt("Enter customer phone number (10 digits):");
+    if (!phone) return;
+    const formattedPhone = phone.replace(/\D/g, "");
+    if (formattedPhone.length < 10) {
+      alert("Please enter a valid 10-digit number.");
+      return;
+    }
+
+    const itemsText = order.items
+      .map((item) => `• ${item.name} (x${item.quantity}) — ₹${item.price * item.quantity}`)
+      .join("\n");
+
+    const orderType = order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
+    const formattedId = order.id.slice(0, 8).toUpperCase();
+
+    const receiptText = `🌟 *CHATKARA BILL RECEIPT* 🌟\n\n` +
+      `*Order Reference:* #${formattedId}\n` +
+      `*Type:* ${orderType}\n` +
+      `*Time:* ${new Date(order.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}\n` +
+      `----------------------------\n` +
+      `${itemsText}\n` +
+      `----------------------------\n` +
+      `*Subtotal:* ₹${Math.round(order.subtotal || order.total || 0)}\n` +
+      `*GST (5%):* ₹${Math.round(order.gst || 0)}\n` +
+      `*Total Amount:* ₹${Math.round(order.total)}\n\n` +
+      `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +
+      `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +
+      `*Thank you for ordering with us at ChatKara!*`;
+
+    const finalPhone = formattedPhone.startsWith("91") ? formattedPhone : `91${formattedPhone}`;
+    const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(receiptText)}`;
+    window.open(url, "_blank");
+  }
+
   const visible = orders.filter((o) =>
     filter === "all" ? true : !["served", "cancelled"].includes(o.status),
   );
@@ -325,6 +360,14 @@ export function KitchenDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => shareOnWhatsApp(order)}
+                    className="flex items-center gap-1 rounded-lg border border-green-600/30 bg-green-500/10 px-2.5 py-1.5 text-xs text-green-400 hover:border-green-500 hover:bg-green-500/20"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    WhatsApp Bill
+                  </button>
                   {order.paymentStatus !== "paid" && (
                     <button
                       type="button"
