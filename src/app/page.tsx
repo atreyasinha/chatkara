@@ -115,7 +115,7 @@ export default function HomePage() {
             <h3 className="font-display text-lg">Hours of Operation</h3>
           </div>
           <p className="mt-2 text-center text-sm text-muted">
-            Open Daily: <span className="font-semibold text-ink">11:30 AM – 10:30 PM</span>
+            Open Daily: <span className="font-semibold text-ink">12:00 PM – 11:00 PM</span>
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export default function HomePage() {
           {/* Embedded Google Map */}
           <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
             <iframe
-              src={`https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
+              src={RESTAURANT.location.mapsEmbedUrl || `https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
               className="h-44 w-full opacity-80"
               style={{ border: 0 }}
               allowFullScreen={false}

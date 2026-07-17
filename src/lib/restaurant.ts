@@ -2,13 +2,14 @@ export const RESTAURANT = {
   name: "ChatKara",
   tagline: "Flavours of India",
   location: {
-    lat: 23.619147660495543,
-    lng: 86.18070429732468,
+    lat: 23.6191121,
+    lng: 86.1806551,
     city: "Bokaro",
     state: "Jharkhand",
     country: "India",
-    mapsUrl:
-      "https://www.google.com/maps?q=23.619147660495543,86.18070429732468",
+    mapsUrl: "https://maps.app.goo.gl/oRCziSfJ1wEnf6DJ6",
+    mapsEmbedUrl:
+      "https://maps.google.com/maps?q=ChatKara+Restaurant+Bokaro&z=16&output=embed",
   },
   /** Replace with your real UPI ID before going live */
   upiId: "gayatrisinha.ibz@icici",
