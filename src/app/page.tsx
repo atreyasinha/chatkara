@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, QrCode, ShoppingBag, Monitor, Clock } from "lucide-react";
+import { MapPin, ShoppingBag, Monitor, Clock } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 export default function HomePage() {
@@ -21,22 +21,6 @@ export default function HomePage() {
         <p className="font-betania text-2xl tracking-wide text-gold-soft/90">
           a La Gardenia concept
         </p>
-        <div className="flex gap-4">
-          <Link
-            href="/kitchen"
-            className="flex items-center gap-1.5 text-xs text-muted transition hover:text-gold"
-          >
-            <Monitor className="h-3 w-3" />
-            Kitchen POS
-          </Link>
-          <Link
-            href="/admin/qr"
-            className="flex items-center gap-1.5 text-xs text-muted transition hover:text-gold"
-          >
-            <QrCode className="h-3 w-3" />
-            Admin QRs
-          </Link>
-        </div>
       </nav>
 
       {/* Main Section */}
@@ -122,6 +106,17 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Footer / POS Access */}
+      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center">
+        <Link
+          href="/kitchen"
+          className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+        >
+          <Monitor className="h-3 w-3" />
+          Kitchen POS
+        </Link>
+      </footer>
     </main>
   );
 }

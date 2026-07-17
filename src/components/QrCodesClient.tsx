@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import { Camera } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { RESTAURANT } from "@/lib/restaurant";
 
@@ -105,7 +106,8 @@ export function QrCodesClient() {
                 <div className="rounded-2xl bg-white p-3">
                   <QRCodeSVG value={url} size={160} level="M" />
                 </div>
-                <p className="mt-4 text-xs font-semibold tracking-widest uppercase text-gold print:text-neutral-800">
+                <p className="mt-4 flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-gold print:text-neutral-800">
+                  <Camera className="h-4 w-4 text-gold print:text-neutral-800" />
                   Scan to order
                 </p>
               </div>
