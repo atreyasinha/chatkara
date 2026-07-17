@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Calendar,
   Layers,
-  BookOpen,
   DollarSign,
   FileText,
   Utensils,
@@ -56,14 +55,15 @@ function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly" | "yearly">("daily");
 
-  async function fetchAnalytics(isRefresh = false) {
+  async function fetchAnalytics(isRefresh = false, selectedTimeframe = timeframe) {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     setError("");
 
     try {
-      const res = await fetch("/api/admin/analytics");
+      const res = await fetch(`/api/admin/analytics?timeframe=${selectedTimeframe}`);
       const json = await res.json();
       if (res.ok && json.success) {
         setData(json.data);
@@ -80,15 +80,38 @@ function AnalyticsDashboard() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchAnalytics();
-  }, []);
+    fetchAnalytics(false, timeframe);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeframe]);
 
-  const todayDateStr = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  function getReportRangeLabel() {
+    const today = new Date();
+    const formatDate = (d: Date) => d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+    
+    if (timeframe === "daily") {
+      return new Date().toLocaleDateString("en-IN", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+    
+    const pastDate = new Date();
+    if (timeframe === "weekly") {
+      pastDate.setDate(today.getDate() - 7);
+      return `Rolling 7 Days: ${formatDate(pastDate)} – ${formatDate(today)}`;
+    }
+    if (timeframe === "monthly") {
+      pastDate.setDate(today.getDate() - 30);
+      return `Rolling 30 Days: ${formatDate(pastDate)} – ${formatDate(today)}`;
+    }
+    if (timeframe === "yearly") {
+      pastDate.setDate(today.getDate() - 365);
+      return `Rolling 365 Days: ${formatDate(pastDate)} – ${formatDate(today)}`;
+    }
+    return "";
+  }
 
   if (loading) {
     return (
@@ -169,17 +192,29 @@ function AnalyticsDashboard() {
           </div>
         )}
 
-        {/* Date / Report Description */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-gold-soft">
-            <Calendar className="h-5 w-5" />
-            <span className="text-sm font-semibold tracking-wider uppercase">
-              {todayDateStr}
-            </span>
+        {/* Timeframe Selectors & Date Range */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-line/35 pb-5">
+          <div className="flex rounded-xl bg-bg-elevated/80 p-1 border border-line/45">
+            {(["daily", "weekly", "monthly", "yearly"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTimeframe(t)}
+                className={`rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                  timeframe === t
+                    ? "flame-bg text-white shadow-md"
+                    : "text-muted hover:text-ink"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted">
-            <BookOpen className="h-4 w-4" />
-            <span>Ledger generated in real-time</span>
+
+          <div className="flex items-center gap-2 text-gold-soft">
+            <Calendar className="h-4 w-4" />
+            <span className="text-xs font-bold tracking-wider uppercase">
+              {getReportRangeLabel()}
+            </span>
           </div>
         </div>
 
@@ -322,7 +357,7 @@ function AnalyticsDashboard() {
                 </div>
                 {data.tableBreakdown.length === 0 ? (
                   <p className="mt-8 text-center text-sm text-muted py-8">
-                    No sales recorded across tables today.
+                    No sales recorded across tables in this period.
                   </p>
                 ) : (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -372,7 +407,7 @@ function AnalyticsDashboard() {
 
               {data.topItems.length === 0 ? (
                 <p className="mt-8 text-center text-sm text-muted py-8">
-                  No items sold yet today.
+                  No items sold in this period.
                 </p>
               ) : (
                 <div className="mt-4 overflow-x-auto">
@@ -408,21 +443,21 @@ function AnalyticsDashboard() {
               )}
             </div>
 
-            {/* Daily Order Audit Ledger Table */}
+            {/* Receipts Audit Ledger Table */}
             <div className="rounded-3xl border border-line bg-bg-elevated/40 p-6 backdrop-blur-sm">
               <div className="flex items-center gap-2 border-b border-line/45 pb-3 text-gold">
                 <FileText className="h-5 w-5" />
                 <h3 className="font-display text-base font-semibold uppercase tracking-wide">
-                  Today&apos;s Receipts Audit Ledger
+                  Receipts Audit Ledger
                 </h3>
               </div>
               <p className="mt-1.5 text-xs text-muted">
-                Daily list of guest checkouts for audit logs.
+                List of guest checkouts for audit logs.
               </p>
 
               {data.orders.length === 0 ? (
                 <p className="mt-8 text-center text-sm text-muted py-8">
-                  No receipts recorded today.
+                  No receipts recorded in this period.
                 </p>
               ) : (
                 <div className="mt-4 overflow-x-auto">
@@ -451,12 +486,14 @@ function AnalyticsDashboard() {
                             new Date(a.createdAt).getTime(),
                         )
                         .map((order) => {
-                          const timeStr = new Date(
-                            order.createdAt,
-                          ).toLocaleTimeString("en-IN", {
+                          const dateObj = new Date(order.createdAt);
+                          const timeStr = dateObj.toLocaleTimeString("en-IN", {
                             hour: "2-digit",
                             minute: "2-digit",
                           });
+                          const displayTime = timeframe === "daily"
+                            ? timeStr
+                            : `${dateObj.toLocaleDateString("en-IN", { month: "short", day: "numeric" })} ${timeStr}`;
 
                           return (
                             <tr
@@ -464,7 +501,7 @@ function AnalyticsDashboard() {
                               className="hover:bg-bg-soft/20 text-xs transition"
                             >
                               <td className="py-3.5 text-muted font-medium">
-                                {timeStr}
+                                {displayTime}
                               </td>
                               <td className="py-3.5 font-semibold text-ink">
                                 {order.tableNumber === 0

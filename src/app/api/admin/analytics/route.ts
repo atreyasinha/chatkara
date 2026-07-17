@@ -1,14 +1,36 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { listOrders } from "@/lib/orders";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const timeframe = searchParams.get("timeframe") || "daily";
+
     const orders = await listOrders();
 
-    // Filter for orders created today (local system date)
-    const todayStr = new Date().toDateString();
+    const now = new Date();
+    const startLimit = new Date();
+
+    if (timeframe === "daily") {
+      startLimit.setHours(0, 0, 0, 0);
+    } else if (timeframe === "weekly") {
+      startLimit.setDate(now.getDate() - 7);
+      startLimit.setHours(0, 0, 0, 0);
+    } else if (timeframe === "monthly") {
+      startLimit.setDate(now.getDate() - 30);
+      startLimit.setHours(0, 0, 0, 0);
+    } else if (timeframe === "yearly") {
+      startLimit.setDate(now.getDate() - 365);
+      startLimit.setHours(0, 0, 0, 0);
+    } else {
+      return NextResponse.json(
+        { success: false, error: "Invalid timeframe parameter" },
+        { status: 400 },
+      );
+    }
+
     const todayOrders = orders.filter(
-      (o) => new Date(o.createdAt).toDateString() === todayStr,
+      (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),
     );
 
     let totalRevenue = 0;
