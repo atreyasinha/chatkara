@@ -119,6 +119,28 @@ export async function GET(request: NextRequest) {
         ? Math.round((totalPrepTimeMs / prepTimeCount / 60000) * 10) / 10
         : null;
 
+    // Calculate monthly breakdown for the current year
+    const currentYear = new Date().getFullYear();
+    const monthlyRevenue: Record<number, number> = {};
+    for (let m = 0; m < 12; m++) {
+      monthlyRevenue[m] = 0;
+    }
+
+    orders.forEach((o) => {
+      const d = new Date(o.createdAt);
+      if (d.getFullYear() === currentYear && o.status !== "cancelled") {
+        const m = d.getMonth();
+        monthlyRevenue[m] += o.total || 0;
+      }
+    });
+
+    const monthlyBreakdown = Object.entries(monthlyRevenue)
+      .map(([m, rev]) => ({
+        month: Number(m),
+        revenue: rev,
+      }))
+      .sort((a, b) => a.month - b.month);
+
     const todayOrdersFormatted = todayOrders.map((o) => ({
       id: o.id,
       tableNumber: o.tableNumber,
@@ -144,6 +166,7 @@ export async function GET(request: NextRequest) {
         tableBreakdown,
         avgPrepTimeMinutes,
         orders: todayOrdersFormatted,
+        monthlyBreakdown,
       },
     });
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   DollarSign,
   FileText,
   Utensils,
+  BarChart2,
 } from "lucide-react";
 import Link from "next/link";
 import { AdminGuard } from "@/components/AdminGuard";
@@ -40,6 +41,7 @@ interface AnalyticsData {
   tableBreakdown: Array<{ tableNumber: number; revenue: number }>;
   avgPrepTimeMinutes: number | null;
   orders: LedgerOrder[];
+  monthlyBreakdown: Array<{ month: number; revenue: number }>;
 }
 
 export default function AnalyticsPage() {
@@ -129,6 +131,12 @@ function AnalyticsDashboard() {
   const estimatedGst = grossSales - netSales;
   const avgTicket =
     data && data.totalOrders > 0 ? grossSales / data.totalOrders : 0;
+
+  // Formatted rounded numbers for clean legibility
+  const grossSalesFormatted = formatINR(Math.round(grossSales));
+  const netSalesFormatted = formatINR(Math.round(netSales));
+  const estimatedGstFormatted = formatINR(Math.round(estimatedGst));
+  const avgTicketFormatted = formatINR(Math.round(avgTicket));
 
   return (
     <main className="relative min-h-dvh bg-bg pb-16 text-ink">
@@ -227,8 +235,8 @@ function AnalyticsDashboard() {
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
                   Gross Billings (Est)
                 </span>
-                <h3 className="font-display mt-3 text-3xl font-bold text-gold">
-                  {formatINR(grossSales)}
+                <h3 className="font-sans mt-3 text-3xl font-semibold text-gold">
+                  {grossSalesFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
                   Total receipts inclusive of taxes.
@@ -240,8 +248,8 @@ function AnalyticsDashboard() {
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
                   Net Earnings (Pre-Tax)
                 </span>
-                <h3 className="font-display mt-3 text-3xl font-bold text-ink">
-                  {formatINR(netSales)}
+                <h3 className="font-sans mt-3 text-3xl font-semibold text-ink">
+                  {netSalesFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
                   Base collections excluding tax.
@@ -253,8 +261,8 @@ function AnalyticsDashboard() {
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
                   Tax Liability (5% GST)
                 </span>
-                <h3 className="font-display mt-3 text-3xl font-bold text-neutral-300">
-                  {formatINR(estimatedGst)}
+                <h3 className="font-sans mt-3 text-3xl font-semibold text-neutral-300">
+                  {estimatedGstFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
                   Estimated tax value to be parsed.
@@ -266,8 +274,8 @@ function AnalyticsDashboard() {
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
                   Avg Ticket Size
                 </span>
-                <h3 className="font-display mt-3 text-3xl font-bold text-orange-400">
-                  {formatINR(avgTicket)}
+                <h3 className="font-sans mt-3 text-3xl font-semibold text-orange-400">
+                  {avgTicketFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
                   Average spend per customer invoice.
@@ -293,7 +301,7 @@ function AnalyticsDashboard() {
                         <Smartphone className="h-4 w-4 text-blue-400" />
                         UPI Digital
                       </span>
-                      <span className="font-bold text-ink">
+                      <span className="font-sans font-semibold text-ink">
                         {formatINR(data.upiRevenue)}
                       </span>
                     </div>
@@ -318,7 +326,7 @@ function AnalyticsDashboard() {
                         <Banknote className="h-4 w-4 text-veg" />
                         Cash on Counter
                       </span>
-                      <span className="font-bold text-ink">
+                      <span className="font-sans font-semibold text-ink">
                         {formatINR(data.cashRevenue)}
                       </span>
                     </div>
@@ -340,7 +348,7 @@ function AnalyticsDashboard() {
                     <span className="text-[10px] uppercase tracking-widest text-muted block">
                       Total Orders Logged
                     </span>
-                    <span className="text-2xl font-semibold text-gold mt-1 block">
+                    <span className="font-sans text-2xl font-semibold text-gold mt-1 block">
                       {data.totalOrders}
                     </span>
                   </div>
@@ -378,11 +386,11 @@ function AnalyticsDashboard() {
                                   ? "🛍️ Online Pickup"
                                   : `🪑 Table #${tbl.tableNumber}`}
                               </span>
-                              <span className="text-xs text-muted">
+                              <span className="font-sans text-xs text-muted">
                                 {Math.round(percent)}% split
                               </span>
                             </div>
-                            <h4 className="font-display mt-2 text-xl font-bold text-gold-soft">
+                            <h4 className="font-sans mt-2 text-lg font-semibold text-gold-soft">
                               {formatINR(tbl.revenue)}
                             </h4>
                           </div>
@@ -390,6 +398,46 @@ function AnalyticsDashboard() {
                       })}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Annual Monthly Sales Column Graph */}
+            <div className="rounded-3xl border border-line bg-bg-elevated/40 p-6 backdrop-blur-sm">
+              <div className="flex items-center gap-2 border-b border-line/45 pb-3 text-gold">
+                <BarChart2 className="h-5 w-5" />
+                <h3 className="font-display text-base font-semibold uppercase tracking-wide">
+                  Annual Monthly Revenue Ledger ({new Date().getFullYear()})
+                </h3>
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                Gross collections split calendar month-by-month.
+              </p>
+
+              <div className="mt-8 flex h-48 items-end gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                {(() => {
+                  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                  const maxMonthRev = Math.max(...data.monthlyBreakdown.map((m) => m.revenue), 1);
+                  return data.monthlyBreakdown.map((m) => {
+                    const heightPercent = (m.revenue / maxMonthRev) * 100;
+                    return (
+                      <div key={m.month} className="flex flex-1 min-w-[45px] flex-col items-center justify-end h-full group relative">
+                        {/* Hover Amount Tooltip */}
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-bg-soft/90 text-gold-soft text-[10px] font-sans font-semibold py-0.5 px-1.5 rounded border border-line/30 mb-2 pointer-events-none whitespace-nowrap absolute bottom-[calc(100%-8px)] z-10">
+                          {formatINR(Math.round(m.revenue))}
+                        </span>
+                        {/* Bar Segment */}
+                        <div
+                          style={{ height: `${Math.max(4, heightPercent)}%` }}
+                          className="w-full rounded-t-md bg-gradient-to-t from-flame-to to-gold shadow-md group-hover:brightness-110 transition-all duration-300"
+                        />
+                        {/* Month Indicator Label */}
+                        <span className="mt-3 text-[10px] uppercase tracking-wider font-semibold text-muted group-hover:text-gold-soft">
+                          {MONTHS[m.month]}
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
@@ -429,10 +477,10 @@ function AnalyticsDashboard() {
                           <td className="py-3.5 font-medium text-ink">
                             {item.name}
                           </td>
-                          <td className="py-3.5 text-center font-semibold text-gold">
+                          <td className="py-3.5 text-center font-sans font-semibold text-gold">
                             {item.quantity}
                           </td>
-                          <td className="py-3.5 text-right font-bold text-gold-soft">
+                          <td className="py-3.5 text-right font-sans font-semibold text-gold-soft">
                             {formatINR(item.revenue)}
                           </td>
                         </tr>
@@ -540,7 +588,7 @@ function AnalyticsDashboard() {
                                     : order.status}
                                 </span>
                               </td>
-                              <td className="py-3.5 text-right font-bold text-gold-soft text-sm">
+                              <td className="py-3.5 text-right font-sans font-semibold text-gold-soft text-sm">
                                 {formatINR(order.total)}
                               </td>
                             </tr>
