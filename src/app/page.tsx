@@ -129,7 +129,7 @@ export default function HomePage() {
           {/* Embedded Google Map */}
           <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
             <iframe
-              src={RESTAURANT.location.mapsEmbedUrl || `https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
+              src={`https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
               className="h-44 w-full opacity-80"
               style={{ border: 0 }}
               allowFullScreen={false}
