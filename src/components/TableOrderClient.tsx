@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Search, ShoppingBag, X } from "lucide-react";
+import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { VegBadge } from "@/components/VegBadge";
@@ -22,9 +23,39 @@ export function TableOrderClient({
   const [filter, setFilter] = useState<"all" | VegFlag>("all");
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
 
   const { setTable, addItem, items, itemCount, subtotal, setQuantity, removeItem } =
     useCart();
+
+  // Handle table token verification and silent URL cleanup
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (tableNumber === 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsVerified(true);
+        return;
+      }
+
+      const url = new URL(window.location.href);
+      const urlToken = url.searchParams.get("token");
+      const expectedToken = RESTAURANT.tableTokens[tableNumber];
+      const savedToken = sessionStorage.getItem(`chatkara_table_${tableNumber}_token`);
+
+      if (urlToken === expectedToken) {
+        sessionStorage.setItem(`chatkara_table_${tableNumber}_token`, urlToken);
+        setIsVerified(true);
+
+        // Remove token from address bar silently
+        url.searchParams.delete("token");
+        window.history.replaceState({}, "", url.pathname + url.search);
+      } else if (savedToken === expectedToken) {
+        setIsVerified(true);
+      } else {
+        setIsVerified(false);
+      }
+    }
+  }, [tableNumber]);
 
   useEffect(() => {
     setTable(tableNumber);
@@ -53,6 +84,53 @@ export function TableOrderClient({
 
   const count = itemCount();
   const total = subtotal();
+
+  if (isVerified === null) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-bg">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (isVerified === false) {
+    return (
+      <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-bg px-4 py-8 text-center">
+        {/* Premium ambient backdrop gradients */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 10% 20%, rgba(212,175,55,0.15), transparent 45%), radial-gradient(circle at 90% 70%, rgba(185,28,28,0.18), transparent 45%)",
+          }}
+        />
+
+        <div className="relative z-10 w-full max-w-md rounded-3xl border border-line bg-bg-elevated/60 p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] animate-fade-up">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-nonveg/10 text-nonveg ring-8 ring-nonveg/5">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+
+          <h2 className="font-display mt-5 text-2xl text-gold">Invalid Table Access</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            Dine-in table ordering is restricted. To browse the menu and order, 
+            please **scan the physical QR code** placed on your table.
+          </p>
+
+          <div className="mt-8 border-t border-line/45 pt-6">
+            <Link 
+              href="/"
+              className="flame-bg block w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+            >
+              Go to Home Page
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-28">
