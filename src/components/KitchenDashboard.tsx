@@ -26,7 +26,7 @@ const LABEL: Record<OrderStatus, string> = {
 
 function playChime() {
   try {
-    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
     const now = ctx.currentTime;
@@ -130,7 +130,7 @@ export function KitchenDashboard() {
   useEffect(() => {
     function unlock() {
       try {
-        const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        const AudioContext = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof window.AudioContext }).webkitAudioContext;
         if (AudioContext) {
           const ctx = new AudioContext();
           const buffer = ctx.createBuffer(1, 1, 22050);
