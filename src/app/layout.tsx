@@ -18,6 +18,39 @@ export const metadata: Metadata = {
   title: "ChatKara — Flavours of India",
   description:
     "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+  metadataBase: new URL("https://chatkara.lagardenia.in"),
+  openGraph: {
+    title: "ChatKara — Flavours of India",
+    description:
+      "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+    url: "https://chatkara.lagardenia.in",
+    siteName: "ChatKara",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ChatKara — Flavours of India",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ChatKara — Flavours of India",
+    description:
+      "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
