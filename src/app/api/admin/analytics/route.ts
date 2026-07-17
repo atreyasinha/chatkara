@@ -97,6 +97,17 @@ export async function GET() {
         ? Math.round((totalPrepTimeMs / prepTimeCount / 60000) * 10) / 10
         : null;
 
+    const todayOrdersFormatted = todayOrders.map((o) => ({
+      id: o.id,
+      tableNumber: o.tableNumber,
+      paymentMethod: o.paymentMethod,
+      paymentStatus: o.paymentStatus,
+      status: o.status,
+      total: o.total,
+      createdAt: o.createdAt,
+      itemsSummary: (o.items || []).map((i) => `${i.name} (${i.quantity})`).join(", "),
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
@@ -110,6 +121,7 @@ export async function GET() {
         topItems,
         tableBreakdown,
         avgPrepTimeMinutes,
+        orders: todayOrdersFormatted,
       },
     });
   } catch (error) {
