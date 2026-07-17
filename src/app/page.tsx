@@ -6,6 +6,50 @@ import { RESTAURANT } from "@/lib/restaurant";
 export default function HomePage() {
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            "name": "ChatKara",
+            "image": "https://chatkara.lagardenia.in/og-image.png",
+            "@id": "https://chatkara.lagardenia.in",
+            "url": "https://chatkara.lagardenia.in",
+            "telephone": "+919876543210",
+            "priceRange": "₹",
+            "menu": "https://chatkara.lagardenia.in/pickup",
+            "servesCuisine": "Indian, Street Food, Chaat, Desserts",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Bokaro Steel City",
+              "addressLocality": "Bokaro",
+              "addressRegion": "Jharkhand",
+              "postalCode": "827001",
+              "addressCountry": "IN"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 23.619147660495543,
+              "longitude": 86.18070429732468
+            },
+            "openingHoursSpecification": {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ],
+              "opens": "11:00",
+              "closes": "23:00"
+            }
+          })
+        }}
+      />
       {/* Premium ambient backdrop gradients */}
       <div
         aria-hidden
