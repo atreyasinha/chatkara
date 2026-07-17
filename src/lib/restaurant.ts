@@ -8,6 +8,7 @@ export const RESTAURANT = {
     state: "Jharkhand",
     country: "India",
     mapsUrl: "https://maps.app.goo.gl/oRCziSfJ1wEnf6DJ6",
+    mapsEmbedUrl: "https://maps.google.com/maps?cid=5884447298413912243&z=16&output=embed",
   },
   /** Replace with your real UPI ID before going live */
   upiId: "gayatrisinha.ibz@icici",
