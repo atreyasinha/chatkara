@@ -18,7 +18,7 @@ export default function HomePage() {
 
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
-        <p className="text-xs uppercase tracking-[0.3em] text-gold-soft">
+        <p className="font-display text-sm italic tracking-wider text-gold-soft/90">
           A La Gardenia Concept
         </p>
         <div className="flex gap-4">
