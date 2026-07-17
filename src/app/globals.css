@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Betania+Patmos&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -124,4 +125,8 @@ body {
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.font-betania {
+  font-family: 'Betania Patmos', cursive;
 }

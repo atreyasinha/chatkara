@@ -1,13 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, QrCode, ShoppingBag, Monitor, Clock } from "lucide-react";
-import { Manufacturing_Consent } from "next/font/google";
 import { RESTAURANT } from "@/lib/restaurant";
-
-const mcFont = Manufacturing_Consent({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export default function HomePage() {
   return (
@@ -24,7 +18,7 @@ export default function HomePage() {
 
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
-        <p className={`${mcFont.className} text-xl tracking-wide text-gold-soft/90`}>
+        <p className="font-betania text-2xl tracking-wide text-gold-soft/90">
           a La Gardenia concept
         </p>
         <div className="flex gap-4">
