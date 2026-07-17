@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Minus, Plus, Search, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { BrandMark } from "@/components/BrandMark";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
 import { VegBadge } from "@/components/VegBadge";
@@ -89,8 +90,18 @@ export function TableOrderClient({
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-bg">
         <div className="relative flex items-center justify-center">
-          <div className="absolute h-12 w-12 rounded-full bg-gold/25 blur-xl animate-pulse" />
-          <div className="h-8 w-8 rounded-full border-2 border-gold/20 border-t-gold animate-spin" />
+          <div className="absolute h-20 w-20 rounded-full bg-gold/20 blur-xl animate-pulse" />
+          <div className="h-16 w-16 rounded-full border-2 border-gold/20 border-t-gold animate-spin" />
+          <div className="absolute h-10 w-10 overflow-hidden rounded-full border border-line bg-bg shadow-md animate-pulse-soft">
+            <Image
+              src="/logo.png"
+              alt="ChatKara Emblem"
+              width={40}
+              height={40}
+              priority
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       </div>
     );
