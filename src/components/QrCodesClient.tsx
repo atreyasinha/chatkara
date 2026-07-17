@@ -105,10 +105,7 @@ export function QrCodesClient() {
                 <div className="rounded-2xl bg-white p-3">
                   <QRCodeSVG value={url} size={160} level="M" />
                 </div>
-                <p className="mt-3 text-center text-[10px] text-muted break-all print:text-neutral-500">
-                  {url}
-                </p>
-                <p className="mt-2 text-xs text-gold print:text-neutral-800">
+                <p className="mt-4 text-xs font-semibold tracking-widest uppercase text-gold print:text-neutral-800">
                   Scan to order
                 </p>
               </div>
