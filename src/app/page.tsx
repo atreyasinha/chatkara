@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, QrCode, UtensilsCrossed, Monitor } from "lucide-react";
+import { MapPin, QrCode, ShoppingBag, Monitor, Clock } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 export default function HomePage() {
-  const tables = Array.from({ length: RESTAURANT.tableCount }, (_, i) => i + 1);
-
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden">
       {/* Premium ambient backdrop gradients */}
@@ -41,66 +39,88 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Welcome & Table Grid */}
-      <section className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-16 pt-4 text-center">
+      {/* Main Section */}
+      <section className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-10 pt-4 text-center">
+        {/* Emblem Only */}
         <div className="animate-fade-up">
           <Image
             src="/logo.png"
-            alt={`${RESTAURANT.name} — ${RESTAURANT.tagline}`}
-            width={180}
-            height={180}
+            alt={RESTAURANT.name}
+            width={240}
+            height={240}
             priority
-            className="mx-auto rounded-full shadow-[0_0_60px_rgba(212,175,55,0.22)]"
+            className="mx-auto rounded-full shadow-[0_0_65px_rgba(212,175,55,0.25)]"
           />
         </div>
 
-        <h1 className="font-display mt-5 animate-fade-up text-5xl tracking-wide text-gold md:text-6xl" style={{ animationDelay: "80ms" }}>
-          चट<span className="flame-text">Kara</span>
-        </h1>
-        <p
-          className="mt-1.5 animate-fade-up text-xs uppercase tracking-[0.35em] text-gold-soft"
-          style={{ animationDelay: "140ms" }}
-        >
-          {RESTAURANT.tagline}
-        </p>
-
-        {/* Premium Card Container for Table Selection */}
+        {/* Order Pickup Button */}
         <div 
-          className="mt-8 w-full max-w-sm rounded-3xl border border-line bg-bg-elevated/60 p-6 backdrop-blur-md animate-fade-up shadow-[0_15px_30px_rgba(0,0,0,0.4)]"
-          style={{ animationDelay: "220ms" }}
+          className="mt-10 w-full flex justify-center animate-fade-up"
+          style={{ animationDelay: "150ms" }}
         >
-          <h2 className="font-display text-lg text-gold flex items-center justify-center gap-2">
-            <UtensilsCrossed className="h-4 w-4 text-gold-soft" />
-            Select Your Table
-          </h2>
-          <p className="mb-5 mt-1 text-xs text-muted">
-            Tap your table number to browse menu & order
-          </p>
+          <Link
+            href="/pickup"
+            className="flame-bg flex w-full max-w-xs items-center justify-center gap-2.5 rounded-2xl py-4 font-semibold text-white transition hover:brightness-110 shadow-lg shadow-flame-from/20 active:scale-[0.98]"
+          >
+            <ShoppingBag className="h-5 w-5" />
+            Order Online Pickup
+          </Link>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-4 gap-3">
-            {tables.map((n) => (
-              <Link
-                key={n}
-                href={`/table/${n}`}
-                className="flex h-12 items-center justify-center rounded-xl border border-line bg-bg-soft font-display text-base font-bold text-gold transition hover:border-gold hover:bg-gold-dim active:scale-[0.96]"
-              >
-                {n}
-              </Link>
-            ))}
-          </div>
+      {/* Professional Copy & Details Panel */}
+      <section className="relative z-10 mx-auto w-full max-w-md border-t border-line bg-bg-elevated/40 px-6 py-8 backdrop-blur-md">
+        {/* Culinary Note */}
+        <div className="text-center">
+          <h2 className="font-display text-2xl text-gold">Flavours of India</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            Savor the rich heritage of slow-cooked gravies, authentic hand-ground spices, 
+            and traditional clay-oven tandoors. Our recipes represent the culinary soul of 
+            North India, crafted with passion.
+          </p>
         </div>
 
-        {/* Quick Location info */}
-        <a
-          href={RESTAURANT.location.mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-10 inline-flex items-center gap-2 text-xs text-muted transition hover:text-gold animate-fade-up"
-          style={{ animationDelay: "320ms" }}
-        >
-          <MapPin className="h-3.5 w-3.5 text-gold-soft" />
-          Visit us: {RESTAURANT.location.city}, {RESTAURANT.location.state}
-        </a>
+        {/* Operating Hours */}
+        <div className="mt-8 border-t border-line/50 pt-6">
+          <div className="flex items-center gap-3 justify-center text-gold-soft">
+            <Clock className="h-5 w-5" />
+            <h3 className="font-display text-lg">Hours of Operation</h3>
+          </div>
+          <p className="mt-2 text-center text-sm text-muted">
+            Open Daily: <span className="font-semibold text-ink">11:30 AM – 10:30 PM</span>
+          </p>
+        </div>
+
+        {/* Location & Embedded Map */}
+        <div className="mt-8 border-t border-line/50 pt-6">
+          <div className="mb-4 flex items-center gap-2 justify-center text-gold-soft">
+            <MapPin className="h-5 w-5" />
+            <h3 className="font-display text-lg">Find Us</h3>
+          </div>
+          
+          {/* Embedded Google Map */}
+          <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
+            <iframe
+              src={`https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
+              className="h-44 w-full opacity-80"
+              style={{ border: 0 }}
+              allowFullScreen={false}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+
+          <div className="mt-3 text-center">
+            <a
+              href={RESTAURANT.location.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted hover:text-gold transition underline underline-offset-4"
+            >
+              Open in Google Maps
+            </a>
+          </div>
+        </div>
       </section>
     </main>
   );

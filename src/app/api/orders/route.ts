@@ -17,10 +17,11 @@ export async function POST(request: Request) {
 
     if (
       !Number.isFinite(tableNumber) ||
-      tableNumber < 1 ||
+      tableNumber < 0 ||
       !Array.isArray(items) ||
       items.length === 0 ||
-      (paymentMethod !== "upi" && paymentMethod !== "cash")
+      (paymentMethod !== "upi" && paymentMethod !== "cash") ||
+      (tableNumber === 0 && paymentMethod !== "upi")
     ) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });
     }

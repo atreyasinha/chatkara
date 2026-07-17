@@ -263,7 +263,7 @@ export function KitchenDashboard() {
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
                     <p className="font-display text-2xl text-gold">
-                      Table {order.tableNumber}
+                      {order.tableNumber === 0 ? "Pickup" : `Table ${order.tableNumber}`}
                     </p>
                     <p className="text-xs text-muted">
                       #{order.id.slice(0, 8).toUpperCase()} ·{" "}

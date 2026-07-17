@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { Banknote, CheckCircle2, Smartphone, X } from "lucide-react";
@@ -20,6 +20,13 @@ export function CheckoutSheet({
   const router = useRouter();
   const { items, subtotal, clear } = useCart();
   const [method, setMethod] = useState<PaymentMethod>("upi");
+
+  useEffect(() => {
+    if (tableNumber === 0 && method !== "upi") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMethod("upi");
+    }
+  }, [tableNumber, method]);
   const [phone, setPhone] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("chatkara_customer_phone") || "";
@@ -146,7 +153,7 @@ export function CheckoutSheet({
             Pay {formatINR(order.total)} in cash when your food arrives.
           </p>
           <p className="mt-1 text-xs text-muted">
-            Order #{order.id.slice(0, 8).toUpperCase()} · Table {order.tableNumber}
+            Order #{order.id.slice(0, 8).toUpperCase()} · {order.tableNumber === 0 ? "Pickup" : `Table ${order.tableNumber}`}
           </p>
           <button
             type="button"
@@ -201,34 +208,42 @@ export function CheckoutSheet({
             <p className="mb-2 text-xs uppercase tracking-wider text-muted">
               Payment method
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setMethod("upi")}
-                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
-                  method === "upi"
-                    ? "border-gold bg-gold-dim"
-                    : "border-line bg-bg-soft"
-                }`}
-              >
-                <Smartphone className="h-6 w-6 text-gold" />
-                <span className="text-sm font-semibold">UPI</span>
-                <span className="text-[10px] text-muted">GPay · PhonePe · Paytm</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMethod("cash")}
-                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
-                  method === "cash"
-                    ? "border-gold bg-gold-dim"
-                    : "border-line bg-bg-soft"
-                }`}
-              >
-                <Banknote className="h-6 w-6 text-gold" />
-                <span className="text-sm font-semibold">Cash</span>
-                <span className="text-[10px] text-muted">Pay at table</span>
-              </button>
-            </div>
+            {tableNumber === 0 ? (
+              <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 text-center">
+                <Smartphone className="mx-auto h-6 w-6 text-gold mb-1" />
+                <span className="block text-sm font-semibold text-gold">UPI Payment Required</span>
+                <span className="block text-[11px] text-muted mt-0.5">Cash payment is not available for online pickup orders.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMethod("upi")}
+                  className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
+                    method === "upi"
+                      ? "border-gold bg-gold-dim"
+                      : "border-line bg-bg-soft"
+                  }`}
+                >
+                  <Smartphone className="h-6 w-6 text-gold" />
+                  <span className="text-sm font-semibold">UPI</span>
+                  <span className="text-[10px] text-muted">GPay · PhonePe · Paytm</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMethod("cash")}
+                  className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
+                    method === "cash"
+                      ? "border-gold bg-gold-dim"
+                      : "border-line bg-bg-soft"
+                  }`}
+                >
+                  <Banknote className="h-6 w-6 text-gold" />
+                  <span className="text-sm font-semibold">Cash</span>
+                  <span className="text-[10px] text-muted">Pay at table</span>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-line bg-bg-soft p-4 text-sm">

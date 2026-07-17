@@ -60,7 +60,9 @@ export function TableOrderClient({
         <div className="flex items-center justify-between gap-3">
           <BrandMark size="sm" />
           <div className="text-right">
-            <p className="font-display text-lg text-gold">Table {tableNumber}</p>
+            <p className="font-display text-lg text-gold">
+              {tableNumber === 0 ? "Online Pickup" : `Table ${tableNumber}`}
+            </p>
             <p className="text-xs text-muted">{RESTAURANT.tagline}</p>
           </div>
         </div>

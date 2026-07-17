@@ -98,7 +98,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
 
       <div className="mt-8 rounded-3xl border border-line bg-bg-elevated p-5 animate-fade-up">
         <p className="text-xs uppercase tracking-[0.2em] text-muted">
-          Table {order.tableNumber}
+          {order.tableNumber === 0 ? "Pickup Order" : `Table ${order.tableNumber}`}
         </p>
         <h1 className="font-display mt-1 text-3xl text-gold">
           {STATUS_LABEL[order.status]}
@@ -124,10 +124,10 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       </div>
 
       <Link
-        href={`/table/${order.tableNumber}?parentOrderId=${order.id}`}
+        href={order.tableNumber === 0 ? `/pickup?parentOrderId=${order.id}` : `/table/${order.tableNumber}?parentOrderId=${order.id}`}
         className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
       >
-        Order more from this table
+        {order.tableNumber === 0 ? "Order more (Pickup)" : "Order more from this table"}
       </Link>
 
       <ul className="mt-4 space-y-2">
