@@ -24,7 +24,7 @@ export default function HomePage() {
       </nav>
 
       {/* Main Section */}
-      <section className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-10 pt-4 text-center">
+      <section className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-10 pt-16 text-center">
         {/* Emblem Only */}
         <div className="animate-fade-up">
           <Image
