@@ -90,7 +90,7 @@ export function QrCodesClient() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-2 print-grid">
           {tables.map((n) => {
-            const url = `${origin}/table/${n}`;
+            const url = `${origin}/table/${n}?token=${RESTAURANT.tableTokens[n]}`;
             return (
               <div
                 key={n}

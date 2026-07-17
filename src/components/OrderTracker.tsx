@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
-import { formatINR } from "@/lib/restaurant";
+import { formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { Order, OrderStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -136,7 +136,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
 
       {order.tableNumber !== 0 && (
         <Link
-          href={`/table/${order.tableNumber}?parentOrderId=${order.id}`}
+          href={`/table/${order.tableNumber}?parentOrderId=${order.id}&token=${RESTAURANT.tableTokens[order.tableNumber]}`}
           className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
         >
           Order more from this table

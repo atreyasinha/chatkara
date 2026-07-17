@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { Banknote, CheckCircle2, Smartphone, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { buildUpiLink, formatINR, RESTAURANT, getDistanceMeters } from "@/lib/restaurant";
+import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { Order, PaymentMethod } from "@/lib/types";
 
 export function CheckoutSheet({
@@ -56,39 +56,6 @@ export function CheckoutSheet({
     setLoading(true);
     setError("");
     try {
-      if (tableNumber > 0 && RESTAURANT.geolockEnabled) {
-        if (typeof window === "undefined" || !navigator.geolocation) {
-          throw new Error("Geolocation is not supported by your browser. Please enable location permissions.");
-        }
-        try {
-          const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => resolve(pos.coords),
-              (err) => reject(err),
-              { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-            );
-          });
-          const dist = getDistanceMeters(
-            coords.latitude,
-            coords.longitude,
-            RESTAURANT.location.lat,
-            RESTAURANT.location.lng
-          );
-          if (dist > RESTAURANT.geolockRadiusMeters) {
-            throw new Error(`Dine-in orders must be placed within the restaurant. You are currently ${Math.round(dist)}m away.`);
-          }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-          if (err.code === 1) {
-            throw new Error("Location permission denied. Please allow location access to place a dine-in order.");
-          } else if (err.code === 3) {
-            throw new Error("Location verification timed out. Please try again.");
-          } else {
-            throw new Error(err.message || "Failed to verify location. Please ensure GPS is enabled.");
-          }
-        }
-      }
-
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
