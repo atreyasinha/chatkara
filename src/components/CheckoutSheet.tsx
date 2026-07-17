@@ -6,7 +6,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { Banknote, CheckCircle2, Smartphone, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { Order, PaymentMethod } from "@/lib/types";
 
@@ -85,7 +84,9 @@ export function CheckoutSheet({
       clear();
       if (tableNumber > 0) {
         try {
-          const tableCartRef = doc(db, "table_carts", `table_${tableNumber}`);
+          const { getClientDb } = await import("@/lib/firebase-client");
+          const dbClient = await getClientDb();
+          const tableCartRef = doc(dbClient, "table_carts", `table_${tableNumber}`);
           await setDoc(tableCartRef, { items: [], updatedAt: new Date().toISOString() }, { merge: true });
         } catch (err) {
           console.error("Failed to clear shared table cart session:", err);
