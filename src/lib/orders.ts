@@ -7,17 +7,18 @@ import {
   orderBy,
   setDoc,
   updateDoc,
+  deleteDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { randomUUID } from "crypto";
-import { RESTAURANT } from "./restaurant";
+import { computeOrderTotals, mergeCartItems } from "./order-math";
 import type { CartItem, Order, OrderStatus, PaymentMethod } from "./types";
 
 const ORDERS_COLLECTION = "orders";
 
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
- * Standard queries are used here to retrieve standard collections of documents from Firestore on the server side.
  */
 export async function listOrders(): Promise<Order[]> {
   try {
@@ -27,11 +28,11 @@ export async function listOrders(): Promise<Order[]> {
     );
     const querySnapshot = await getDocs(q);
     const results: Order[] = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data() as Order;
+    querySnapshot.forEach((snap) => {
+      const data = snap.data() as Order;
       results.push({
         ...data,
-        id: data.id || doc.id,
+        id: data.id || snap.id,
         subtotal: data.subtotal || data.total || 0,
         gst: data.gst || 0,
         paymentMethod: data.paymentMethod || "cash",
@@ -92,10 +93,10 @@ export async function createOrder(input: {
   customerPhone?: string;
   notes?: string;
   parentOrderId?: string;
+  isTest?: boolean;
 }): Promise<Order> {
   const now = new Date().toISOString();
 
-  // Check if we should append to an existing active order
   if (input.parentOrderId) {
     try {
       const parentOrder = await getOrder(input.parentOrderId);
@@ -105,25 +106,8 @@ export async function createOrder(input: {
         parentOrder.status !== "cancelled" &&
         parentOrder.paymentStatus !== "paid"
       ) {
-        // Merge items (aggregate quantities of duplicate items)
-        const mergedItems = [...parentOrder.items];
-        for (const newItem of input.items) {
-          const existing = mergedItems.find(
-            (i) => i.itemId === newItem.itemId && i.notes === newItem.notes
-          );
-          if (existing) {
-            existing.quantity += newItem.quantity;
-          } else {
-            mergedItems.push(newItem);
-          }
-        }
-
-        const subtotal = mergedItems.reduce(
-          (sum, i) => sum + i.price * i.quantity,
-          0,
-        );
-        const gst = Math.round((subtotal * RESTAURANT.gstPercent) / 100);
-        const total = subtotal + gst;
+        const mergedItems = mergeCartItems(parentOrder.items, input.items);
+        const { subtotal, gst, total } = computeOrderTotals(mergedItems);
 
         const updatedOrder: Order = {
           ...parentOrder,
@@ -131,8 +115,9 @@ export async function createOrder(input: {
           subtotal,
           gst,
           total,
-          status: "pending", // Reset to pending to alert the kitchen
+          status: "pending",
           updatedAt: now,
+          isTest: parentOrder.isTest || input.isTest,
         };
 
         if (input.notes) {
@@ -146,18 +131,15 @@ export async function createOrder(input: {
         return updatedOrder;
       }
     } catch (err) {
-      console.error("Failed to append to parent order, fallback to new order:", err);
+      console.error(
+        "Failed to append to parent order, fallback to new order:",
+        err,
+      );
     }
   }
 
-  // Fallback: Create a new order
   const id = randomUUID();
-  const subtotal = input.items.reduce(
-    (sum, i) => sum + i.price * i.quantity,
-    0,
-  );
-  const gst = Math.round((subtotal * RESTAURANT.gstPercent) / 100);
-  const total = subtotal + gst;
+  const { subtotal, gst, total } = computeOrderTotals(input.items);
 
   const order: Order = {
     id,
@@ -175,6 +157,7 @@ export async function createOrder(input: {
     notes: input.notes,
     createdAt: now,
     updatedAt: now,
+    isTest: input.isTest || undefined,
   };
 
   try {
@@ -188,9 +171,6 @@ export async function createOrder(input: {
   return order;
 }
 
-/**
- * Update the kitchen status of an order.
- */
 export async function updateOrderStatus(
   id: string,
   status: OrderStatus,
@@ -200,17 +180,19 @@ export async function updateOrderStatus(
     if (!order) return undefined;
 
     order.status = status;
+    const nowStr = new Date().toISOString();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updates: any = {
+    const updates: Record<string, any> = {
       status: order.status,
+      updatedAt: nowStr,
     };
 
     if (status === "served") {
-      const nowStr = new Date().toISOString();
       order.completedAt = nowStr;
       updates.completedAt = nowStr;
     }
 
+    order.updatedAt = nowStr;
     const docRef = doc(db, ORDERS_COLLECTION, id);
     await updateDoc(docRef, updates);
     return order;
@@ -220,9 +202,6 @@ export async function updateOrderStatus(
   }
 }
 
-/**
- * Mark an order payment status as paid, updating kitchen status if necessary.
- */
 export async function markOrderPaid(id: string): Promise<Order | undefined> {
   try {
     const docRef = doc(db, ORDERS_COLLECTION, id);
@@ -245,4 +224,49 @@ export async function markOrderPaid(id: string): Promise<Order | undefined> {
     console.error(`Error marking order ${id} as paid in Firestore:`, error);
     return undefined;
   }
+}
+
+/** Delete a single order document (used by test cleanup). */
+export async function deleteOrder(id: string): Promise<boolean> {
+  try {
+    await deleteDoc(doc(db, ORDERS_COLLECTION, id));
+    return true;
+  } catch (error) {
+    console.error(`Error deleting order ${id}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Delete every order tagged `isTest: true`.
+ * Prefer indexed query; fall back to scanning listOrders if the index is missing.
+ */
+export async function deleteTestOrders(): Promise<number> {
+  let deleted = 0;
+
+  try {
+    const q = query(
+      collection(db, ORDERS_COLLECTION),
+      where("isTest", "==", true),
+    );
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      await deleteDoc(d.ref);
+      deleted++;
+    }
+    return deleted;
+  } catch (error) {
+    console.warn(
+      "Indexed isTest query failed; falling back to full scan:",
+      error,
+    );
+  }
+
+  const all = await listOrders();
+  for (const order of all) {
+    if (order.isTest) {
+      if (await deleteOrder(order.id)) deleted++;
+    }
+  }
+  return deleted;
 }

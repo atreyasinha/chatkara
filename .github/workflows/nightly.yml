@@ -1,0 +1,94 @@
+name: Nightly full suite
+
+on:
+  schedule:
+    # 18:30 UTC ≈ midnight IST
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-tests
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    name: Unit + integration + e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+      FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+      FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup mise (Node 20)
+        uses: jdx/mise-action@v2
+        with:
+          install_args: "node@20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start production server
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 &
+          echo $! > /tmp/chatkara-server.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3000/api/config >/dev/null; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: Integration API tests
+        run: npm run test:integration
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E customer UI tests
+        run: npx playwright test --project=chromium
+
+      - name: Cleanup Firestore test orders
+        if: always()
+        run: npm run test:cleanup
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f /tmp/chatkara-server.pid ]; then
+            kill "$(cat /tmp/chatkara-server.pid)" || true
+          fi
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listOrders } from "@/lib/orders";
+import { isActiveOrderStatus } from "@/lib/sanitize-order-items";
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
         return; // Exclude cancelled orders from revenue and item sales
       }
 
-      if (["pending", "confirmed", "cooking", "ready"].includes(order.status)) {
+      if (isActiveOrderStatus(order.status)) {
         activeOrders++;
       } else if (order.status === "served") {
         completedOrders++;

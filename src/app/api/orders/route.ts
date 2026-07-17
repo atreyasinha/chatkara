@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { createOrder, listOrders } from "@/lib/orders";
-import { MENU } from "@/lib/menu";
+import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+function isAuthorizedTestRequest(request: Request): boolean {
+  const secret = process.env.E2E_TEST_SECRET;
+  if (!secret) return false;
+  return request.headers.get("x-chatkara-test-key") === secret;
+}
 
 export async function GET() {
   return NextResponse.json({ orders: await listOrders() });
@@ -15,6 +21,7 @@ export async function POST(request: Request) {
     const tableNumber = Number(body.tableNumber);
     const items = body.items as CartItem[];
     const paymentMethod = body.paymentMethod as PaymentMethod;
+    const isTest = isAuthorizedTestRequest(request);
 
     if (
       !Number.isFinite(tableNumber) ||
@@ -27,34 +34,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });
     }
 
-    const sanitized: CartItem[] = [];
-    for (const item of items) {
-      const dbItem = MENU.find((m) => m.id === item.itemId);
-      if (!dbItem) {
-        return NextResponse.json({ error: `Item not found: ${item.itemId}` }, { status: 400 });
-      }
-      sanitized.push({
-        itemId: String(item.itemId),
-        name: dbItem.name,
-        price: dbItem.price,
-        quantity: Math.max(1, Math.min(20, Number(item.quantity) || 1)),
-        veg: dbItem.veg,
-        notes: item.notes ? String(item.notes) : undefined,
-      });
+    const sanitized = sanitizeOrderItems(items);
+    if (!sanitized.ok) {
+      return NextResponse.json({ error: sanitized.error }, { status: 400 });
     }
 
     const order = await createOrder({
       tableNumber,
-      items: sanitized,
+      items: sanitized.items,
       paymentMethod,
       customerName: body.customerName ? String(body.customerName) : undefined,
-      customerPhone: body.customerPhone ? String(body.customerPhone) : undefined,
+      customerPhone: body.customerPhone
+        ? String(body.customerPhone)
+        : undefined,
       notes: body.notes ? String(body.notes) : undefined,
-      parentOrderId: body.parentOrderId ? String(body.parentOrderId) : undefined,
+      parentOrderId: body.parentOrderId
+        ? String(body.parentOrderId)
+        : undefined,
+      isTest: isTest || undefined,
     });
 
     return NextResponse.json({ order }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create order" },
+      { status: 500 },
+    );
   }
 }

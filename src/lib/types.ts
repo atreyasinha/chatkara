@@ -45,4 +45,6 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  /** Set by automated tests so nightly cleanup can delete safely. */
+  isTest?: boolean;
 }
