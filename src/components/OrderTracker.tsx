@@ -16,6 +16,15 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+const PICKUP_STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: "Received",
+  confirmed: "Confirmed",
+  preparing: "Cooking",
+  ready: "Ready for Pickup",
+  served: "Picked Up",
+  cancelled: "Cancelled",
+};
+
 const STATUS_STEP: OrderStatus[] = [
   "pending",
   "confirmed",
@@ -92,6 +101,8 @@ export function OrderTracker({ orderId }: { orderId: string }) {
     order.status === "cancelled" ? "pending" : order.status,
   );
 
+  const labels = order.tableNumber === 0 ? PICKUP_STATUS_LABEL : STATUS_LABEL;
+
   return (
     <div className="mx-auto min-h-dvh w-full max-w-lg px-4 py-6">
       <BrandMark size="md" href="/" />
@@ -101,7 +112,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
           {order.tableNumber === 0 ? "Pickup Order" : `Table ${order.tableNumber}`}
         </p>
         <h1 className="font-display mt-1 text-3xl text-gold">
-          {STATUS_LABEL[order.status]}
+          {labels[order.status]}
         </h1>
         <p className="mt-1 text-sm text-muted">
           Order #{order.id.slice(0, 8).toUpperCase()}
@@ -116,19 +127,21 @@ export function OrderTracker({ orderId }: { orderId: string }) {
                     i <= stepIndex ? "flame-bg" : "bg-bg-soft"
                   }`}
                 />
-                <span className="text-[10px] text-muted">{STATUS_LABEL[s]}</span>
+                <span className="text-[10px] text-muted">{labels[s]}</span>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <Link
-        href={order.tableNumber === 0 ? `/pickup?parentOrderId=${order.id}` : `/table/${order.tableNumber}?parentOrderId=${order.id}`}
-        className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
-      >
-        {order.tableNumber === 0 ? "Order more (Pickup)" : "Order more from this table"}
-      </Link>
+      {order.tableNumber !== 0 && (
+        <Link
+          href={`/table/${order.tableNumber}?parentOrderId=${order.id}`}
+          className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+        >
+          Order more from this table
+        </Link>
+      )}
 
       <ul className="mt-4 space-y-2">
         {order.items.map((item) => (

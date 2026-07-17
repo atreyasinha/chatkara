@@ -27,6 +27,12 @@ export function CheckoutSheet({
       setMethod("upi");
     }
   }, [tableNumber, method]);
+  const [name, setName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("chatkara_customer_name") || "";
+    }
+    return "";
+  });
   const [phone, setPhone] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("chatkara_customer_phone") || "";
@@ -57,6 +63,7 @@ export function CheckoutSheet({
           tableNumber,
           items,
           paymentMethod: method,
+          customerName: tableNumber === 0 ? name || undefined : undefined,
           customerPhone: phone || undefined,
           notes: notes || undefined,
           parentOrderId: parentOrderId || undefined,
@@ -66,6 +73,9 @@ export function CheckoutSheet({
       if (!res.ok) throw new Error(data.error || "Failed");
 
       if (typeof window !== "undefined") {
+        if (tableNumber === 0 && name) {
+          localStorage.setItem("chatkara_customer_name", name);
+        }
         if (phone) localStorage.setItem("chatkara_customer_phone", phone);
       }
 
@@ -178,6 +188,19 @@ export function CheckoutSheet({
         </div>
 
         <div className="space-y-4 px-4 py-4">
+          {tableNumber === 0 && (
+            <div>
+              <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+                Your Name (Required)
+              </label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+                placeholder="Enter name for pickup"
+              />
+            </div>
+          )}
 
           <div>
             <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
@@ -265,7 +288,7 @@ export function CheckoutSheet({
 
           <button
             type="button"
-            disabled={loading || items.length === 0 || phone.trim().length !== 10}
+            disabled={loading || items.length === 0 || phone.trim().length !== 10 || (tableNumber === 0 && name.trim().length === 0)}
             onClick={placeOrder}
             className="flame-bg w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50"
           >
@@ -273,9 +296,11 @@ export function CheckoutSheet({
               ? "Placing order…"
               : phone.trim().length !== 10
                 ? "Enter 10-digit Phone"
-                : method === "upi"
-                  ? `Place order · Pay ${formatINR(total)}`
-                  : `Place order · Pay cash ${formatINR(total)}`}
+                : (tableNumber === 0 && name.trim().length === 0)
+                  ? "Enter Your Name"
+                  : method === "upi"
+                    ? `Place order · Pay ${formatINR(total)}`
+                    : `Place order · Pay cash ${formatINR(total)}`}
           </button>
         </div>
       </div>
