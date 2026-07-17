@@ -19,7 +19,7 @@ export default function HomePage() {
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
         <p className="text-xs uppercase tracking-[0.3em] text-gold-soft">
-          {RESTAURANT.location.city} · {RESTAURANT.location.state}
+          A La Gardenia Concept
         </p>
         <div className="flex gap-4">
           <Link
