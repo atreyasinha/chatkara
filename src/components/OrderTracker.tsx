@@ -92,7 +92,10 @@ export function OrderTracker({ orderId }: { orderId: string }) {
   if (!order) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg items-center justify-center">
-        <p className="animate-pulse-soft text-muted">Loading order…</p>
+        <div className="relative flex items-center justify-center">
+          <div className="absolute h-12 w-12 rounded-full bg-gold/25 blur-xl animate-pulse" />
+          <div className="h-8 w-8 rounded-full border-2 border-gold/20 border-t-gold animate-spin" />
+        </div>
       </div>
     );
   }

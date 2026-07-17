@@ -87,8 +87,11 @@ export function TableOrderClient({
 
   if (isVerified === null) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-bg">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-bg">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute h-12 w-12 rounded-full bg-gold/25 blur-xl animate-pulse" />
+          <div className="h-8 w-8 rounded-full border-2 border-gold/20 border-t-gold animate-spin" />
+        </div>
       </div>
     );
   }
