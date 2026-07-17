@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, QrCode, ShoppingBag, Monitor, Clock } from "lucide-react";
-import { Pinyon_Script } from "next/font/google";
+import { Playfair_Display } from "next/font/google";
 import { RESTAURANT } from "@/lib/restaurant";
 
-const pinyon = Pinyon_Script({
-  weight: "400",
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  style: "italic",
+  weight: "400",
 });
 
 export default function HomePage() {
@@ -24,7 +25,7 @@ export default function HomePage() {
 
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
-        <p className={`${pinyon.className} text-2xl text-gold-soft/90`}>
+        <p className={`${playfair.className} text-sm tracking-wider text-gold-soft/95`}>
           A La Gardenia Concept
         </p>
         <div className="flex gap-4">
