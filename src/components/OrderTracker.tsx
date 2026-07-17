@@ -206,7 +206,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +
             `*Thank you for ordering with us at ChatKara!*`;
           
-          const url = `https://wa.me/?text=${encodeURIComponent(receiptText)}`;
+          const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(receiptText)}`;
           window.open(url, "_blank");
         }}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600/30 bg-green-500/10 py-3 text-center text-sm font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98]"
