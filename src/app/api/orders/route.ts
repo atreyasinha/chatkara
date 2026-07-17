@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrder, listOrders } from "@/lib/orders";
+import { MENU } from "@/lib/menu";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -26,17 +27,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });
     }
 
-    const sanitized: CartItem[] = items.map((i) => ({
-      itemId: String(i.itemId),
-      name: String(i.name),
-      price: Number(i.price),
-      quantity: Math.max(1, Math.min(20, Number(i.quantity) || 1)),
-      veg: i.veg,
-      notes: i.notes ? String(i.notes) : undefined,
-    }));
-
-    if (sanitized.some((i) => !i.itemId || !i.name || !Number.isFinite(i.price))) {
-      return NextResponse.json({ error: "Invalid items" }, { status: 400 });
+    const sanitized: CartItem[] = [];
+    for (const item of items) {
+      const dbItem = MENU.find((m) => m.id === item.itemId);
+      if (!dbItem) {
+        return NextResponse.json({ error: `Item not found: ${item.itemId}` }, { status: 400 });
+      }
+      sanitized.push({
+        itemId: String(item.itemId),
+        name: dbItem.name,
+        price: dbItem.price,
+        quantity: Math.max(1, Math.min(20, Number(item.quantity) || 1)),
+        veg: dbItem.veg,
+        notes: item.notes ? String(item.notes) : undefined,
+      });
     }
 
     const order = await createOrder({
