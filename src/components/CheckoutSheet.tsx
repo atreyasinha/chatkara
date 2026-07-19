@@ -128,6 +128,9 @@ export function CheckoutSheet({
 
       setOrder(data.order);
       clear();
+      if (method === "cash") {
+        router.push(`/order/${data.order.id}`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -194,27 +197,7 @@ export function CheckoutSheet({
   }
 
   if (order && method === "cash") {
-    return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-        <div className="w-full max-w-lg rounded-t-3xl border border-line bg-bg-elevated p-6 text-center sm:rounded-3xl animate-fade-up">
-          <CheckCircle2 className="mx-auto mb-3 h-14 w-14 text-veg" />
-          <h3 className="font-display text-2xl text-gold">Order placed!</h3>
-          <p className="mt-2 text-sm text-muted">
-            Pay {formatINR(order.total)} in cash when your food arrives.
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            Order #{order.id.slice(0, 8).toUpperCase()} · {order.tableNumber === 0 ? "Pickup" : `Table ${order.tableNumber}`}
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push(`/order/${order.id}`)}
-            className="flame-bg mt-6 w-full rounded-xl py-3 font-semibold text-white"
-          >
-            Track order
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
