@@ -37,6 +37,7 @@ const STATUS_STEP: OrderStatus[] = [
 export function OrderTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const [itemsExpanded, setItemsExpanded] = useState(false);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -157,24 +158,59 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         </Link>
       )}
 
-      <ul className="mt-4 space-y-2">
-        {order.items.map((item) => (
-          <li
-            key={item.itemId}
-            className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated/80 px-4 py-3"
-          >
-            <VegBadge veg={item.veg} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium">
-                {item.quantity}× {item.name}
-              </p>
-            </div>
-            <span className="text-sm text-gold">
-              {formatINR(item.price * item.quantity)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 rounded-3xl border border-line bg-bg-elevated/50 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setItemsExpanded(!itemsExpanded)}
+          className="flex w-full items-center justify-between px-5 py-4 text-sm font-semibold text-gold hover:bg-bg-soft/20 transition active:scale-[0.99]"
+        >
+          <span>Items Ordered ({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span>
+          <span className="text-xs text-muted flex items-center gap-1">
+            {itemsExpanded ? "Hide Details" : "View Details"}
+            <svg
+              className={`h-4 w-4 transform transition-transform duration-200 ${
+                itemsExpanded ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </span>
+        </button>
+
+        {itemsExpanded && (
+          <ul className="border-t border-line divide-y divide-line/30 bg-bg-soft/10">
+            {order.items.map((item) => (
+              <li
+                key={`${item.itemId}-${item.notes || ""}`}
+                className="flex items-center gap-3 px-5 py-3 text-sm animate-fade-in"
+              >
+                <VegBadge veg={item.veg} />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">
+                    {item.quantity}× {item.name}
+                  </p>
+                  {item.notes && (
+                    <p className="mt-0.5 text-xs text-muted">
+                      Note: {item.notes}
+                    </p>
+                  )}
+                </div>
+                <span className="font-semibold text-gold">
+                  {formatINR(item.price * item.quantity)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div className="mt-4 rounded-2xl border border-line bg-bg-soft p-4 text-sm">
         <div className="flex justify-between text-muted">
