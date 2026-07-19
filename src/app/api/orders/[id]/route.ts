@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getOrder, markOrderPaid, updateOrderStatus } from "@/lib/orders";
+import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import type { OrderStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,12 +30,23 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!isAdminRequest(request)) return unauthorizedJson();
+
   const { id } = await params;
   try {
     const body = await request.json();
 
     if (body.markPaid === true) {
       const order = await markOrderPaid(id);
+      if (!order) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+      }
+      return NextResponse.json({ order });
+    }
+
+    if (body.clearKitchenAck === true) {
+      const { clearKitchenAck } = await import("@/lib/orders");
+      const order = await clearKitchenAck(id);
       if (!order) {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }

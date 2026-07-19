@@ -109,13 +109,15 @@ export async function createOrder(input: {
         const mergedItems = mergeCartItems(parentOrder.items, input.items);
         const { subtotal, gst, total } = computeOrderTotals(mergedItems);
 
+        // Keep kitchen progress; flag so staff sees new items were added.
         const updatedOrder: Order = {
           ...parentOrder,
           items: mergedItems,
           subtotal,
           gst,
           total,
-          status: "pending",
+          status: parentOrder.status,
+          needsKitchenAck: true,
           updatedAt: now,
           isTest: parentOrder.isTest || input.isTest,
         };
@@ -222,6 +224,23 @@ export async function markOrderPaid(id: string): Promise<Order | undefined> {
     return order;
   } catch (error) {
     console.error(`Error marking order ${id} as paid in Firestore:`, error);
+    return undefined;
+  }
+}
+
+export async function clearKitchenAck(id: string): Promise<Order | undefined> {
+  try {
+    const order = await getOrder(id);
+    if (!order) return undefined;
+    order.needsKitchenAck = false;
+    order.updatedAt = new Date().toISOString();
+    await updateDoc(doc(db, ORDERS_COLLECTION, id), {
+      needsKitchenAck: false,
+      updatedAt: order.updatedAt,
+    });
+    return order;
+  } catch (error) {
+    console.error(`Error clearing kitchen ack for ${id}:`, error);
     return undefined;
   }
 }

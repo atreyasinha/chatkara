@@ -90,19 +90,8 @@ export function CheckoutSheet({
 
   async function confirmUpiPaid() {
     if (!order) return;
-    setLoading(true);
-    try {
-      await fetch(`/api/orders/${order.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ markPaid: true }),
-      });
-      router.push(`/order/${order.id}`);
-    } catch {
-      setError("Could not confirm payment");
-    } finally {
-      setLoading(false);
-    }
+    // Payment is confirmed by kitchen staff after UPI settles — customers only track.
+    router.push(`/order/${order.id}`);
   }
 
   if (order && method === "upi") {
@@ -128,8 +117,12 @@ export function CheckoutSheet({
           <p className="mb-1 text-center text-sm text-muted">
             Scan with GPay, PhonePe, Paytm, or BHIM
           </p>
-          <p className="mb-4 text-center text-xs text-muted">
+          <p className="mb-2 text-center text-xs text-muted">
             UPI ID: {RESTAURANT.upiId}
+          </p>
+          <p className="mb-4 text-center text-xs text-gold/90">
+            After you pay, staff will confirm it on the kitchen board. Your order
+            is already with the kitchen.
           </p>
 
           <a
@@ -146,7 +139,7 @@ export function CheckoutSheet({
             onClick={confirmUpiPaid}
             className="w-full rounded-xl border border-gold/50 py-3 font-semibold text-gold hover:bg-gold-dim disabled:opacity-50"
           >
-            I&apos;ve paid — confirm
+            I&apos;ve paid — track order
           </button>
         </div>
       </div>

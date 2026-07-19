@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { listOrders } from "@/lib/orders";
 import { isActiveOrderStatus } from "@/lib/sanitize-order-items";
+import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
+  if (!isAdminRequest(request)) return unauthorizedJson();
   try {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";

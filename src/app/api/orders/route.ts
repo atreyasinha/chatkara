@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
+import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ function isAuthorizedTestRequest(request: Request): boolean {
   return request.headers.get("x-chatkara-test-key") === secret;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAdminRequest(request)) return unauthorizedJson();
   return NextResponse.json({ orders: await listOrders() });
 }
 

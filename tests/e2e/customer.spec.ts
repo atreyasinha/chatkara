@@ -53,4 +53,15 @@ test.describe("Admin UI gates", () => {
       page.getByRole("button", { name: /unlock dashboard/i }),
     ).toBeVisible();
   });
+
+  test("checkout UPI does not offer self-serve mark paid", async ({ page }) => {
+    const token = RESTAURANT.tableTokens[2];
+    await page.goto(`/table/2?token=${token}`);
+    await page.getByRole("button", { name: /^add$/i }).first().click();
+    await page.getByText(/view cart/i).click();
+    await page.getByRole("button", { name: /proceed to pay/i }).click();
+    await expect(page.getByText(/checkout/i)).toBeVisible();
+    // Place order path is covered in integration; UI copy for confirm changed.
+    await expect(page.getByText(/i'?ve paid — confirm/i)).toHaveCount(0);
+  });
 });

@@ -65,7 +65,9 @@ function AnalyticsDashboard() {
     setError("");
 
     try {
-      const res = await fetch(`/api/admin/analytics?timeframe=${selectedTimeframe}`);
+      const res = await fetch(`/api/admin/analytics?timeframe=${selectedTimeframe}`, {
+        credentials: "include",
+      });
       const json = await res.json();
       if (res.ok && json.success) {
         setData(json.data);

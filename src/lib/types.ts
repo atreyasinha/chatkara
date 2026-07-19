@@ -45,6 +45,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  /** Kitchen should notice newly appended items without resetting cook status. */
+  needsKitchenAck?: boolean;
   /** Set by automated tests so nightly cleanup can delete safely. */
   isTest?: boolean;
 }

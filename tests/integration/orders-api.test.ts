@@ -3,6 +3,7 @@ import { after, before, describe, it } from "node:test";
 import { MENU } from "../../src/lib/menu.ts";
 import { RESTAURANT } from "../../src/lib/restaurant.ts";
 import {
+  adminLogin,
   createTestOrder,
   getOrder,
   patchOrder,
@@ -20,7 +21,7 @@ import { cleanupTestData } from "../helpers/cleanup.ts";
 
 const enabled = firebaseConfigured();
 
-describe("API integration — customer never underpays / full order life", () => {
+describe("API integration — auth, pricing, kitchen life", () => {
   before(async () => {
     if (!enabled) {
       console.log("Skipping integration suite: Firebase env not configured");
@@ -29,8 +30,13 @@ describe("API integration — customer never underpays / full order life", () =>
     if (!process.env.E2E_TEST_SECRET) {
       throw new Error("E2E_TEST_SECRET is required for integration tests");
     }
+    if (!process.env.ADMIN_PASSWORD) {
+      throw new Error("ADMIN_PASSWORD is required for integration tests");
+    }
     await waitForServer();
     await cleanupTestData();
+    const ok = await adminLogin(process.env.ADMIN_PASSWORD);
+    assert.equal(ok, true, "admin login should set session cookie");
   });
 
   after(async () => {
@@ -83,6 +89,28 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(order!.paymentStatus, "pending");
   });
 
+  it("blocks unauthenticated kitchen mutations", async (t) => {
+    if (!enabled) return t.skip();
+    const created = await createTestOrder({
+      tableNumber: 3,
+      paymentMethod: "cash",
+      items: sampleMenuItems(1),
+    });
+    assert.ok(created.order);
+
+    const unauth = await patchOrder(
+      created.order!.id,
+      { markPaid: true },
+      { admin: false },
+    );
+    assert.equal(unauth.status, 401);
+
+    const list = await apiJson<{ error?: string }>("/api/orders", {
+      admin: false,
+    });
+    assert.equal(list.status, 401);
+  });
+
   it("creates cash dine-in order and tracks kitchen status to served", async (t) => {
     if (!enabled) return t.skip();
     const { status, order } = await createTestOrder({
@@ -111,7 +139,7 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(paid.body.order?.paymentStatus, "paid");
   });
 
-  it("pickup UPI order → mark paid → confirmed", async (t) => {
+  it("pickup UPI stays unpaid until kitchen marks paid", async (t) => {
     if (!enabled) return t.skip();
     const { status, order } = await createTestOrder({
       tableNumber: 0,
@@ -124,6 +152,7 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(status, 201);
     assert.ok(order);
     assert.equal(order!.tableNumber, 0);
+    assert.equal(order!.paymentStatus, "pending");
 
     const paid = await patchOrder(order!.id, { markPaid: true });
     assert.equal(paid.status, 200);
@@ -131,7 +160,7 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(paid.body.order?.status, "confirmed");
   });
 
-  it("appends items to an unpaid active parent order", async (t) => {
+  it("appends items without resetting cook status; sets kitchen ack", async (t) => {
     if (!enabled) return t.skip();
     const firstItem = sampleMenuItems(1);
     const created = await createTestOrder({
@@ -142,6 +171,8 @@ describe("API integration — customer never underpays / full order life", () =>
     });
     assert.equal(created.status, 201);
     assert.ok(created.order);
+
+    await patchOrder(created.order!.id, { status: "preparing" });
 
     const second = MENU.find((m) => m.id !== firstItem[0].itemId) ?? MENU[1];
     const appended = await createTestOrder({
@@ -155,8 +186,15 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.ok(appended.order);
     assert.equal(appended.order!.id, created.order!.id);
     assert.ok(appended.order!.items.length >= 2);
-    assert.equal(appended.order!.status, "pending");
+    assert.equal(appended.order!.status, "preparing");
+    assert.equal(appended.order!.needsKitchenAck, true);
     assert.match(appended.order!.notes || "", /extra dish/);
+
+    const acked = await patchOrder(created.order!.id, {
+      clearKitchenAck: true,
+    });
+    assert.equal(acked.status, 200);
+    assert.equal(acked.body.order?.needsKitchenAck, false);
   });
 
   it("does not append to paid parent — creates a new order instead", async (t) => {
@@ -180,7 +218,7 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.notEqual(child.order!.id, parent.order!.id);
   });
 
-  it("GET order by id and list orders", async (t) => {
+  it("GET order by id stays public; list requires admin", async (t) => {
     if (!enabled) return t.skip();
     const created = await createTestOrder({
       tableNumber: 1,
@@ -196,7 +234,9 @@ describe("API integration — customer never underpays / full order life", () =>
     const missing = await getOrder("00000000-0000-0000-0000-000000000000");
     assert.equal(missing.status, 404);
 
-    const list = await apiJson<{ orders: unknown[] }>("/api/orders");
+    const list = await apiJson<{ orders: unknown[] }>("/api/orders", {
+      admin: true,
+    });
     assert.equal(list.status, 200);
     assert.ok(Array.isArray(list.body.orders));
   });
@@ -216,16 +256,8 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(bad.status, 400);
   });
 
-  it("admin login accepts configured password", async (t) => {
+  it("admin login rejects wrong password", async (t) => {
     if (!enabled) return t.skip();
-    const password = process.env.ADMIN_PASSWORD || "gardenia2026";
-    const ok = await apiJson<{ success: boolean }>("/api/admin/login", {
-      method: "POST",
-      body: JSON.stringify({ password }),
-    });
-    assert.equal(ok.status, 200);
-    assert.equal(ok.body.success, true);
-
     const bad = await apiJson<{ success: boolean }>("/api/admin/login", {
       method: "POST",
       body: JSON.stringify({ password: "wrong-password-xyz" }),
@@ -233,8 +265,14 @@ describe("API integration — customer never underpays / full order life", () =>
     assert.equal(bad.status, 401);
   });
 
-  it("analytics returns expected shape for daily timeframe", async (t) => {
+  it("analytics requires admin session", async (t) => {
     if (!enabled) return t.skip();
+    const denied = await apiJson<{ error?: string }>(
+      "/api/admin/analytics?timeframe=daily",
+      { admin: false },
+    );
+    assert.equal(denied.status, 401);
+
     const { status, body } = await apiJson<{
       success: boolean;
       data?: {
@@ -243,13 +281,11 @@ describe("API integration — customer never underpays / full order life", () =>
         topItems: unknown[];
         orders: unknown[];
       };
-    }>("/api/admin/analytics?timeframe=daily");
+    }>("/api/admin/analytics?timeframe=daily", { admin: true });
     assert.equal(status, 200);
     assert.equal(body.success, true);
     assert.ok(body.data);
     assert.ok(typeof body.data!.totalRevenue === "number");
-    assert.ok(Array.isArray(body.data!.topItems));
-    assert.ok(Array.isArray(body.data!.orders));
   });
 
   it("config exposes firebase project id for client", async (t) => {

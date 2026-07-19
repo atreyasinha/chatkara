@@ -194,7 +194,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
           {order.paymentMethod === "upi"
             ? order.paymentStatus === "paid"
               ? "UPI · Paid"
-              : "UPI · Awaiting confirmation"
+              : "UPI · Waiting for staff to confirm payment"
             : "Cash · Pay at table"}
         </p>
       </div>

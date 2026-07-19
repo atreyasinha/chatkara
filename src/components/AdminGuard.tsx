@@ -11,11 +11,19 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("chatkara_admin_token");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsAuthenticated(token === "authenticated");
+    let cancelled = false;
+    async function check() {
+      try {
+        const res = await fetch("/api/admin/session", { credentials: "include" });
+        if (!cancelled) setIsAuthenticated(res.ok);
+      } catch {
+        if (!cancelled) setIsAuthenticated(false);
+      }
     }
+    check();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleLogin(e: React.FormEvent) {
@@ -28,13 +36,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
-        localStorage.setItem("chatkara_admin_token", "authenticated");
+        localStorage.removeItem("chatkara_admin_token");
         setIsAuthenticated(true);
       } else {
         setError(data.error || "Incorrect password");
@@ -46,7 +55,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Prevent flash of login screen during check
+  async function handleLogout() {
+    await fetch("/api/admin/login", {
+      method: "DELETE",
+      credentials: "include",
+    });
+    setIsAuthenticated(false);
+  }
+
   if (isAuthenticated === null) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-bg">
@@ -58,7 +74,6 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) {
     return (
       <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-bg px-4">
-        {/* Premium ambient backdrop gradients */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40"
@@ -68,7 +83,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
           }}
         />
 
-        <div className="relative z-10 w-full max-w-sm rounded-3xl border border-line bg-bg-elevated/60 p-8 backdrop-blur-md shadow-[0_20px_40px_rgba(0,0,0,0.5)] text-center animate-fade-up">
+        <div className="relative z-10 w-full max-w-sm rounded-3xl border border-line bg-bg-elevated/60 p-8 backdrop-blur-md text-center animate-fade-up">
           <BrandMark size="md" href="/" />
 
           <div className="mx-auto mt-6 flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold ring-8 ring-gold/5">
@@ -112,5 +127,18 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="rounded-full border border-line bg-bg-elevated/90 px-3 py-1.5 text-[11px] text-muted backdrop-blur hover:border-gold hover:text-gold"
+        >
+          Log out
+        </button>
+      </div>
+      {children}
+    </>
+  );
 }

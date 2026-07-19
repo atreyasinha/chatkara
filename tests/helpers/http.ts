@@ -1,19 +1,47 @@
 import { baseUrl, testHeaders } from "./fixtures.ts";
 import type { Order, OrderStatus, PaymentMethod } from "../../src/lib/types.ts";
 
+let adminCookie = "";
+
+export function getAdminCookie(): string {
+  return adminCookie;
+}
+
 export async function apiJson<T>(
   path: string,
-  init?: RequestInit,
-): Promise<{ status: number; body: T }> {
+  init?: RequestInit & { admin?: boolean },
+): Promise<{ status: number; body: T; headers: Headers }> {
+  const headers: Record<string, string> = {
+    ...testHeaders(),
+    ...((init?.headers as Record<string, string>) || {}),
+  };
+  if (init?.admin && adminCookie) {
+    headers.Cookie = adminCookie;
+  }
+
   const res = await fetch(`${baseUrl()}${path}`, {
     ...init,
-    headers: {
-      ...testHeaders(),
-      ...(init?.headers || {}),
-    },
+    headers,
   });
   const body = (await res.json()) as T;
-  return { status: res.status, body };
+  return { status: res.status, body, headers: res.headers };
+}
+
+export async function adminLogin(password: string): Promise<boolean> {
+  const res = await fetch(`${baseUrl()}/api/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  const setCookie = res.headers.getSetCookie?.() || [];
+  const legacy = res.headers.get("set-cookie");
+  const raw = setCookie.length > 0 ? setCookie : legacy ? [legacy] : [];
+  const session = raw.find((c) => c.includes("chatkara_admin_session="));
+  if (session) {
+    adminCookie = session.split(";")[0];
+  }
+  const body = (await res.json()) as { success?: boolean };
+  return res.ok && Boolean(body.success) && Boolean(adminCookie);
 }
 
 export async function createTestOrder(input: {
@@ -41,11 +69,17 @@ export async function getOrder(id: string) {
 
 export async function patchOrder(
   id: string,
-  payload: { markPaid?: boolean; status?: OrderStatus },
+  payload: {
+    markPaid?: boolean;
+    status?: OrderStatus;
+    clearKitchenAck?: boolean;
+  },
+  opts?: { admin?: boolean },
 ) {
   return apiJson<{ order?: Order; error?: string }>(`/api/orders/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+    admin: opts?.admin !== false,
   });
 }
 

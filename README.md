@@ -34,7 +34,10 @@ Nightly GitHub Actions (`.github/workflows/nightly.yml`) runs the full suite at 
 
 Required GitHub Secrets: all `FIREBASE_*`, `ADMIN_PASSWORD`, `E2E_TEST_SECRET`.
 
-Also add `E2E_TEST_SECRET` to local `.env.local` (same value the nightly workflow uses) so integration tests can tag orders with `isTest: true` for safe cleanup.
+Also add to local `.env.local`:
+- `ADMIN_PASSWORD` — required (no default); kitchen/analytics login
+- `E2E_TEST_SECRET` — same value as GitHub secret for integration tagging
+- Optional `ADMIN_SESSION_SECRET` — HMAC key for cookies (defaults to `ADMIN_PASSWORD`)
 
 ## Quick start
 
