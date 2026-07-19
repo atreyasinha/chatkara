@@ -81,6 +81,23 @@ describe("order math", () => {
     assert.equal(total, subtotal + gst);
   });
 
+  it("computes discount and GST correctly", () => {
+    const items: CartItem[] = [
+      {
+        itemId: "a",
+        name: "A",
+        price: 100,
+        quantity: 2,
+        veg: "veg",
+      },
+    ];
+    const { subtotal, discountAmount, gst, total } = computeOrderTotals(items, 10);
+    assert.equal(subtotal, 200);
+    assert.equal(discountAmount, 20);
+    assert.equal(gst, Math.round((180 * RESTAURANT.gstPercent) / 100));
+    assert.equal(total, 180 + gst);
+  });
+
   it("merges duplicate cart lines by itemId+notes", () => {
     const base: CartItem[] = [
       { itemId: "x", name: "X", price: 50, quantity: 1, veg: "veg" },

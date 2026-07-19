@@ -85,6 +85,31 @@ function cleanUndefined(obj: any): any {
   return obj;
 }
 
+/**
+ * Count prior non-cancelled orders for a given phone number.
+ */
+export async function getPriorOrderCount(phone: string): Promise<number> {
+  if (!phone || phone.trim().length !== 10) return 0;
+  try {
+    const q = query(
+      collection(db, ORDERS_COLLECTION),
+      where("customerPhone", "==", phone.trim()),
+    );
+    const snap = await getDocs(q);
+    let count = 0;
+    snap.forEach((docSnap) => {
+      const data = docSnap.data() as Order;
+      if (data.status !== "cancelled") {
+        count++;
+      }
+    });
+    return count;
+  } catch (error) {
+    console.error("Error getting prior order count:", error);
+    return 0;
+  }
+}
+
 export async function createOrder(input: {
   tableNumber: number;
   items: CartItem[];
@@ -107,13 +132,19 @@ export async function createOrder(input: {
         parentOrder.paymentStatus !== "paid"
       ) {
         const mergedItems = mergeCartItems(parentOrder.items, input.items);
-        const { subtotal, gst, total } = computeOrderTotals(mergedItems);
+        const discountPercent = parentOrder.discountPercent || 0;
+        const { subtotal, discountAmount, gst, total } = computeOrderTotals(
+          mergedItems,
+          discountPercent,
+        );
 
         // Keep kitchen progress; flag so staff sees new items were added.
         const updatedOrder: Order = {
           ...parentOrder,
           items: mergedItems,
           subtotal,
+          discountPercent: discountPercent || undefined,
+          discountAmount: discountAmount || undefined,
           gst,
           total,
           status: parentOrder.status,
@@ -141,13 +172,27 @@ export async function createOrder(input: {
   }
 
   const id = randomUUID();
-  const { subtotal, gst, total } = computeOrderTotals(input.items);
+  
+  let discountPercent = 0;
+  if (input.customerPhone) {
+    const count = await getPriorOrderCount(input.customerPhone);
+    if (count === 1) {
+      discountPercent = 10;
+    }
+  }
+
+  const { subtotal, discountAmount, gst, total } = computeOrderTotals(
+    input.items,
+    discountPercent,
+  );
 
   const order: Order = {
     id,
     tableNumber: input.tableNumber,
     items: input.items,
     subtotal,
+    discountPercent: discountPercent || undefined,
+    discountAmount: discountAmount || undefined,
     gst,
     total,
     paymentMethod: input.paymentMethod,

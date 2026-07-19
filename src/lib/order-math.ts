@@ -1,14 +1,25 @@
 import { RESTAURANT } from "./restaurant";
 import type { CartItem } from "./types";
 
-export function computeOrderTotals(items: CartItem[]): {
+export function computeOrderTotals(
+  items: CartItem[],
+  discountPercent = 0,
+): {
   subtotal: number;
+  discountAmount: number;
   gst: number;
   total: number;
 } {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const gst = Math.round((subtotal * RESTAURANT.gstPercent) / 100);
-  return { subtotal, gst, total: subtotal + gst };
+  const discountAmount = Math.round((subtotal * (discountPercent || 0)) / 100);
+  const taxableSubtotal = subtotal - discountAmount;
+  const gst = Math.round((taxableSubtotal * RESTAURANT.gstPercent) / 100);
+  return {
+    subtotal,
+    discountAmount,
+    gst,
+    total: taxableSubtotal + gst,
+  };
 }
 
 export function mergeCartItems(

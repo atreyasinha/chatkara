@@ -227,6 +227,11 @@ export function KitchenDashboard() {
       order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
     const formattedId = order.id.slice(0, 8).toUpperCase();
 
+    let discountLines = "";
+    if (order.discountAmount) {
+      discountLines = `*Discount (${order.discountPercent}%):* -₹${Math.round(order.discountAmount)}\n`;
+    }
+
     const receiptText =
       `🌟 *CHATKARA BILL RECEIPT* 🌟\n\n` +
       `*Order Reference:* #${formattedId}\n` +
@@ -236,6 +241,7 @@ export function KitchenDashboard() {
       `${itemsText}\n` +
       `----------------------------\n` +
       `*Subtotal:* ₹${Math.round(order.subtotal || order.total || 0)}\n` +
+      discountLines +
       `*GST (5%):* ₹${Math.round(order.gst || 0)}\n` +
       `*Total Amount:* ₹${Math.round(order.total)}\n\n` +
       `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +

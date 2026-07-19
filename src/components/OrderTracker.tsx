@@ -181,6 +181,12 @@ export function OrderTracker({ orderId }: { orderId: string }) {
           <span>Subtotal</span>
           <span>{formatINR(order.subtotal)}</span>
         </div>
+        {order.discountAmount ? (
+          <div className="mt-1 flex justify-between text-veg">
+            <span>Discount ({order.discountPercent}%)</span>
+            <span>-{formatINR(order.discountAmount)}</span>
+          </div>
+        ) : null}
         <div className="mt-1 flex justify-between text-muted">
           <span>GST</span>
           <span>{formatINR(order.gst)}</span>
@@ -199,6 +205,24 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         </p>
       </div>
 
+      {/* Google Review Prompt */}
+      {(order.status === "ready" || order.status === "served") && (
+        <div className="mt-4 rounded-2xl border border-gold/30 bg-gold/5 p-5 text-center animate-fade-up">
+          <h3 className="font-display text-lg text-gold">Enjoyed your food?</h3>
+          <p className="mt-2 text-xs text-muted leading-relaxed">
+            Please take a moment to leave us a review on Google. It helps us grow and keep bringing you the best flavours of India!
+          </p>
+          <a
+            href="https://maps.app.goo.gl/oRCziSfJ1wEnf6DJ6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flame-bg mt-3.5 inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+          >
+            Leave a Google Review
+          </a>
+        </div>
+      )}
+
       <button
         onClick={() => {
           const itemsText = order.items
@@ -206,6 +230,10 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             .join("\n");
           const orderType = order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
           const formattedId = order.id.slice(0, 8).toUpperCase();
+          let discountLines = "";
+          if (order.discountAmount) {
+            discountLines = `*Discount (${order.discountPercent}%):* -₹${Math.round(order.discountAmount)}\n`;
+          }
           const receiptText = `🌟 *CHATKARA BILL RECEIPT* 🌟\n\n` +
             `*Order Reference:* #${formattedId}\n` +
             `*Type:* ${orderType}\n` +
@@ -214,6 +242,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             `${itemsText}\n` +
             `----------------------------\n` +
             `*Subtotal:* ₹${Math.round(order.subtotal || order.total || 0)}\n` +
+            discountLines +
             `*GST (5%):* ₹${Math.round(order.gst || 0)}\n` +
             `*Total Amount:* ₹${Math.round(order.total)}\n\n` +
             `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +

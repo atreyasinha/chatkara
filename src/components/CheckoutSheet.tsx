@@ -44,8 +44,55 @@ export function CheckoutSheet({
   const [error, setError] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
 
-  const gst = Math.round((subtotal() * RESTAURANT.gstPercent) / 100);
-  const total = subtotal() + gst;
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [discountMessage, setDiscountMessage] = useState("");
+  const [parentOrderDiscount, setParentOrderDiscount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (parentOrderId) {
+      fetch(`/api/orders/${parentOrderId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.order) {
+            setParentOrderDiscount(data.order.discountPercent || 0);
+          }
+        })
+        .catch((err) => console.error("Error fetching parent order:", err));
+    }
+  }, [parentOrderId]);
+
+  useEffect(() => {
+    if (phone.length === 10 && !parentOrderId) {
+      let active = true;
+      fetch(`/api/discount?phone=${phone}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (active && data) {
+            setDiscountPercent(data.discountPercent || 0);
+            setDiscountMessage(data.message || "");
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to check discount:", err);
+        });
+      return () => {
+        active = false;
+      };
+    } else {
+      setDiscountPercent(0);
+      setDiscountMessage("");
+    }
+  }, [phone, parentOrderId]);
+
+  const activeDiscountPercent = parentOrderId
+    ? (parentOrderDiscount || 0)
+    : discountPercent;
+
+  const currentSubtotal = subtotal();
+  const discountAmount = Math.round((currentSubtotal * activeDiscountPercent) / 100);
+  const taxableSubtotal = currentSubtotal - discountAmount;
+  const gst = Math.round((taxableSubtotal * RESTAURANT.gstPercent) / 100);
+  const total = taxableSubtotal + gst;
 
   const upiLink = useMemo(() => {
     if (!order) return "";
@@ -261,12 +308,23 @@ export function CheckoutSheet({
               </div>
             )}
           </div>
+          {discountMessage && (
+            <div className="rounded-xl border border-gold/30 bg-gold/5 px-3.5 py-2.5 text-center text-xs text-gold">
+              {discountMessage}
+            </div>
+          )}
 
           <div className="rounded-2xl border border-line bg-bg-soft p-4 text-sm">
             <div className="flex justify-between text-muted">
               <span>Subtotal</span>
-              <span>{formatINR(subtotal())}</span>
+              <span>{formatINR(currentSubtotal)}</span>
             </div>
+            {activeDiscountPercent > 0 && (
+              <div className="mt-1 flex justify-between text-veg">
+                <span>Discount ({activeDiscountPercent}%)</span>
+                <span>-{formatINR(discountAmount)}</span>
+              </div>
+            )}
             <div className="mt-1 flex justify-between text-muted">
               <span>GST ({RESTAURANT.gstPercent}%)</span>
               <span>{formatINR(gst)}</span>
