@@ -108,6 +108,49 @@ export default function HomePage() {
           </p>
         </div>
 
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="overflow-hidden rounded-2xl border border-line">
+            <Image
+              src="/photo-pizza.jpg"
+              alt="Cheese pizza at ChatKara"
+              width={1024}
+              height={766}
+              className="h-36 w-full object-cover"
+              sizes="220px"
+            />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line">
+            <Image
+              src="/photo-tikka.jpg"
+              alt="Fresh lemon over grilled tikka"
+              width={934}
+              height={1024}
+              className="h-36 w-full object-cover"
+              sizes="220px"
+            />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line">
+            <Image
+              src="/photo-roll.jpg"
+              alt="Hand-rolled egg roll being prepared"
+              width={1024}
+              height={924}
+              className="h-36 w-full object-cover"
+              sizes="220px"
+            />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line">
+            <Image
+              src="/photo-drink.jpg"
+              alt="Fresh drink served at ChatKara"
+              width={782}
+              height={1024}
+              className="h-36 w-full object-cover"
+              sizes="220px"
+            />
+          </div>
+        </div>
+
         {/* Operating Hours */}
         <div className="mt-8 border-t border-line/50 pt-6">
           <div className="flex items-center gap-3 justify-center text-gold-soft">
