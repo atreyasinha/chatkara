@@ -213,7 +213,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             Please take a moment to leave us a review on Google. It helps us grow and keep bringing you the best flavours of India!
           </p>
           <a
-            href="https://maps.app.goo.gl/oRCziSfJ1wEnf6DJ6"
+            href={RESTAURANT.location.mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flame-bg mt-3.5 inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
