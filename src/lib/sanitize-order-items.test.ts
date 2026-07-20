@@ -73,12 +73,19 @@ describe("sanitizeOrderItems (order → priced lines)", () => {
 });
 
 describe("isActiveOrderStatus (kitchen board filter)", () => {
-  it("treats preparing as active, not cooking", () => {
+  it("returns true for all active order statuses", () => {
+    assert.equal(isActiveOrderStatus("pending"), true);
+    assert.equal(isActiveOrderStatus("confirmed"), true);
     assert.equal(isActiveOrderStatus("preparing"), true);
-    assert.equal(isActiveOrderStatus("cooking"), false);
+    assert.equal(isActiveOrderStatus("ready"), true);
+  });
+
+  it("returns false for inactive and invalid order statuses", () => {
+    assert.equal(isActiveOrderStatus("completed"), false);
     assert.equal(isActiveOrderStatus("served"), false);
     assert.equal(isActiveOrderStatus("cancelled"), false);
-    assert.equal(isActiveOrderStatus("pending"), true);
-    assert.equal(isActiveOrderStatus("ready"), true);
+    assert.equal(isActiveOrderStatus("cooking"), false);
+    assert.equal(isActiveOrderStatus("invalid"), false);
+    assert.equal(isActiveOrderStatus(""), false);
   });
 });
