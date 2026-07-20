@@ -311,8 +311,9 @@ export function TableOrderClient({
               <h3 className="font-display text-xl text-gold">Your order</h3>
               <button
                 type="button"
+                aria-label="Close cart"
                 onClick={() => setCartOpen(false)}
-                className="rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink"
+                className="rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink focus-visible:ring-2"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -333,7 +334,8 @@ export function TableOrderClient({
                   <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
                     <button
                       type="button"
-                      className="p-1 text-gold"
+                      aria-label="Decrease quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() => setQuantity(item.itemId, item.quantity - 1)}
                     >
                       <Minus className="h-3.5 w-3.5" />
@@ -341,7 +343,8 @@ export function TableOrderClient({
                     <span className="w-5 text-center text-sm">{item.quantity}</span>
                     <button
                       type="button"
-                      className="p-1 text-gold"
+                      aria-label="Increase quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() => setQuantity(item.itemId, item.quantity + 1)}
                     >
                       <Plus className="h-3.5 w-3.5" />
@@ -349,7 +352,8 @@ export function TableOrderClient({
                   </div>
                   <button
                     type="button"
-                    className="text-xs text-muted hover:text-nonveg"
+                    aria-label="Remove item"
+                    className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
                     onClick={() => removeItem(item.itemId)}
                   >
                     Remove

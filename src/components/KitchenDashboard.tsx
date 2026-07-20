@@ -82,6 +82,7 @@ export function KitchenDashboard() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOnline(typeof navigator !== "undefined" ? navigator.onLine : true);
     refreshQueueCount();
 

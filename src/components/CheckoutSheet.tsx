@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { Banknote, CheckCircle2, Smartphone, X } from "lucide-react";
+import { Banknote, Smartphone, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { Order, PaymentMethod } from "@/lib/types";
@@ -79,6 +79,7 @@ export function CheckoutSheet({
         active = false;
       };
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDiscountPercent(0);
       setDiscountMessage("");
     }
@@ -155,7 +156,7 @@ export function CheckoutSheet({
                 Order #{order.id.slice(0, 8).toUpperCase()} · {formatINR(order.total)}
               </p>
             </div>
-            <button type="button" onClick={() => router.push(`/order/${order.id}`)}>
+            <button type="button" aria-label="Close UPI payment" onClick={() => router.push(`/order/${order.id}`)} className="rounded-full p-2 hover:bg-bg-soft focus-visible:ring-2">
               <X className="h-5 w-5 text-muted" />
             </button>
           </div>
@@ -205,7 +206,7 @@ export function CheckoutSheet({
       <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated scrollbar-thin animate-fade-up">
         <div className="sticky top-0 flex items-center justify-between border-b border-line bg-bg-elevated px-4 py-3">
           <h3 className="font-display text-xl text-gold">Checkout</h3>
-          <button type="button" onClick={onClose} className="p-2 text-muted">
+          <button type="button" aria-label="Close checkout" onClick={onClose} className="p-2 text-muted rounded-full hover:bg-bg-soft focus-visible:ring-2">
             <X className="h-5 w-5" />
           </button>
         </div>
