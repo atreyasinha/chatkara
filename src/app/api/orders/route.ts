@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
+import { notifyKitchenTelegram } from "@/lib/telegram";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,9 @@ export async function POST(request: Request) {
         : undefined,
       isTest: isTest || undefined,
     });
+
+    // Fire-and-forget — never block or fail the order on notify errors
+    void notifyKitchenTelegram(order);
 
     return NextResponse.json({ order }, { status: 201 });
   } catch {

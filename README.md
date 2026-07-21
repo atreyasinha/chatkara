@@ -134,6 +134,22 @@ Kitchen/admin shows an amber **Development** banner when not on production, incl
 
 `CHATKARA_ENV` resolution: explicit `CHATKARA_ENV` → else `VERCEL_ENV=production` → else development.
 
+### Telegram kitchen alerts
+
+When an order is placed (or items are appended), ChatKara can message a Telegram group so the chef doesn’t need a kitchen screen.
+
+1. In Telegram, message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the **bot token**
+2. Create a private group (e.g. “ChatKara Kitchen”), add the bot as a member
+3. Send any message in the group, then open  
+   `https://api.telegram.org/bot<TOKEN>/getUpdates`  
+   and copy the numeric `chat.id` (often negative for groups)
+4. Set env vars (local `.env.local` + Vercel Production / Preview as needed):
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+5. Place a test order — the group should get a message like “🆕 New order · Table 3 …”
+
+Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If the vars are missing, notify is a no-op (orders still work).
+
 ## Testing
 
 ```bash
@@ -200,4 +216,3 @@ These are loaded on the server inside the Next.js API routes (`src/app/api/order
 - Coordinates: `23.619147660495543, 86.18070429732468`
 - City: Bokaro, Jharkhand, India
 
-<!-- preview trigger: 2026-07-21T06:18:31Z -->
