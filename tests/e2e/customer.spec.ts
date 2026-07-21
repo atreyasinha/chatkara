@@ -4,7 +4,9 @@ import { RESTAURANT } from "../../src/lib/restaurant";
 test.describe("Customer-facing UI", () => {
   test("home page loads with brand and CTAs", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("img", { name: /chatkara/i })).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "ChatKara", exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByRole("link", { name: /order online pickup/i }),
     ).toBeVisible();
