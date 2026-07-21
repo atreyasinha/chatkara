@@ -101,6 +101,10 @@ async function applyKitchenAction(
 }
 
 export async function POST(request: Request) {
+  if (!verifyTelegramSecret(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let update: TelegramUpdate;
   try {
     update = (await request.json()) as TelegramUpdate;
