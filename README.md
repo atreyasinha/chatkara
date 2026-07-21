@@ -30,6 +30,59 @@ Use **two Firebase projects** so kitchen/test orders never mix with live orders.
 | **Development** | Local (`npm run dev`), Vercel **Preview** (non-`main` branches), GitHub CI/nightly | `chatkara-dev` |
 | **Production** | Vercel **Production** (`main` only → `chatkara.lagardenia.in`) | `la-gardenia-502619` (live) |
 
+### Infrastructure
+
+```mermaid
+flowchart TB
+  subgraph people["People"]
+    Dev["You / PRs"]
+    Guests["Restaurant guests"]
+    Kitchen["Kitchen tablet"]
+  end
+
+  subgraph github["GitHub"]
+    Branch["feature branch"]
+    PR["PR → main"]
+    Main["main"]
+    CI["CI workflow<br/>FIREBASE_DEV_*"]
+    Nightly["Nightly workflow"]
+    Smoke["prod-smoke<br/>UI only, no order writes"]
+    DevSuite["dev-suite<br/>unit + integration + e2e"]
+  end
+
+  subgraph vercel["Vercel"]
+    Preview["Preview deploy<br/>non-main branches"]
+    Prod["Production deploy<br/>chatkara.lagardenia.in"]
+  end
+
+  subgraph firebase["Firebase"]
+    DevDB[("chatkara-dev<br/>Firestore orders")]
+    ProdDB[("La Gardenia<br/>Firestore orders")]
+  end
+
+  Local["localhost<br/>npm run dev"]
+
+  Dev --> Branch --> PR
+  PR --> CI
+  CI -->|"build + write tests"| DevDB
+  PR --> Preview
+  Preview --> DevDB
+  CI -->|"green checks"| Main
+  Main --> Prod
+  Prod --> ProdDB
+
+  Local --> DevDB
+
+  Guests --> Prod
+  Kitchen --> Prod
+  ProdDB --> Kitchen
+
+  Nightly --> Smoke
+  Nightly --> DevSuite
+  Smoke -->|"Playwright vs live URL"| Prod
+  DevSuite -->|"local server + writes"| DevDB
+```
+
 ### Deploy + merge flow
 
 1. Create a feature branch (never push straight to `main`).
