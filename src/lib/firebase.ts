@@ -1,5 +1,9 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  memoryLocalCache,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
@@ -10,9 +14,27 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-// Initialize Firebase for Server-Side or Client-Side Next.js environments
+/**
+ * Optional named database id (e.g. `default` if the console DB wasn't `(default)`).
+ * Leave unset to use the project `(default)` database.
+ */
+const databaseId = process.env.FIRESTORE_DATABASE_ID?.trim() || undefined;
+
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-// Use the project's (default) database — do not pass "default" (that is a different id).
-const db = getFirestore(app);
+
+function createDb() {
+  // memoryLocalCache avoids server isolates hanging in offline write queues when
+  // Firestore is missing/misconfigured (otherwise setDoc can spin until Vercel times out).
+  if (databaseId) {
+    return getFirestore(app, databaseId);
+  }
+  try {
+    return initializeFirestore(app, { localCache: memoryLocalCache() });
+  } catch {
+    return getFirestore(app);
+  }
+}
+
+const db = createDb();
 
 export { db };
