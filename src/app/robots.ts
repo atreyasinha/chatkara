@@ -5,7 +5,18 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/pickup", "/icon.png", "/_next/static/*"],
+      allow: [
+        "/",
+        "/pickup",
+        "/favicon.ico",
+        "/icon.png",
+        "/icon-48.png",
+        "/icon-192.png",
+        "/icon-512.png",
+        "/apple-icon.png",
+        "/manifest.webmanifest",
+        "/_next/static/*",
+      ],
       disallow: [
         "/kitchen",
         "/admin/analytics",
