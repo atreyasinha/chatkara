@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 import { MENU } from "../../src/lib/menu.ts";
 import { RESTAURANT } from "../../src/lib/restaurant.ts";
 import {
@@ -17,7 +17,6 @@ import {
   TEST_PHONE,
   underpricedPayload,
 } from "../helpers/fixtures.ts";
-import { cleanupTestData } from "../helpers/cleanup.ts";
 
 const enabled = firebaseConfigured();
 
@@ -37,14 +36,8 @@ describe(
       throw new Error("ADMIN_PASSWORD is required for integration tests");
     }
     await waitForServer();
-    await cleanupTestData();
     const ok = await adminLogin(process.env.ADMIN_PASSWORD);
     assert.equal(ok, true, "admin login should set session cookie");
-  });
-
-  after(async () => {
-    if (!enabled) return;
-    await cleanupTestData();
   });
 
   it("rejects invalid payloads", async (t) => {

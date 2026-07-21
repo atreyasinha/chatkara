@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 /**
- * Standalone cleanup for nightly CI / local use:
- *   npm run test:cleanup
+ * Optional manual wipe of Dev Firestore docs tagged isTest:true.
+ * Not run by CI — test orders are kept on chatkara-dev.
  *
- * Requires Firebase env vars (from shell, GitHub Secrets, or:
+ *   npm run test:cleanup
  *   node --env-file=.env.local --import tsx scripts/cleanup-test-orders.ts
  */
 async function main() {

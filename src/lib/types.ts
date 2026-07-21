@@ -49,6 +49,6 @@ export interface Order {
   discountAmount?: number;
   /** Kitchen should notice newly appended items without resetting cook status. */
   needsKitchenAck?: boolean;
-  /** Set by automated tests so nightly cleanup can delete safely. */
+  /** Set by automated tests (Dev DB) so test orders are easy to spot. */
   isTest?: boolean;
 }

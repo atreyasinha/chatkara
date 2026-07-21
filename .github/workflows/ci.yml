@@ -94,10 +94,6 @@ jobs:
       - name: E2E customer UI tests
         run: npx playwright test --project=chromium
 
-      - name: Cleanup Firestore test orders
-        if: always()
-        run: npm run test:cleanup
-
       - name: Stop server
         if: always()
         run: |

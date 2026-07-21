@@ -59,7 +59,7 @@ jobs:
           retention-days: 14
 
   dev-suite:
-    name: Dev DB — unit, integration, e2e + cleanup
+    name: Dev DB — unit, integration, e2e
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -135,10 +135,6 @@ jobs:
 
       - name: E2E against local Dev server
         run: npx playwright test --project=chromium
-
-      - name: Cleanup Dev Firestore test orders
-        if: always()
-        run: npm run test:cleanup
 
       - name: Stop server
         if: always()

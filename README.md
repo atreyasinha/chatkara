@@ -97,7 +97,7 @@ flowchart TB
 | Job | Hits | Database for test orders |
 |---|---|---|
 | **Production URL smoke** | Live site (`https://chatkara.lagardenia.in`) | None — e2e is UI/cart only (no order API writes) |
-| **Dev suite** | Local CI server | **chatkara-dev** (`FIREBASE_DEV_*`) — integration + cleanup |
+| **Dev suite** | Local CI server | **chatkara-dev** (`FIREBASE_DEV_*`) — integration writes stay here |
 
 **Important:** You cannot hit the Production URL and store orders in the Dev database. The live site always uses Production Firebase (Vercel). That’s why nightly is split.
 
@@ -121,7 +121,7 @@ flowchart TB
 | `FIREBASE_DEV_MESSAGING_SENDER_ID` | |
 | `FIREBASE_DEV_APP_ID` | |
 | `ADMIN_PASSWORD` | Kitchen login in CI |
-| `E2E_TEST_SECRET` | Tags `isTest` orders for cleanup |
+| `E2E_TEST_SECRET` | Tags `isTest` on orders created by CI (Dev DB only) |
 
 Optional repo **Variable**: `PRODUCTION_URL` (defaults to `https://chatkara.lagardenia.in`) for nightly smoke.
 
@@ -140,11 +140,12 @@ Kitchen/admin shows an amber **Development** banner when not on production, incl
 npm run test:unit          # fast, no Firebase
 npm run test:integration   # needs running server + Dev Firebase + E2E_TEST_SECRET
 npm run test:e2e           # Playwright customer UI
-npm run test:cleanup       # delete Firestore orders tagged isTest=true (Dev DB only)
 ```
 
 **CI** (`.github/workflows/ci.yml`) runs on every PR to `main` using **`FIREBASE_DEV_*`**.  
 **Nightly** (`.github/workflows/nightly.yml`): Production URL smoke + Dev DB full suite at **18:30 UTC**.
+
+Test orders stay in **chatkara-dev** (no auto-delete). Optional: `npm run test:cleanup` if you ever want to wipe `isTest` docs manually.
 
 Required GitHub Secrets for PR CI / nightly writes: all `FIREBASE_DEV_*` (**chatkara-dev**), `ADMIN_PASSWORD`, `E2E_TEST_SECRET`.  
 Existing Production `FIREBASE_*` secrets can stay; they are not used for order-writing jobs.
