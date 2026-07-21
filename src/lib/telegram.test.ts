@@ -63,12 +63,15 @@ describe("formatKitchenTelegramMessage", () => {
   it("formats a new dine-in cash order", () => {
     const text = formatKitchenTelegramMessage(sampleOrder());
     assert.match(text, /🆕 New order/);
-    assert.match(text, /Table 3 · Cash · New/);
-    assert.match(text, /Chicken Butter Masala ×1/);
-    assert.match(text, /Veg Manchurian ×2 \(less spicy\)/);
+    assert.match(text, /<b>Table 3<\/b>/);
+    assert.match(text, /Cash/);
+    assert.match(text, /New/);
+    assert.match(text, /🔴 <b>Chicken Butter Masala<\/b>/);
+    assert.match(text, /🟢 <b>Veg Manchurian<\/b> ×2/);
+    assert.match(text, /↳ less spicy/);
     assert.match(text, /Total ₹/);
     assert.match(text, /#ABCDEF12/);
-    assert.doesNotMatch(text, /\[DEV\]/);
+    assert.doesNotMatch(text, /\[DEV/);
   });
 
   it("marks pickup and append + DEV/TEST prefixes", () => {
@@ -80,11 +83,45 @@ describe("formatKitchenTelegramMessage", () => {
         paymentStatus: "pending",
         needsKitchenAck: true,
         isTest: true,
+        customerName: "Ravi",
+        notes: "extra napkins",
       }),
     );
     assert.match(text, /\[DEV · TEST\]/);
     assert.match(text, /➕ Items added/);
-    assert.match(text, /Pickup · UPI \(awaiting pay\)/);
+    assert.match(text, /<b>Pickup<\/b>/);
+    assert.match(text, /UPI · unpaid/);
+    assert.match(text, /Note:.*extra napkins/);
+    assert.match(text, /👤 Ravi/);
+  });
+
+  it("escapes HTML in item names and notes", () => {
+    const text = formatKitchenTelegramMessage(
+      sampleOrder({
+        items: [
+          {
+            itemId: "x",
+            name: "A & B <special>",
+            price: 10,
+            quantity: 1,
+            veg: "veg",
+            notes: "no <onion>",
+          },
+        ],
+        notes: "call & wait",
+      }),
+    );
+    assert.match(text, /A &amp; B &lt;special&gt;/);
+    assert.match(text, /no &lt;onion&gt;/);
+    assert.match(text, /call &amp; wait/);
+  });
+
+  it("uses status headline after kitchen advances the order", () => {
+    const text = formatKitchenTelegramMessage(
+      sampleOrder({ status: "preparing" }),
+    );
+    assert.match(text, /🔥 Preparing/);
+    assert.doesNotMatch(text, /🆕 New order/);
   });
 });
 
@@ -106,9 +143,9 @@ describe("kitchen telegram callbacks", () => {
     const kb = buildKitchenInlineKeyboard(sampleOrder());
     assert.ok(kb);
     const labels = kb!.inline_keyboard.flat().map((b) => b.text);
-    assert.ok(labels.some((t) => /Mark Confirmed/i.test(t)));
-    assert.ok(labels.includes("Mark paid"));
-    assert.ok(labels.includes("Cancel"));
+    assert.ok(labels.some((t) => /Confirm/i.test(t)));
+    assert.ok(labels.includes("💰 Paid"));
+    assert.ok(labels.includes("✕ Cancel"));
   });
 
   it("hides buttons for served orders", () => {

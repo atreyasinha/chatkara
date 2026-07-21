@@ -55,7 +55,7 @@ async function applyKitchenAction(
     return {
       ok: Boolean(order),
       order,
-      toast: order ? "Marked paid" : "Could not mark paid",
+      toast: order ? "💰 Marked paid" : "Could not mark paid",
     };
   }
 
@@ -64,7 +64,7 @@ async function applyKitchenAction(
     return {
       ok: Boolean(order),
       order,
-      toast: order ? "Acked new items" : "Could not ack",
+      toast: order ? "👁 New items seen" : "Could not ack",
     };
   }
 
@@ -76,7 +76,7 @@ async function applyKitchenAction(
     return {
       ok: Boolean(order),
       order,
-      toast: order ? "Cancelled" : "Could not cancel",
+      toast: order ? "✕ Cancelled" : "Could not cancel",
     };
   }
 

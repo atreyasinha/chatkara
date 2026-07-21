@@ -12,7 +12,36 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+const STATUS_HEADLINE: Record<OrderStatus, string> = {
+  pending: "🆕 New order",
+  confirmed: "✅ Confirmed",
+  preparing: "🔥 Preparing",
+  ready: "📦 Ready",
+  served: "🍽 Served",
+  cancelled: "✕ Cancelled",
+};
+
+const NEXT_STATUS_BUTTON: Partial<Record<OrderStatus, string>> = {
+  confirmed: "✅ Confirm",
+  preparing: "🔥 Start prep",
+  ready: "📦 Mark ready",
+  served: "🍽 Served",
+};
+
+const VEG_MARK: Record<string, string> = {
+  veg: "🟢",
+  nonveg: "🔴",
+  egg: "🟡",
+};
+
 type InlineButton = { text: string; callback_data: string };
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
 /**
  * callback_data budget is 64 bytes. Format: `{action}:{orderId}`
@@ -52,13 +81,13 @@ export function buildKitchenInlineKeyboard(
   const primary: InlineButton[] = [];
   if (next) {
     primary.push({
-      text: `Mark ${STATUS_LABEL[next]}`,
+      text: NEXT_STATUS_BUTTON[next] || `→ ${STATUS_LABEL[next]}`,
       callback_data: buildKitchenCallbackData("n", order.id),
     });
   }
   if (order.paymentStatus !== "paid") {
     primary.push({
-      text: "Mark paid",
+      text: "💰 Paid",
       callback_data: buildKitchenCallbackData("p", order.id),
     });
   }
@@ -67,12 +96,12 @@ export function buildKitchenInlineKeyboard(
   const secondary: InlineButton[] = [];
   if (order.needsKitchenAck) {
     secondary.push({
-      text: "Ack new items",
+      text: "👁 Seen new items",
       callback_data: buildKitchenCallbackData("k", order.id),
     });
   }
   secondary.push({
-    text: "Cancel",
+    text: "✕ Cancel",
     callback_data: buildKitchenCallbackData("x", order.id),
   });
   rows.push(secondary);
@@ -82,44 +111,71 @@ export function buildKitchenInlineKeyboard(
 
 /**
  * Format a kitchen-facing Telegram message for a new or updated order.
+ * Uses HTML parse_mode (escape all user/menu text).
  */
 export function formatKitchenTelegramMessage(order: Order): string {
   const env = getChatkaraEnv();
   const prefixParts: string[] = [];
   if (env !== "production") prefixParts.push("DEV");
   if (order.isTest) prefixParts.push("TEST");
-  const prefix = prefixParts.length ? `[${prefixParts.join(" · ")}] ` : "";
+  const prefix = prefixParts.length
+    ? `<b>[${escapeHtml(prefixParts.join(" · "))}]</b> `
+    : "";
 
-  const isAppend = Boolean(order.needsKitchenAck);
-  const headline = isAppend ? "➕ Items added" : "🆕 New order";
+  const headline = order.needsKitchenAck
+    ? "➕ Items added"
+    : STATUS_HEADLINE[order.status];
 
   const where =
-    order.tableNumber === 0 ? "Pickup" : `Table ${order.tableNumber}`;
+    order.tableNumber === 0
+      ? "Pickup"
+      : `Table ${order.tableNumber}`;
+
   const pay =
     order.paymentMethod === "cash"
-      ? "Cash"
+      ? order.paymentStatus === "paid"
+        ? "Cash · paid"
+        : "Cash"
       : order.paymentStatus === "paid"
-        ? "UPI (paid)"
-        : "UPI (awaiting pay)";
+        ? "UPI · paid"
+        : "UPI · unpaid";
 
-  const lines = order.items.map(
-    (i) => `• ${i.name} ×${i.quantity}${i.notes ? ` (${i.notes})` : ""}`,
-  );
+  const itemLines = order.items.map((i) => {
+    const mark = VEG_MARK[i.veg] || "•";
+    const qty = i.quantity > 1 ? ` ×${i.quantity}` : "";
+    const line = `${mark} <b>${escapeHtml(i.name)}</b>${qty}`;
+    if (!i.notes) return line;
+    return `${line}\n    <i>↳ ${escapeHtml(i.notes)}</i>`;
+  });
 
   const parts = [
     `${prefix}${headline}`,
-    `${where} · ${pay} · ${STATUS_LABEL[order.status]}`,
+    `<b>${escapeHtml(where)}</b>  ·  ${escapeHtml(pay)}  ·  ${escapeHtml(STATUS_LABEL[order.status])}`,
     "",
-    ...lines,
-    "",
-    `Total ${formatINR(order.total)}`,
+    ...itemLines,
   ];
 
   if (order.notes) {
-    parts.push(`Note: ${order.notes}`);
+    parts.push("", `📝 <b>Note:</b> ${escapeHtml(order.notes)}`);
   }
 
-  parts.push(`#${order.id.slice(0, 8).toUpperCase()}`);
+  const customerBits: string[] = [];
+  if (order.customerName?.trim()) {
+    customerBits.push(escapeHtml(order.customerName.trim()));
+  }
+  if (order.customerPhone?.trim()) {
+    customerBits.push(escapeHtml(order.customerPhone.trim()));
+  }
+  if (customerBits.length) {
+    parts.push(`👤 ${customerBits.join(" · ")}`);
+  }
+
+  parts.push(
+    "",
+    `<b>Total ${escapeHtml(formatINR(order.total))}</b>`,
+    `<code>#${escapeHtml(order.id.slice(0, 8).toUpperCase())}</code>`,
+  );
+
   return parts.join("\n");
 }
 
@@ -212,6 +268,7 @@ export async function sendTelegramMessage(
   const payload: Record<string, unknown> = {
     chat_id: chatId,
     text,
+    parse_mode: "HTML",
     disable_web_page_preview: true,
   };
   if (replyMarkup) payload.reply_markup = replyMarkup;
@@ -230,6 +287,7 @@ export async function editTelegramMessage(
     chat_id: chatId,
     message_id: messageId,
     text,
+    parse_mode: "HTML",
     disable_web_page_preview: true,
   };
   if (replyMarkup) {
