@@ -1,0 +1,4 @@
+## 2025-02-28 - Timing Attacks in Password & Secret Comparisons
+**Vulnerability:** The codebase was using standard string equality comparisons (`===` or `!==`) to verify sensitive values like the admin password (`password !== correctPassword`) and the E2E test secret (`request.headers.get(...) === secret`).
+**Learning:** Standard JavaScript string comparison returns early as soon as a character mismatch is found. This slight variance in response time could allow an attacker to guess a password or secret character-by-character by measuring exactly how long the server takes to respond (a "timing attack").
+**Prevention:** Always use Node's `crypto.timingSafeEqual` when comparing passwords, tokens, API keys, or secrets. Ensure both buffers are converted to exactly the same length before comparison to avoid length-based early exits.

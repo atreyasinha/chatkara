@@ -134,6 +134,79 @@ Kitchen/admin shows an amber **Development** banner when not on production, incl
 
 `CHATKARA_ENV` resolution: explicit `CHATKARA_ENV` → else `VERCEL_ENV=production` → else development.
 
+### Telegram kitchen alerts
+
+When an order is placed (or items are appended), ChatKara can message Telegram so the chef doesn’t need a kitchen screen. Messages include the same actions as Kitchen POS:
+
+- **Mark confirmed / preparing / ready / served** (advances status)
+- **Mark paid**
+- **Ack new items** (when something was appended mid-cook)
+- **Cancel**
+
+#### Setup
+
+1. In Telegram, message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the **bot token**
+2. Open the bot → **Start**, or add it to a **private kitchen group** (recommended for staff)
+3. Copy `chat.id` from `getUpdates` (groups/channels are usually **negative**, e.g. `-555…` or `-100…`)
+4. Set env vars — **separate bots** for Preview vs Production:
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+   - `TELEGRAM_WEBHOOK_SECRET` — random 32 hex chars, e.g. `openssl rand -hex 16`
+5. Point **each bot** at the matching public host (not localhost) and redeploy after changing env vars.
+
+##### Production (`chatkara.lagardenia.in`)
+
+Use the **production bot** + kitchen group. Production is normally public (no Vercel Auth bypass).
+
+```bash
+PROD=https://chatkara.lagardenia.in
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  --data-urlencode "url=${PROD}/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
+  -d 'allowed_updates=["callback_query"]'
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+Vercel **Production** env must have La Gardenia `FIREBASE_*`, `CHATKARA_ENV=production` (or rely on `VERCEL_ENV`), and the three `TELEGRAM_*` vars above. Prefer **not** setting `E2E_TEST_SECRET` on Production.
+
+##### Preview (`test/dev`)
+
+Use the **dev/test bot**. Preview often has Vercel Authentication — Telegram cannot log in, so plain Preview URLs return `401 Protected deployment`. Either:
+
+- **A (recommended):** Project → **Settings → Deployment Protection → Protection Bypass for Automation** → append the secret as below, **or**
+- **B:** Turn off Vercel Authentication for Preview, **or**
+- **C:** Do not use Preview for button tests (use Production only).
+
+```bash
+PREVIEW=https://chatkara-git-test-dev-la-gardenia.vercel.app
+BYPASS=your_vercel_automation_bypass_secret
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  --data-urlencode "url=${PREVIEW}/api/telegram/webhook?x-vercel-protection-bypass=${BYPASS}" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
+  -d 'allowed_updates=["callback_query"]'
+```
+
+6. Place a test order on the matching host — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
+
+Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If bot vars are missing, notify is a no-op (orders still work).
+
+**Important:** One bot can only have **one** webhook URL. Never point the production bot at Preview (button taps would hit Dev Firebase).
+
+**Note:** Kitchen POS status changes do not edit the Telegram message; Telegram buttons always apply against current Firestore state.
+#### How testing is split
+
+| Layer | What it proves | Telegram secrets? |
+|---|---|---|
+| **Unit tests (CI)** | Message text, button payload, callback parsing | None |
+| **Integration (CI)** | Simulated button tap → webhook → Firestore status/paid/cancel | Fake `TELEGRAM_CHAT_ID` + `TELEGRAM_WEBHOOK_SECRET` in the workflow only (no bot token, no chef spam) |
+| **Vercel Preview** | Real bot messages + real button taps on a public URL | Real **test bot** vars on Vercel Preview |
+| **Production** | Live chef bot | Separate **production bot** vars on Vercel Production |
+
+CI tests the full *logic* of kitchen buttons without calling Telegram. Use the Preview URL + test bot for a real tap in the Telegram app.
+
 ## Testing
 
 ```bash
@@ -199,3 +272,4 @@ These are loaded on the server inside the Next.js API routes (`src/app/api/order
 
 - Coordinates: `23.619147660495543, 86.18070429732468`
 - City: Bokaro, Jharkhand, India
+

@@ -162,11 +162,22 @@ export function TableOrderClient({
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
+            aria-label="Search dishes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-3 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
           />
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted hover:bg-bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <div className="mt-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1">

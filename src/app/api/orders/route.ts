@@ -1,15 +1,27 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
+import { notifyKitchenTelegram } from "@/lib/telegram";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+// Telegram Bot API often times out from US regions on Vercel.
+export const preferredRegion = ["fra1"];
+export const maxDuration = 60;
 
 function isAuthorizedTestRequest(request: Request): boolean {
   const secret = process.env.E2E_TEST_SECRET;
   if (!secret) return false;
-  return request.headers.get("x-chatkara-test-key") === secret;
+  const key = request.headers.get("x-chatkara-test-key");
+  if (typeof key !== "string") return false;
+
+  const a = Buffer.from(key, "utf8");
+  const b = Buffer.from(secret, "utf8");
+  if (a.length !== b.length) return false;
+
+  return timingSafeEqual(a, b);
 }
 
 export async function GET(request: Request) {
@@ -55,6 +67,9 @@ export async function POST(request: Request) {
         : undefined,
       isTest: isTest || undefined,
     });
+
+    // Keep the isolate alive after the response so notify isn't frozen mid-fetch.
+    after(() => notifyKitchenTelegram(order));
 
     return NextResponse.json({ order }, { status: 201 });
   } catch {

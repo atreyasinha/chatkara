@@ -34,6 +34,10 @@ jobs:
       FIREBASE_APP_ID: ${{ secrets.FIREBASE_DEV_APP_ID }}
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
+      # Fake Telegram kitchen chat — CI simulates button taps via webhook POST
+      # (no real bot token; does not message anyone)
+      TELEGRAM_CHAT_ID: "999001"
+      TELEGRAM_WEBHOOK_SECRET: ci-telegram-webhook-secret
 
     steps:
       - name: Checkout
