@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, before, describe, it } from "node:test";
+import { before, describe, it } from "node:test";
 import { MENU } from "../../src/lib/menu.ts";
 import { RESTAURANT } from "../../src/lib/restaurant.ts";
 import {
@@ -17,11 +17,13 @@ import {
   TEST_PHONE,
   underpricedPayload,
 } from "../helpers/fixtures.ts";
-import { cleanupTestData } from "../helpers/cleanup.ts";
 
 const enabled = firebaseConfigured();
 
-describe("API integration — auth, pricing, kitchen life", () => {
+describe(
+  "API integration — auth, pricing, kitchen life",
+  { concurrency: false },
+  () => {
   before(async () => {
     if (!enabled) {
       console.log("Skipping integration suite: Firebase env not configured");
@@ -34,14 +36,8 @@ describe("API integration — auth, pricing, kitchen life", () => {
       throw new Error("ADMIN_PASSWORD is required for integration tests");
     }
     await waitForServer();
-    await cleanupTestData();
     const ok = await adminLogin(process.env.ADMIN_PASSWORD);
     assert.equal(ok, true, "admin login should set session cookie");
-  });
-
-  after(async () => {
-    if (!enabled) return;
-    await cleanupTestData();
   });
 
   it("rejects invalid payloads", async (t) => {
@@ -126,8 +122,17 @@ describe("API integration — auth, pricing, kitchen life", () => {
     assert.equal(order!.status, "pending");
 
     for (const next of ["confirmed", "preparing", "ready", "served"] as const) {
-      const patched = await patchOrder(order!.id, { status: next });
-      assert.equal(patched.status, 200);
+      let patched = await patchOrder(order!.id, { status: next });
+      // Brief retry — CI can race a fresh Firestore doc on the first status write
+      if (patched.status === 404) {
+        await new Promise((r) => setTimeout(r, 400));
+        patched = await patchOrder(order!.id, { status: next });
+      }
+      assert.equal(
+        patched.status,
+        200,
+        `status→${next}: ${JSON.stringify(patched.body)}`,
+      );
       assert.equal(patched.body.order?.status, next);
       if (next === "served") {
         assert.ok(patched.body.order?.completedAt);

@@ -245,7 +245,8 @@ export async function updateOrderStatus(
     return order;
   } catch (error) {
     console.error(`Error updating status for order ${id} in Firestore:`, error);
-    return undefined;
+    // Surface Firestore errors instead of pretending the order is missing
+    throw error;
   }
 }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getChatkaraEnv, getFirebaseProjectId } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -10,5 +11,9 @@ export async function GET() {
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
+    /** development | production — which logical env this deploy is */
+    environment: getChatkaraEnv(),
+    /** Echo for kitchen/debug banner (same as projectId) */
+    firebaseProjectId: getFirebaseProjectId(),
   });
 }

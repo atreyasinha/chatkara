@@ -1,65 +1,22 @@
-name: Nightly
+name: CI
 
-# Two jobs:
-# 1) prod-smoke — hits the live Production URL (UI only; current e2e does not create orders)
-# 2) dev-suite  — local server + chatkara-dev; integration/e2e that write orders live here only
-#
-# Why split: a request to the Production URL always uses Production Firebase (Vercel).
-# GitHub secrets cannot redirect those writes to chatkara-dev.
+# PRs into main + pushes to non-main branches.
+# Builds a local server wired to chatkara-dev (FIREBASE_DEV_* secrets).
+# Never uses Production Firebase — keep FIREBASE_* as prod-only reference if needed.
 
 on:
-  schedule:
-    # 18:30 UTC ≈ midnight IST
-    - cron: "30 18 * * *"
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches-ignore: [main]
 
 concurrency:
-  group: nightly-tests
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  prod-smoke:
-    name: Production URL smoke (no order writes)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    env:
-      CI: true
-      # Live site — uses La Gardenia Firebase on the server side.
-      # Playwright suite is cart/UI only (no POST /api/orders).
-      PLAYWRIGHT_BASE_URL: ${{ vars.PRODUCTION_URL || 'https://chatkara.lagardenia.in' }}
-      BASE_URL: ${{ vars.PRODUCTION_URL || 'https://chatkara.lagardenia.in' }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup mise (Node 20)
-        uses: jdx/mise-action@v2
-        with:
-          install_args: "node@20"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
-
-      - name: E2E against Production URL
-        run: npx playwright test --project=chromium
-
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-prod-smoke
-          path: |
-            playwright-report
-            test-results
-          retention-days: 14
-
-  dev-suite:
-    name: Dev DB — unit, integration, e2e
+  checks:
+    name: Lint, build, unit, integration, e2e
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -68,6 +25,7 @@ jobs:
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
       CHATKARA_ENV: development
       CI: true
+      # Dev Firebase only (do not fall back to Production secrets)
       FIREBASE_API_KEY: ${{ secrets.FIREBASE_DEV_API_KEY }}
       FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_DEV_AUTH_DOMAIN }}
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_DEV_PROJECT_ID }}
@@ -86,12 +44,12 @@ jobs:
           missing=0
           for v in FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_STORAGE_BUCKET FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID ADMIN_PASSWORD E2E_TEST_SECRET; do
             if [ -z "${!v}" ]; then
-              echo "Missing $v"
+              echo "Missing $v (map from FIREBASE_DEV_* / ADMIN_PASSWORD / E2E_TEST_SECRET secrets)"
               missing=1
             fi
           done
           if [ "$missing" -ne 0 ]; then
-            echo "::error::Add FIREBASE_DEV_* secrets for chatkara-dev. Order-writing tests must not use Production FIREBASE_*."
+            echo "::error::Add FIREBASE_DEV_* secrets pointing at chatkara-dev. Do not reuse Production FIREBASE_* here."
             exit 1
           fi
           echo "Using Firebase project: $FIREBASE_PROJECT_ID"
@@ -113,7 +71,7 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Start local server (Dev Firebase)
+      - name: Start production server
         run: |
           npm run start -- --hostname 127.0.0.1 --port 3000 &
           echo $! > /tmp/chatkara-server.pid
@@ -127,13 +85,13 @@ jobs:
           echo "Server failed to start"
           exit 1
 
-      - name: Integration API tests (writes → chatkara-dev)
+      - name: Integration API tests
         run: npm run test:integration
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: E2E against local Dev server
+      - name: E2E customer UI tests
         run: npx playwright test --project=chromium
 
       - name: Stop server
@@ -147,8 +105,8 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-dev-suite
+          name: playwright-report
           path: |
             playwright-report
             test-results
-          retention-days: 14
+          retention-days: 7

@@ -15,9 +15,18 @@ export async function getClientDb(): Promise<Firestore> {
     throw new Error("Failed to fetch Firebase configuration from the server");
   }
   const config = await res.json();
+  const firebaseConfig = {
+    apiKey: config.apiKey,
+    authDomain: config.authDomain,
+    projectId: config.projectId,
+    storageBucket: config.storageBucket,
+    messagingSenderId: config.messagingSenderId,
+    appId: config.appId,
+  };
 
   // Initialize the client SDK with the fetched configuration keys
-  const app = getApps().length > 0 ? getApp() : initializeApp(config);
-  dbInstance = getFirestore(app, "default");
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  // (default) database — passing "default" looks up a different (missing) DB id
+  dbInstance = getFirestore(app);
   return dbInstance;
 }

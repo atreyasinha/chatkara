@@ -12,6 +12,7 @@ const firebaseConfig = {
 
 // Initialize Firebase for Server-Side or Client-Side Next.js environments
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app, "default");
+// Use the project's (default) database — do not pass "default" (that is a different id).
+const db = getFirestore(app);
 
 export { db };
