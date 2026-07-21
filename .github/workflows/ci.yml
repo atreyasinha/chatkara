@@ -1,21 +1,22 @@
-name: Nightly full suite
+name: CI
 
-# IMPORTANT: GitHub FIREBASE_* secrets must point at the Development
-# Firebase project — never Production — so tests cannot write live orders.
+# Runs on every PR into main and on pushes to non-main branches.
+# Uses Development Firebase only — never Production.
+# Enable branch protection on main so merges require this check to pass.
 
 on:
-  schedule:
-    # 18:30 UTC ≈ midnight IST
-    - cron: "30 18 * * *"
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches-ignore: [main]
 
 concurrency:
-  group: nightly-tests
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  nightly:
-    name: Unit + integration + e2e
+  checks:
+    name: Lint, build, unit, integration, e2e
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -23,6 +24,7 @@ jobs:
       BASE_URL: http://127.0.0.1:3000
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
       CHATKARA_ENV: development
+      CI: true
       FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
       FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
       FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
@@ -95,4 +97,4 @@ jobs:
           path: |
             playwright-report
             test-results
-          retention-days: 14
+          retention-days: 7

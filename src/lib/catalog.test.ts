@@ -42,6 +42,14 @@ describe("menu catalog", () => {
     assert.ok(hits.length >= 1);
     assert.equal(searchMenu("").length, MENU.length);
   });
+
+  it("search matches dishes when words are reordered (butter chicken)", () => {
+    const hits = searchMenu("butter chicken");
+    assert.ok(
+      hits.some((m) => m.name === "Chicken Butter Masala"),
+      `expected Chicken Butter Masala in ${hits.map((m) => m.name).join(", ")}`,
+    );
+  });
 });
 
 describe("restaurant config", () => {

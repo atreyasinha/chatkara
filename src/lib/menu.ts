@@ -292,13 +292,36 @@ export function getMenuItem(id: string): MenuItem | undefined {
   return MENU.find((m) => m.id === id);
 }
 
+/** Lowercase and collapse punctuation so "Hot & Sour" ≈ "hot sour". */
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Match when the full phrase appears, or when every query word appears
+ * (any order). "butter chicken" → Chicken Butter Masala.
+ */
+function matchesSearchHaystack(haystack: string, query: string): boolean {
+  const h = normalizeSearchText(haystack);
+  const q = normalizeSearchText(query);
+  if (!q) return true;
+  if (h.includes(q)) return true;
+  const tokens = q.split(" ").filter(Boolean);
+  return tokens.length > 0 && tokens.every((token) => h.includes(token));
+}
+
 export function searchMenu(query: string): MenuItem[] {
-  const q = query.trim().toLowerCase();
+  const q = query.trim();
   if (!q) return MENU;
   return MENU.filter(
     (m) =>
-      m.name.toLowerCase().includes(q) ||
-      m.category.toLowerCase().includes(q) ||
-      (m.subcategory?.toLowerCase().includes(q) ?? false),
+      matchesSearchHaystack(m.name, q) ||
+      matchesSearchHaystack(m.category, q) ||
+      (m.subcategory ? matchesSearchHaystack(m.subcategory, q) : false),
   );
 }

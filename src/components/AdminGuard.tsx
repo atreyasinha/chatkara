@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Lock, AlertCircle, RefreshCw } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
+import { EnvBanner } from "@/components/EnvBanner";
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [password, setPassword] = useState("");
@@ -73,7 +74,9 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-bg px-4">
+      <>
+        <EnvBanner />
+        <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-bg px-4">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40"
@@ -124,11 +127,13 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
           </form>
         </div>
       </div>
+      </>
     );
   }
 
   return (
     <>
+      <EnvBanner />
       <div className="fixed bottom-4 right-4 z-50">
         <button
           type="button"
