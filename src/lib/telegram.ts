@@ -327,6 +327,7 @@ export async function notifyKitchenTelegram(order: Order): Promise<boolean> {
 export function isAllowedTelegramChat(chatId: number | string): boolean {
   const configured = telegramChatId();
   if (configured === null) return false;
+  // Compare as strings so number/string and sign are preserved consistently.
   return String(configured) === String(chatId);
 }
 
