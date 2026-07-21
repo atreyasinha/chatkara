@@ -122,14 +122,18 @@ export async function POST(request: Request) {
   const chatId = cb.message?.chat.id;
   const messageId = cb.message?.message_id;
   if (chatId === undefined || !isAllowedTelegramChat(chatId)) {
+    console.warn("Telegram callback rejected: unauthorized chat", {
+      chatId,
+      configured: process.env.TELEGRAM_CHAT_ID,
+    });
     await answerTelegramCallback(cb.id, "Unauthorized chat");
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, rejected: "unauthorized_chat" });
   }
 
   const parsed = parseKitchenCallbackData(cb.data || "");
   if (!parsed) {
     await answerTelegramCallback(cb.id, "Unknown action");
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, rejected: "unknown_action" });
   }
 
   try {
@@ -144,10 +148,14 @@ export async function POST(request: Request) {
         buildKitchenInlineKeyboard(result.order),
       );
     }
+    return NextResponse.json({
+      ok: true,
+      toast: result.toast,
+      status: result.order?.status,
+    });
   } catch (err) {
     console.error("Telegram callback failed:", err);
     await answerTelegramCallback(cb.id, "Error — try kitchen POS");
+    return NextResponse.json({ ok: true, rejected: "error" });
   }
-
-  return NextResponse.json({ ok: true });
 }
