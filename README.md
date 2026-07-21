@@ -167,6 +167,17 @@ Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`
 
 **Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL (e.g. `test/dev` Preview).
 
+#### How testing is split
+
+| Layer | What it proves | Telegram secrets? |
+|---|---|---|
+| **Unit tests (CI)** | Message text, button payload, callback parsing | None |
+| **Integration (CI)** | Simulated button tap → webhook → Firestore status/paid/cancel | Fake `TELEGRAM_CHAT_ID` + `TELEGRAM_WEBHOOK_SECRET` in the workflow only (no bot token, no chef spam) |
+| **Vercel Preview** | Real bot messages + real button taps on a public URL | Real **test bot** vars on Vercel Preview |
+| **Production** | Live chef bot | Separate **production bot** vars on Vercel Production |
+
+CI tests the full *logic* of kitchen buttons without calling Telegram. Use the Preview URL + test bot for a real tap in the Telegram app.
+
 ## Testing
 
 ```bash
