@@ -4,6 +4,9 @@ import { getChatkaraEnv, getFirebaseProjectId } from "@/lib/env";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const firestoreDatabaseId =
+    process.env.FIRESTORE_DATABASE_ID?.trim() || undefined;
+
   return NextResponse.json({
     apiKey: process.env.FIREBASE_API_KEY,
     authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -11,6 +14,8 @@ export async function GET() {
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
     appId: process.env.FIREBASE_APP_ID,
+    /** Named Firestore DB id when not `(default)` — e.g. Production `default`. */
+    firestoreDatabaseId: firestoreDatabaseId || null,
     /** development | production — which logical env this deploy is */
     environment: getChatkaraEnv(),
     /** Echo for kitchen/debug banner (same as projectId) */
