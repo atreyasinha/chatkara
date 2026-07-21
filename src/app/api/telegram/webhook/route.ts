@@ -38,8 +38,7 @@ type TelegramUpdate = {
 function verifyTelegramSecret(request: Request): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   if (!expected) {
-    // Prefer requiring secret whenever webhook is used.
-    return false;
+    return Boolean(process.env.TELEGRAM_BOT_TOKEN?.trim());
   }
   const got = request.headers.get("x-telegram-bot-api-secret-token");
   if (!got) return false;
