@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import {
   answerTelegramCallback,
@@ -19,6 +20,8 @@ import type { Order } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const preferredRegion = ["fra1"];
+/** Retries to Telegram Bot API can take a while after the HTTP response. */
+export const maxDuration = 60;
 
 type TelegramUpdate = {
   callback_query?: {
@@ -35,12 +38,15 @@ type TelegramUpdate = {
 function verifyTelegramSecret(request: Request): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   if (!expected) {
-    // If no secret configured, reject in production-like setups; allow only when unset for local experiments
     // Prefer requiring secret whenever webhook is used.
     return false;
   }
   const got = request.headers.get("x-telegram-bot-api-secret-token");
-  return got === expected;
+  if (!got) return false;
+  const a = Buffer.from(got);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 async function applyKitchenAction(

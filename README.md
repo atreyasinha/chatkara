@@ -146,42 +146,56 @@ When an order is placed (or items are appended), ChatKara can message Telegram s
 #### Setup
 
 1. In Telegram, message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the **bot token**
-2. Open the bot → **Start**, or add it to a private kitchen group
-3. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `chat.id`
-4. Set env vars (local + Vercel Preview/Production):
+2. Open the bot → **Start**, or add it to a **private kitchen group** (recommended for staff)
+3. Copy `chat.id` from `getUpdates` (groups/channels are usually **negative**, e.g. `-555…` or `-100…`)
+4. Set env vars — **separate bots** for Preview vs Production:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-   - `TELEGRAM_WEBHOOK_SECRET` — random string, e.g. `openssl rand -hex 24`
-5. Point Telegram at your **public** app URL (Preview or Production — not localhost).
+   - `TELEGRAM_WEBHOOK_SECRET` — random 32 hex chars, e.g. `openssl rand -hex 16`
+5. Point **each bot** at the matching public host (not localhost) and redeploy after changing env vars.
 
-**Preview deployments with Vercel Authentication:** Telegram cannot log in, so plain Preview URLs return `401 Protected deployment` and buttons stay dead. Either:
+##### Production (`chatkara.lagardenia.in`)
 
-- **A (recommended for Preview):** Project → **Settings → Deployment Protection → Protection Bypass for Automation** → copy the secret, then append it to the webhook URL as below, **or**
-- **B:** Turn off Vercel Authentication for Preview (only if you accept a public Preview), **or**
-- **C:** Point the webhook at **Production** (usually unprotected).
+Use the **production bot** + kitchen group. Production is normally public (no Vercel Auth bypass).
 
 ```bash
-# Preview (with bypass) — replace BYPASS with the Vercel automation secret
+PROD=https://chatkara.lagardenia.in
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  --data-urlencode "url=${PROD}/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
+  -d 'allowed_updates=["callback_query"]'
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+Vercel **Production** env must have La Gardenia `FIREBASE_*`, `CHATKARA_ENV=production` (or rely on `VERCEL_ENV`), and the three `TELEGRAM_*` vars above. Prefer **not** setting `E2E_TEST_SECRET` on Production.
+
+##### Preview (`test/dev`)
+
+Use the **dev/test bot**. Preview often has Vercel Authentication — Telegram cannot log in, so plain Preview URLs return `401 Protected deployment`. Either:
+
+- **A (recommended):** Project → **Settings → Deployment Protection → Protection Bypass for Automation** → append the secret as below, **or**
+- **B:** Turn off Vercel Authentication for Preview, **or**
+- **C:** Do not use Preview for button tests (use Production only).
+
+```bash
 PREVIEW=https://chatkara-git-test-dev-la-gardenia.vercel.app
 BYPASS=your_vercel_automation_bypass_secret
 
 curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
   --data-urlencode "url=${PREVIEW}/api/telegram/webhook?x-vercel-protection-bypass=${BYPASS}" \
   -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
-  -d "allowed_updates=[\"callback_query\"]"
-
-# Confirm
-curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+  -d 'allowed_updates=["callback_query"]'
 ```
 
-Also put the same `TELEGRAM_*` vars on **Vercel Preview** (not only `.env.local`) and redeploy after changing them.
-
-6. Place a test order on the **Preview URL** (not localhost) — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
+6. Place a test order on the matching host — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
 
 Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If bot vars are missing, notify is a no-op (orders still work).
 
-**Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL Telegram can reach (Preview + bypass, or Production).
+**Important:** One bot can only have **one** webhook URL. Never point the production bot at Preview (button taps would hit Dev Firebase).
 
+**Note:** Kitchen POS status changes do not edit the Telegram message; Telegram buttons always apply against current Firestore state.
 #### How testing is split
 
 | Layer | What it proves | Telegram secrets? |

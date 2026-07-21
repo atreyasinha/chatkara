@@ -9,6 +9,7 @@ import type { CartItem, PaymentMethod } from "@/lib/types";
 export const dynamic = "force-dynamic";
 // Telegram Bot API often times out from US regions on Vercel.
 export const preferredRegion = ["fra1"];
+export const maxDuration = 60;
 
 function isAuthorizedTestRequest(request: Request): boolean {
   const secret = process.env.E2E_TEST_SECRET;

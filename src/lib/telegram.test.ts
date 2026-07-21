@@ -4,6 +4,7 @@ import {
   buildKitchenCallbackData,
   buildKitchenInlineKeyboard,
   formatKitchenTelegramMessage,
+  isAllowedTelegramChat,
   parseKitchenCallbackData,
 } from "./telegram.ts";
 import type { Order } from "./types.ts";
@@ -153,5 +154,15 @@ describe("kitchen telegram callbacks", () => {
       buildKitchenInlineKeyboard(sampleOrder({ status: "served" })),
       undefined,
     );
+  });
+
+  it("allows configured group chat ids (negative)", () => {
+    const prev = process.env.TELEGRAM_CHAT_ID;
+    process.env.TELEGRAM_CHAT_ID = "-5552332683";
+    assert.equal(isAllowedTelegramChat(-5552332683), true);
+    assert.equal(isAllowedTelegramChat("-5552332683"), true);
+    assert.equal(isAllowedTelegramChat(5743218094), false);
+    if (prev === undefined) delete process.env.TELEGRAM_CHAT_ID;
+    else process.env.TELEGRAM_CHAT_ID = prev;
   });
 });
