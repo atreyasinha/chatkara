@@ -156,11 +156,13 @@ describe("kitchen telegram callbacks", () => {
     );
   });
 
-  it("allows configured group chat ids (negative)", () => {
+  it("allows configured group chat ids (negative, production, and comma-separated)", () => {
     const prev = process.env.TELEGRAM_CHAT_ID;
-    process.env.TELEGRAM_CHAT_ID = "-5552332683";
+    process.env.TELEGRAM_CHAT_ID = "-1004405880647, -5552332683";
     assert.equal(isAllowedTelegramChat(-5552332683), true);
     assert.equal(isAllowedTelegramChat("-5552332683"), true);
+    assert.equal(isAllowedTelegramChat("-1004405880647"), true);
+    assert.equal(isAllowedTelegramChat(-1004405880647), true);
     assert.equal(isAllowedTelegramChat(5743218094), false);
     if (prev === undefined) delete process.env.TELEGRAM_CHAT_ID;
     else process.env.TELEGRAM_CHAT_ID = prev;
