@@ -58,8 +58,11 @@ export function isTelegramConfigured(): boolean {
  */
 export async function sendTelegramMessage(text: string): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
-  if (!token || !chatId) return false;
+  const chatIdRaw = process.env.TELEGRAM_CHAT_ID?.trim();
+  if (!token || !chatIdRaw) return false;
+
+  // Telegram accepts string or number; prefer number for private chats
+  const chatId = /^-?\d+$/.test(chatIdRaw) ? Number(chatIdRaw) : chatIdRaw;
 
   try {
     const res = await fetch(
