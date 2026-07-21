@@ -35,43 +35,47 @@ Use **two Firebase projects** so kitchen/test orders never mix with live orders.
 1. Create a feature branch (never push straight to `main`).
 2. Open a PR into `main`.
 3. **Vercel** deploys a Preview URL for that branch (wired to **chatkara-dev** Firebase).
-4. **GitHub Actions `CI`** runs lint, build, unit, integration, and e2e against **chatkara-dev**.
+4. **GitHub Actions `CI`** builds a local server with **`FIREBASE_DEV_*`** secrets and runs lint/build/unit/integration/e2e (all order writes → **chatkara-dev**).
 5. Merge to `main` only when CI is green (branch protection blocks otherwise).
 6. Vercel then deploys **Production** from `main` (wired to **La Gardenia** Firebase).
 
+### Nightly
+
+| Job | Hits | Database for test orders |
+|---|---|---|
+| **Production URL smoke** | Live site (`https://chatkara.lagardenia.in`) | None — e2e is UI/cart only (no order API writes) |
+| **Dev suite** | Local CI server | **chatkara-dev** (`FIREBASE_DEV_*`) — integration + cleanup |
+
+**Important:** You cannot hit the Production URL and store orders in the Dev database. The live site always uses Production Firebase (Vercel). That’s why nightly is split.
+
 ### Setup
 
-1. In [Firebase Console](https://console.firebase.google.com/), keep La Gardenia as production; use **chatkara-dev** for development.
+1. Keep **La Gardenia** as production Firebase; use **chatkara-dev** for development.
 2. Enable **Cloud Firestore** on `chatkara-dev` (`(default)` database).
-3. Copy the `chatkara-dev` web app config into local `.env.local` (see `.env.example`).
-4. On **Vercel → Project → Settings → Environment Variables**:
-   - `FIREBASE_*` + `CHATKARA_ENV=production` → **Production** only (La Gardenia)
-   - `FIREBASE_*` + `CHATKARA_ENV=development` → **Preview** and **Development** (`chatkara-dev`)
-5. **Vercel → Settings → Git** → Production Branch = `main` (default).
-6. Point **GitHub Actions secrets** (`FIREBASE_*`, `ADMIN_PASSWORD`, `E2E_TEST_SECRET`) at **chatkara-dev** only.
+3. Local `.env.local` → `chatkara-dev` credentials + `CHATKARA_ENV=development`.
+4. **Vercel → Environment Variables**:
+   - **Production** → La Gardenia `FIREBASE_*` + `CHATKARA_ENV=production`
+   - **Preview / Development** → `chatkara-dev` `FIREBASE_*` + `CHATKARA_ENV=development`
+5. **Vercel → Git** → Production Branch = `main`.
+6. **GitHub → Secrets** (keep existing Production `FIREBASE_*` if you want; CI/nightly write path does **not** use them):
+
+| Secret | Purpose |
+|---|---|
+| `FIREBASE_DEV_API_KEY` | chatkara-dev (PR CI + nightly write suite) |
+| `FIREBASE_DEV_AUTH_DOMAIN` | |
+| `FIREBASE_DEV_PROJECT_ID` | |
+| `FIREBASE_DEV_STORAGE_BUCKET` | |
+| `FIREBASE_DEV_MESSAGING_SENDER_ID` | |
+| `FIREBASE_DEV_APP_ID` | |
+| `ADMIN_PASSWORD` | Kitchen login in CI |
+| `E2E_TEST_SECRET` | Tags `isTest` orders for cleanup |
+
+Optional repo **Variable**: `PRODUCTION_URL` (defaults to `https://chatkara.lagardenia.in`) for nightly smoke.
+
 7. Protect `main` so PRs cannot merge until CI passes (Settings → Branches → rule for `main`):
    - Require a pull request before merging
    - Require status checks to pass → select **`Lint, build, unit, integration, e2e`**
-   - Require branches to be up to date before merging  
-   Or after `gh auth login`:
-
-```bash
-gh api repos/atreyasinha/chatkara/branches/main/protection --method PUT --input - <<'EOF'
-{
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["Lint, build, unit, integration, e2e"]
-  },
-  "enforce_admins": true,
-  "required_pull_request_reviews": null,
-  "restrictions": null,
-  "allow_force_pushes": false,
-  "allow_deletions": false
-}
-EOF
-```
-
-(The check name must appear at least once on a PR before GitHub will list it — merge the CI workflow to `main` first, open any PR, then enable the rule.)
+   - Require branches to be up to date before merging
 
 Kitchen/admin shows an amber **Development** banner when not on production, including the Firebase project id.
 
@@ -86,10 +90,11 @@ npm run test:e2e           # Playwright customer UI
 npm run test:cleanup       # delete Firestore orders tagged isTest=true (Dev DB only)
 ```
 
-**CI** (`.github/workflows/ci.yml`) runs on every PR to `main` and on pushes to other branches.  
-**Nightly** (`.github/workflows/nightly.yml`) runs the full suite at **18:30 UTC** (~midnight IST) and always cleans up test orders afterward.
+**CI** (`.github/workflows/ci.yml`) runs on every PR to `main` using **`FIREBASE_DEV_*`**.  
+**Nightly** (`.github/workflows/nightly.yml`): Production URL smoke + Dev DB full suite at **18:30 UTC**.
 
-Required GitHub Secrets: all `FIREBASE_*` (**chatkara-dev**), `ADMIN_PASSWORD`, `E2E_TEST_SECRET`.
+Required GitHub Secrets for PR CI / nightly writes: all `FIREBASE_DEV_*` (**chatkara-dev**), `ADMIN_PASSWORD`, `E2E_TEST_SECRET`.  
+Existing Production `FIREBASE_*` secrets can stay; they are not used for order-writing jobs.
 
 Also add to local `.env.local`:
 - Dev `FIREBASE_*` credentials (`chatkara-dev`)

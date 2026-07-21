@@ -1,8 +1,8 @@
 name: CI
 
-# Runs on every PR into main and on pushes to non-main branches.
-# Uses Development Firebase only — never Production.
-# Enable branch protection on main so merges require this check to pass.
+# PRs into main + pushes to non-main branches.
+# Builds a local server wired to chatkara-dev (FIREBASE_DEV_* secrets).
+# Never uses Production Firebase — keep FIREBASE_* as prod-only reference if needed.
 
 on:
   pull_request:
@@ -25,18 +25,34 @@ jobs:
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
       CHATKARA_ENV: development
       CI: true
-      FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-      FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-      FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
-      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      # Dev Firebase only (do not fall back to Production secrets)
+      FIREBASE_API_KEY: ${{ secrets.FIREBASE_DEV_API_KEY }}
+      FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_DEV_AUTH_DOMAIN }}
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_DEV_PROJECT_ID }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_DEV_STORAGE_BUCKET }}
+      FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_DEV_MESSAGING_SENDER_ID }}
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_DEV_APP_ID }}
       ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       E2E_TEST_SECRET: ${{ secrets.E2E_TEST_SECRET }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Require Dev Firebase secrets
+        run: |
+          missing=0
+          for v in FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_STORAGE_BUCKET FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID ADMIN_PASSWORD E2E_TEST_SECRET; do
+            if [ -z "${!v}" ]; then
+              echo "Missing $v (map from FIREBASE_DEV_* / ADMIN_PASSWORD / E2E_TEST_SECRET secrets)"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::Add FIREBASE_DEV_* secrets pointing at chatkara-dev. Do not reuse Production FIREBASE_* here."
+            exit 1
+          fi
+          echo "Using Firebase project: $FIREBASE_PROJECT_ID"
 
       - name: Setup mise (Node 20)
         uses: jdx/mise-action@v2
