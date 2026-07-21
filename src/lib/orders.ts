@@ -16,6 +16,31 @@ import { computeOrderTotals, mergeCartItems } from "./order-math";
 import type { CartItem, Order, OrderStatus, PaymentMethod } from "./types";
 
 const ORDERS_COLLECTION = "orders";
+const FIRESTORE_WRITE_TIMEOUT_MS = 12_000;
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(
+            new Error(
+              `${label} timed out after ${ms}ms — check Firestore is created for this Firebase project`,
+            ),
+          );
+        }, ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
@@ -160,7 +185,11 @@ export async function createOrder(input: {
         }
 
         const docRef = doc(db, ORDERS_COLLECTION, parentOrder.id);
-        await setDoc(docRef, cleanUndefined(updatedOrder));
+        await withTimeout(
+          setDoc(docRef, cleanUndefined(updatedOrder)),
+          FIRESTORE_WRITE_TIMEOUT_MS,
+          "Firestore write",
+        );
         return updatedOrder;
       }
     } catch (err) {
@@ -209,7 +238,11 @@ export async function createOrder(input: {
 
   try {
     const docRef = doc(db, ORDERS_COLLECTION, id);
-    await setDoc(docRef, cleanUndefined(order));
+    await withTimeout(
+      setDoc(docRef, cleanUndefined(order)),
+      FIRESTORE_WRITE_TIMEOUT_MS,
+      "Firestore write",
+    );
   } catch (error) {
     console.error("Error creating order in Firestore:", error);
     throw error;

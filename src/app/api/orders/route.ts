@@ -72,10 +72,18 @@ export async function POST(request: Request) {
     after(() => notifyKitchenTelegram(order));
 
     return NextResponse.json({ order }, { status: 201 });
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to create order";
+    console.error("POST /api/orders failed:", message);
+    const isFirestore =
+      /firestore/i.test(message) || /NOT_FOUND/i.test(message) || /timed out/i.test(message);
     return NextResponse.json(
-      { error: "Failed to create order" },
-      { status: 500 },
+      {
+        error: isFirestore
+          ? "Database unavailable — Firestore may not be set up for this environment"
+          : "Failed to create order",
+      },
+      { status: 503 },
     );
   }
 }

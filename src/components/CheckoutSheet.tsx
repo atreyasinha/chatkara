@@ -116,9 +116,16 @@ export function CheckoutSheet({
           notes: notes || undefined,
           parentOrderId: parentOrderId || undefined,
         }),
+        signal: AbortSignal.timeout(25_000),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed");
+      const data = (await res.json().catch(() => ({}))) as {
+        order?: Order;
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to place order (${res.status})`);
+      }
+      if (!data.order) throw new Error("Failed to place order");
 
       if (typeof window !== "undefined") {
         if (tableNumber === 0 && name) {
@@ -133,7 +140,13 @@ export function CheckoutSheet({
         router.push(`/order/${data.order.id}`);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      const message =
+        e instanceof DOMException && e.name === "TimeoutError"
+          ? "Order timed out — check kitchen board or try again"
+          : e instanceof Error
+            ? e.message
+            : "Something went wrong";
+      setError(message);
     } finally {
       setLoading(false);
     }
