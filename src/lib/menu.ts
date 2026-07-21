@@ -302,26 +302,20 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
-/**
- * Match when the full phrase appears, or when every query word appears
- * (any order). "butter chicken" → Chicken Butter Masala.
- */
-function matchesSearchHaystack(haystack: string, query: string): boolean {
-  const h = normalizeSearchText(haystack);
-  const q = normalizeSearchText(query);
-  if (!q) return true;
-  if (h.includes(q)) return true;
-  const tokens = q.split(" ").filter(Boolean);
-  return tokens.length > 0 && tokens.every((token) => h.includes(token));
-}
+// Pre-compute normalized search strings to avoid regex per item on every keystroke
+const MENU_WITH_SEARCH_STRING = MENU.map(m => ({
+  item: m,
+  searchString: normalizeSearchText(`${m.name} ${m.category} ${m.subcategory || ""}`)
+}));
 
 export function searchMenu(query: string): MenuItem[] {
-  const q = query.trim();
+  const q = normalizeSearchText(query);
   if (!q) return MENU;
-  return MENU.filter(
-    (m) =>
-      matchesSearchHaystack(m.name, q) ||
-      matchesSearchHaystack(m.category, q) ||
-      (m.subcategory ? matchesSearchHaystack(m.subcategory, q) : false),
-  );
+
+  const tokens = q.split(" ").filter(Boolean);
+
+  return MENU_WITH_SEARCH_STRING.filter(
+    ({ searchString }) =>
+      searchString.includes(q) || (tokens.length > 0 && tokens.every((token) => searchString.includes(token)))
+  ).map(m => m.item);
 }
