@@ -26,6 +26,7 @@ export async function getClientDb(): Promise<Firestore> {
 
   // Initialize the client SDK with the fetched configuration keys
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  dbInstance = getFirestore(app, "default");
+  // (default) database — passing "default" looks up a different (missing) DB id
+  dbInstance = getFirestore(app);
   return dbInstance;
 }
