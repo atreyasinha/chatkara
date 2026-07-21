@@ -189,7 +189,9 @@ export function isTelegramConfigured(): boolean {
 function telegramChatId(): string | number | null {
   const chatIdRaw = process.env.TELEGRAM_CHAT_ID?.trim();
   if (!chatIdRaw) return null;
-  return /^-?\d+$/.test(chatIdRaw) ? Number(chatIdRaw) : chatIdRaw;
+  // Send as string to Telegram. Number() is unnecessary and has bitten us when
+  // env values were stored/retrieved with unexpected formatting.
+  return chatIdRaw;
 }
 
 function telegramToken(): string | null {
@@ -262,19 +264,39 @@ export async function sendTelegramMessage(
   text: string,
   replyMarkup?: { inline_keyboard: InlineButton[][] },
 ): Promise<boolean> {
-  const chatId = telegramChatId();
-  if (!telegramToken() || chatId === null) return false;
+  const configured = telegramChatId();
+  if (!telegramToken() || configured === null) return false;
 
-  const payload: Record<string, unknown> = {
-    chat_id: chatId,
-    text,
-    parse_mode: "HTML",
-    disable_web_page_preview: true,
-  };
-  if (replyMarkup) payload.reply_markup = replyMarkup;
+  const chatIds = String(configured)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-  const json = await telegramApi("sendMessage", payload);
-  return json.ok;
+  if (!chatIds.length) return false;
+
+  let anySuccess = false;
+  for (const chatId of chatIds) {
+    const payload: Record<string, unknown> = {
+      chat_id: chatId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    };
+    if (replyMarkup) payload.reply_markup = replyMarkup;
+
+    const json = await telegramApi("sendMessage", payload);
+    if (json.ok) {
+      anySuccess = true;
+    } else {
+      const token = telegramToken() || "";
+      console.error("Telegram sendMessage failed detail:", {
+        description: json.description,
+        chatId,
+        botIdPrefix: token.split(":")[0] || null,
+      });
+    }
+  }
+  return anySuccess;
 }
 
 export async function editTelegramMessage(
@@ -327,7 +349,11 @@ export async function notifyKitchenTelegram(order: Order): Promise<boolean> {
 export function isAllowedTelegramChat(chatId: number | string): boolean {
   const configured = telegramChatId();
   if (configured === null) return false;
-  return String(configured) === String(chatId);
+  const configuredIds = String(configured)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return configuredIds.includes(String(chatId).trim());
 }
 
 export { STATUS_LABEL };

@@ -1,0 +1,14 @@
+---
+description: Always check active branches before creating PRs; never reuse merged branches
+alwaysApply: true
+---
+
+# Git branch / PR workflow
+
+When shipping fixes or features via a branch or pull request:
+
+1. **Check active state first** — `git fetch`, then inspect `origin/main`, open PRs, and whether the current branch (or related fix branch) is already merged.
+2. **If the previous branch/PR is already merged into `main`** — create a **new** branch from `origin/main` for the new work. Do not keep committing on a merged branch.
+3. **If an unmerged branch already has the relevant commits** — continue on that branch (or open/update its PR); do not invent a duplicate branch for the same change set.
+4. **Prefer small focused branches** — one concern per branch/PR when possible (e.g. Firestore client fix separate from unrelated WIP on `test/dev`).
+5. Before opening a PR, confirm the branch is based on current `origin/main` and only contains the intended commits.
