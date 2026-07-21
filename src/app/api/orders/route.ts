@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
@@ -6,6 +6,8 @@ import { notifyKitchenTelegram } from "@/lib/telegram";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+// Telegram Bot API often times out from US regions on Vercel.
+export const preferredRegion = ["fra1"];
 
 function isAuthorizedTestRequest(request: Request): boolean {
   const secret = process.env.E2E_TEST_SECRET;
@@ -57,8 +59,8 @@ export async function POST(request: Request) {
       isTest: isTest || undefined,
     });
 
-    // Fire-and-forget — never block or fail the order on notify errors
-    void notifyKitchenTelegram(order);
+    // Keep the isolate alive after the response so notify isn't frozen mid-fetch.
+    after(() => notifyKitchenTelegram(order));
 
     return NextResponse.json({ order }, { status: 201 });
   } catch {

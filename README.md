@@ -152,20 +152,35 @@ When an order is placed (or items are appended), ChatKara can message Telegram s
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
    - `TELEGRAM_WEBHOOK_SECRET` — random string, e.g. `openssl rand -hex 24`
-5. Point Telegram at your **public** app URL (Preview or Production — not localhost):
+5. Point Telegram at your **public** app URL (Preview or Production — not localhost).
+
+**Preview deployments with Vercel Authentication:** Telegram cannot log in, so plain Preview URLs return `401 Protected deployment` and buttons stay dead. Either:
+
+- **A (recommended for Preview):** Project → **Settings → Deployment Protection → Protection Bypass for Automation** → copy the secret, then append it to the webhook URL as below, **or**
+- **B:** Turn off Vercel Authentication for Preview (only if you accept a public Preview), **or**
+- **C:** Point the webhook at **Production** (usually unprotected).
 
 ```bash
+# Preview (with bypass) — replace BYPASS with the Vercel automation secret
+PREVIEW=https://chatkara-git-test-dev-la-gardenia.vercel.app
+BYPASS=your_vercel_automation_bypass_secret
+
 curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
-  -d "url=https://YOUR_PUBLIC_HOST/api/telegram/webhook" \
+  --data-urlencode "url=${PREVIEW}/api/telegram/webhook?x-vercel-protection-bypass=${BYPASS}" \
   -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
   -d "allowed_updates=[\"callback_query\"]"
+
+# Confirm
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
 ```
 
-6. Place a test order — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
+Also put the same `TELEGRAM_*` vars on **Vercel Preview** (not only `.env.local`) and redeploy after changing them.
+
+6. Place a test order on the **Preview URL** (not localhost) — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
 
 Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If bot vars are missing, notify is a no-op (orders still work).
 
-**Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL (e.g. `test/dev` Preview).
+**Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL Telegram can reach (Preview + bypass, or Production).
 
 #### How testing is split
 

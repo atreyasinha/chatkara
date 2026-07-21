@@ -18,6 +18,7 @@ import { nextKitchenStatus } from "@/lib/order-math";
 import type { Order } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = ["fra1"];
 
 type TelegramUpdate = {
   callback_query?: {

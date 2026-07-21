@@ -140,6 +140,13 @@ function telegramToken(): string | null {
   return process.env.TELEGRAM_BOT_TOKEN?.trim() || null;
 }
 
+const TELEGRAM_ATTEMPTS = 3;
+const TELEGRAM_TIMEOUT_MS = 10_000;
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function telegramApi(
   method: string,
   body: Record<string, unknown>,
@@ -147,28 +154,48 @@ async function telegramApi(
   const token = telegramToken();
   if (!token) return { ok: false, description: "not configured" };
 
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const json = (await res.json()) as {
-      ok: boolean;
-      description?: string;
-      result?: unknown;
-    };
-    if (!json.ok) {
+  let last: { ok: boolean; description?: string; result?: unknown } = {
+    ok: false,
+    description: "not attempted",
+  };
+
+  for (let attempt = 1; attempt <= TELEGRAM_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(
+        `https://api.telegram.org/bot${token}/${method}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(TELEGRAM_TIMEOUT_MS),
+        },
+      );
+      const json = (await res.json()) as {
+        ok: boolean;
+        description?: string;
+        result?: unknown;
+      };
+      if (json.ok) return json;
+      last = json;
+      // Retry transient Telegram rate limits; other API errors are final.
+      if (!json.description?.toLowerCase().includes("retry after")) {
+        console.error(
+          `Telegram ${method} failed:`,
+          json.description || res.status,
+        );
+        return json;
+      }
+    } catch (err) {
+      last = { ok: false, description: String(err) };
       console.error(
-        `Telegram ${method} failed:`,
-        json.description || res.status,
+        `Telegram ${method} error (attempt ${attempt}/${TELEGRAM_ATTEMPTS}):`,
+        err,
       );
     }
-    return json;
-  } catch (err) {
-    console.error(`Telegram ${method} error:`, err);
-    return { ok: false, description: String(err) };
+    if (attempt < TELEGRAM_ATTEMPTS) await sleep(400 * attempt);
   }
+
+  return last;
 }
 
 /**
