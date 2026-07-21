@@ -134,6 +134,65 @@ Kitchen/admin shows an amber **Development** banner when not on production, incl
 
 `CHATKARA_ENV` resolution: explicit `CHATKARA_ENV` → else `VERCEL_ENV=production` → else development.
 
+### Telegram kitchen alerts
+
+When an order is placed (or items are appended), ChatKara can message Telegram so the chef doesn’t need a kitchen screen. Messages include the same actions as Kitchen POS:
+
+- **Mark confirmed / preparing / ready / served** (advances status)
+- **Mark paid**
+- **Ack new items** (when something was appended mid-cook)
+- **Cancel**
+
+#### Setup
+
+1. In Telegram, message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the **bot token**
+2. Open the bot → **Start**, or add it to a private kitchen group
+3. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `chat.id`
+4. Set env vars (local + Vercel Preview/Production):
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+   - `TELEGRAM_WEBHOOK_SECRET` — random string, e.g. `openssl rand -hex 24`
+5. Point Telegram at your **public** app URL (Preview or Production — not localhost).
+
+**Preview deployments with Vercel Authentication:** Telegram cannot log in, so plain Preview URLs return `401 Protected deployment` and buttons stay dead. Either:
+
+- **A (recommended for Preview):** Project → **Settings → Deployment Protection → Protection Bypass for Automation** → copy the secret, then append it to the webhook URL as below, **or**
+- **B:** Turn off Vercel Authentication for Preview (only if you accept a public Preview), **or**
+- **C:** Point the webhook at **Production** (usually unprotected).
+
+```bash
+# Preview (with bypass) — replace BYPASS with the Vercel automation secret
+PREVIEW=https://chatkara-git-test-dev-la-gardenia.vercel.app
+BYPASS=your_vercel_automation_bypass_secret
+
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  --data-urlencode "url=${PREVIEW}/api/telegram/webhook?x-vercel-protection-bypass=${BYPASS}" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
+  -d "allowed_updates=[\"callback_query\"]"
+
+# Confirm
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/getWebhookInfo"
+```
+
+Also put the same `TELEGRAM_*` vars on **Vercel Preview** (not only `.env.local`) and redeploy after changing them.
+
+6. Place a test order on the **Preview URL** (not localhost) — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
+
+Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If bot vars are missing, notify is a no-op (orders still work).
+
+**Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL Telegram can reach (Preview + bypass, or Production).
+
+#### How testing is split
+
+| Layer | What it proves | Telegram secrets? |
+|---|---|---|
+| **Unit tests (CI)** | Message text, button payload, callback parsing | None |
+| **Integration (CI)** | Simulated button tap → webhook → Firestore status/paid/cancel | Fake `TELEGRAM_CHAT_ID` + `TELEGRAM_WEBHOOK_SECRET` in the workflow only (no bot token, no chef spam) |
+| **Vercel Preview** | Real bot messages + real button taps on a public URL | Real **test bot** vars on Vercel Preview |
+| **Production** | Live chef bot | Separate **production bot** vars on Vercel Production |
+
+CI tests the full *logic* of kitchen buttons without calling Telegram. Use the Preview URL + test bot for a real tap in the Telegram app.
+
 ## Testing
 
 ```bash
@@ -199,3 +258,4 @@ These are loaded on the server inside the Next.js API routes (`src/app/api/order
 
 - Coordinates: `23.619147660495543, 86.18070429732468`
 - City: Bokaro, Jharkhand, India
+
