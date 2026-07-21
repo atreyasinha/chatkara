@@ -43,18 +43,6 @@ export const metadata: Metadata = {
       "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
     images: ["/og-image.png"],
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-48.png", sizes: "48x48", type: "image/png" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: [
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-  },
 };
 
 import Script from "next/script";
