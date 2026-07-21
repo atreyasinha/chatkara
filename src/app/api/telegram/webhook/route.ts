@@ -41,17 +41,11 @@ function verifyTelegramSecret(request: Request): boolean {
     return Boolean(process.env.TELEGRAM_BOT_TOKEN?.trim());
   }
   const got = request.headers.get("x-telegram-bot-api-secret-token");
-  if (!got) {
-    console.warn("Telegram webhook missing secret header, allowing update");
-    return true;
-  }
+  if (!got) return false;
   const a = Buffer.from(got);
   const b = Buffer.from(expected);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    console.warn("Telegram webhook secret mismatch, allowing update gracefully");
-    return true;
-  }
-  return true;
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 async function applyKitchenAction(
