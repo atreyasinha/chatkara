@@ -136,19 +136,36 @@ Kitchen/admin shows an amber **Development** banner when not on production, incl
 
 ### Telegram kitchen alerts
 
-When an order is placed (or items are appended), ChatKara can message a Telegram group so the chef doesn’t need a kitchen screen.
+When an order is placed (or items are appended), ChatKara can message Telegram so the chef doesn’t need a kitchen screen. Messages include the same actions as Kitchen POS:
+
+- **Mark confirmed / preparing / ready / served** (advances status)
+- **Mark paid**
+- **Ack new items** (when something was appended mid-cook)
+- **Cancel**
+
+#### Setup
 
 1. In Telegram, message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the **bot token**
-2. Create a private group (e.g. “ChatKara Kitchen”), add the bot as a member
-3. Send any message in the group, then open  
-   `https://api.telegram.org/bot<TOKEN>/getUpdates`  
-   and copy the numeric `chat.id` (often negative for groups)
-4. Set env vars (local `.env.local` + Vercel Production / Preview as needed):
+2. Open the bot → **Start**, or add it to a private kitchen group
+3. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `chat.id`
+4. Set env vars (local + Vercel Preview/Production):
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-5. Place a test order — the group should get a message like “🆕 New order · Table 3 …”
+   - `TELEGRAM_WEBHOOK_SECRET` — random string, e.g. `openssl rand -hex 24`
+5. Point Telegram at your **public** app URL (Preview or Production — not localhost):
 
-Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If the vars are missing, notify is a no-op (orders still work).
+```bash
+curl -sS "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://YOUR_PUBLIC_HOST/api/telegram/webhook" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
+  -d "allowed_updates=[\"callback_query\"]"
+```
+
+6. Place a test order — you should get a message with buttons. Tapping a button updates Firestore the same way `/kitchen` does.
+
+Dev/Preview messages are prefixed with `[DEV]`; CI `isTest` orders with `[TEST]`. If bot vars are missing, notify is a no-op (orders still work).
+
+**Note:** Inline buttons need the webhook. Plain order text works from localhost; button taps need a deployed URL (e.g. `test/dev` Preview).
 
 ## Testing
 
