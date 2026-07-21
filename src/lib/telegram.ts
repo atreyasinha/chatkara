@@ -277,11 +277,13 @@ export async function sendTelegramMessage(
 
   const json = await telegramApi("sendMessage", payload);
   if (!json.ok) {
+    const token = telegramToken() || "";
     console.error("Telegram sendMessage failed detail:", {
       description: json.description,
       chatIdType: typeof chatId,
       chatIdLength: String(chatId).length,
       chatIdStartsWithMinus: String(chatId).startsWith("-"),
+      botIdPrefix: token.split(":")[0] || null,
     });
   }
   return json.ok;
