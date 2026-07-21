@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
@@ -9,7 +10,14 @@ export const dynamic = "force-dynamic";
 function isAuthorizedTestRequest(request: Request): boolean {
   const secret = process.env.E2E_TEST_SECRET;
   if (!secret) return false;
-  return request.headers.get("x-chatkara-test-key") === secret;
+  const key = request.headers.get("x-chatkara-test-key");
+  if (typeof key !== "string") return false;
+
+  const a = Buffer.from(key, "utf8");
+  const b = Buffer.from(secret, "utf8");
+  if (a.length !== b.length) return false;
+
+  return timingSafeEqual(a, b);
 }
 
 export async function GET(request: Request) {
