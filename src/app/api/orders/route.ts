@@ -1,4 +1,4 @@
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
@@ -68,8 +68,13 @@ export async function POST(request: Request) {
       isTest: isTest || undefined,
     });
 
-    // Keep the isolate alive after the response so notify isn't frozen mid-fetch.
-    after(() => notifyKitchenTelegram(order));
+    // Await notify so Production doesn't lose the Telegram call if `after()` is cut short.
+    // Failures are swallowed inside notifyKitchenTelegram / telegramApi.
+    try {
+      await notifyKitchenTelegram(order);
+    } catch (err) {
+      console.error("Telegram notify threw:", err);
+    }
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (err) {

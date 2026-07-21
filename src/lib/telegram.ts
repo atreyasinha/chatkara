@@ -189,7 +189,9 @@ export function isTelegramConfigured(): boolean {
 function telegramChatId(): string | number | null {
   const chatIdRaw = process.env.TELEGRAM_CHAT_ID?.trim();
   if (!chatIdRaw) return null;
-  return /^-?\d+$/.test(chatIdRaw) ? Number(chatIdRaw) : chatIdRaw;
+  // Send as string to Telegram. Number() is unnecessary and has bitten us when
+  // env values were stored/retrieved with unexpected formatting.
+  return chatIdRaw;
 }
 
 function telegramToken(): string | null {
@@ -274,6 +276,16 @@ export async function sendTelegramMessage(
   if (replyMarkup) payload.reply_markup = replyMarkup;
 
   const json = await telegramApi("sendMessage", payload);
+  if (!json.ok) {
+    const token = telegramToken() || "";
+    console.error("Telegram sendMessage failed detail:", {
+      description: json.description,
+      chatIdType: typeof chatId,
+      chatIdLength: String(chatId).length,
+      chatIdStartsWithMinus: String(chatId).startsWith("-"),
+      botIdPrefix: token.split(":")[0] || null,
+    });
+  }
   return json.ok;
 }
 
