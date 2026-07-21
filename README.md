@@ -199,3 +199,5 @@ These are loaded on the server inside the Next.js API routes (`src/app/api/order
 
 - Coordinates: `23.619147660495543, 86.18070429732468`
 - City: Bokaro, Jharkhand, India
+
+<!-- preview trigger: 2026-07-21T06:18:31Z -->
