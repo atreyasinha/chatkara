@@ -257,8 +257,9 @@ export function KitchenDashboard() {
               Customer phone number
             </label>
             <input
-              type="tel"
-              inputMode="tel"
+              type="text"
+              inputMode="numeric"
+              maxLength={10}
               value={whatsappPhone}
               onChange={(e) => setWhatsappPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               placeholder="10-digit mobile number"
