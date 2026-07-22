@@ -53,18 +53,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: sanitized.error }, { status: 400 });
     }
 
+    if (sanitized.items.length > 30) {
+      return NextResponse.json(
+        { error: "Too many distinct items — max 30 per order" },
+        { status: 400 },
+      );
+    }
+
+    const customerName = body.customerName
+      ? String(body.customerName).slice(0, 80).trim() || undefined
+      : undefined;
+    const customerPhone = body.customerPhone
+      ? String(body.customerPhone)
+      : undefined;
+    const notes = body.notes
+      ? String(body.notes).slice(0, 500).trim() || undefined
+      : undefined;
+    const parentOrderId = body.parentOrderId
+      ? String(body.parentOrderId).slice(0, 36)
+      : undefined;
+
     const order = await createOrder({
       tableNumber,
       items: sanitized.items,
       paymentMethod,
-      customerName: body.customerName ? String(body.customerName) : undefined,
-      customerPhone: body.customerPhone
-        ? String(body.customerPhone)
-        : undefined,
-      notes: body.notes ? String(body.notes) : undefined,
-      parentOrderId: body.parentOrderId
-        ? String(body.parentOrderId)
-        : undefined,
+      customerName,
+      customerPhone,
+      notes,
+      parentOrderId,
       isTest: isTest || undefined,
     });
 

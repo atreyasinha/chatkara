@@ -8,6 +8,8 @@ type QueuedMutation = {
 };
 
 const QUEUE_KEY = "chatkara_kitchen_mutation_queue";
+/** Mutations older than 24 hours are considered stale and discarded on next read. */
+const MAX_QUEUE_AGE_MS = 24 * 60 * 60 * 1000;
 
 function readQueue(): QueuedMutation[] {
   if (typeof window === "undefined") return [];
@@ -15,7 +17,12 @@ function readQueue(): QueuedMutation[] {
     const raw = localStorage.getItem(QUEUE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as QueuedMutation[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    const now = Date.now();
+    // Prune stale mutations so they never retry indefinitely
+    return parsed.filter(
+      (m) => now - new Date(m.createdAt).getTime() < MAX_QUEUE_AGE_MS,
+    );
   } catch {
     return [];
   }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MapPin, ShoppingBag, Monitor, Clock } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
+
 export default function HomePage() {
   return (
     <main className="relative flex min-h-dvh flex-col overflow-hidden">
@@ -16,7 +17,7 @@ export default function HomePage() {
             "image": "https://chatkara.lagardenia.in/og-image.png",
             "@id": "https://chatkara.lagardenia.in",
             "url": "https://chatkara.lagardenia.in",
-            "telephone": "+919876543210",
+            "telephone": RESTAURANT.phone,
             "priceRange": "₹",
             "menu": "https://chatkara.lagardenia.in/pickup",
             "servesCuisine": "Indian, Street Food, Chaat, Desserts",
@@ -44,7 +45,7 @@ export default function HomePage() {
                 "Saturday",
                 "Sunday"
               ],
-              "opens": "11:00",
+              "opens": "12:00",
               "closes": "23:00"
             }
           })
@@ -173,6 +174,7 @@ export default function HomePage() {
           <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
             <iframe
               src={RESTAURANT.location.mapsEmbedUrl || `https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`}
+              title="ChatKara location on Google Maps"
               className="h-44 w-full opacity-80"
               style={{ border: 0 }}
               allowFullScreen={false}

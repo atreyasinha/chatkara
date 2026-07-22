@@ -1,6 +1,8 @@
 export const RESTAURANT = {
   name: "ChatKara",
   tagline: "Flavours of India",
+  /** Contact number displayed publicly and in schema.org structured data. */
+  phone: "+919608001786",
   location: {
     lat: 23.6191121,
     lng: 86.1806551,

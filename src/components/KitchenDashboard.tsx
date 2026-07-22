@@ -5,13 +5,15 @@ import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
+import { shareReceiptOnWhatsApp } from "@/lib/receipt";
 import {
   flushKitchenQueue,
   kitchenPatch,
   queueLength,
 } from "@/lib/kitchen-queue";
 import type { Order, OrderStatus } from "@/lib/types";
-import { Bell, RefreshCw, MessageSquare, WifiOff } from "lucide-react";
+import { Bell, RefreshCw, MessageSquare, WifiOff, X } from "lucide-react";
+
 
 const NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   pending: "confirmed",
@@ -76,6 +78,9 @@ export function KitchenDashboard() {
 
   const seenOrderIds = useRef<Set<string>>(new Set());
   const seenAckIds = useRef<Set<string>>(new Set());
+  /** Order awaiting WhatsApp phone entry via modal */
+  const [whatsappOrder, setWhatsappOrder] = useState<Order | null>(null);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
 
   const refreshQueueCount = useCallback(() => {
     setQueued(queueLength());
@@ -208,53 +213,20 @@ export function KitchenDashboard() {
     }
   }
 
-  function shareOnWhatsApp(order: Order) {
-    const phone = window.prompt("Enter customer phone number (10 digits):");
-    if (!phone) return;
-    const formattedPhone = phone.replace(/\D/g, "");
-    if (formattedPhone.length < 10) {
-      alert("Please enter a valid 10-digit number.");
-      return;
-    }
-
-    const itemsText = order.items
-      .map(
-        (item) =>
-          `• ${item.name} (x${item.quantity}) — ₹${item.price * item.quantity}`,
-      )
-      .join("\n");
-
-    const orderType =
-      order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
-    const formattedId = order.id.slice(0, 8).toUpperCase();
-
-    let discountLines = "";
-    if (order.discountAmount) {
-      discountLines = `*Discount (${order.discountPercent}%):* -₹${Math.round(order.discountAmount)}\n`;
-    }
-
-    const receiptText =
-      `🌟 *CHATKARA BILL RECEIPT* 🌟\n\n` +
-      `*Order Reference:* #${formattedId}\n` +
-      `*Type:* ${orderType}\n` +
-      `*Time:* ${new Date(order.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}\n` +
-      `----------------------------\n` +
-      `${itemsText}\n` +
-      `----------------------------\n` +
-      `*Subtotal:* ₹${Math.round(order.subtotal || order.total || 0)}\n` +
-      discountLines +
-      `*GST (5%):* ₹${Math.round(order.gst || 0)}\n` +
-      `*Total Amount:* ₹${Math.round(order.total)}\n\n` +
-      `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +
-      `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +
-      `*Thank you for ordering with us at ChatKara!*`;
-
-    const finalPhone = formattedPhone.startsWith("91")
-      ? formattedPhone
-      : `91${formattedPhone}`;
-    const url = `https://wa.me/${finalPhone}?text=${encodeURIComponent(receiptText)}`;
-    window.open(url, "_blank");
+  function openWhatsAppModal(order: Order) {
+    setWhatsappOrder(order);
+    setWhatsappPhone("");
   }
+
+  function submitWhatsApp() {
+    if (!whatsappOrder) return;
+    const digits = whatsappPhone.replace(/\D/g, "");
+    if (digits.length < 10) return;
+    const finalPhone = digits.startsWith("91") ? digits : `91${digits}`;
+    shareReceiptOnWhatsApp(whatsappOrder, finalPhone);
+    setWhatsappOrder(null);
+  }
+
 
   const visible = orders.filter((o) =>
     filter === "all" ? true : !["served", "cancelled"].includes(o.status),
@@ -266,6 +238,44 @@ export function KitchenDashboard() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6">
+      {/* WhatsApp phone modal */}
+      {whatsappOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-line bg-bg-elevated p-5 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="font-display text-lg text-gold">Send Bill via WhatsApp</h3>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setWhatsappOrder(null)}
+                className="rounded-full p-1.5 text-muted hover:bg-bg-soft"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+              Customer phone number
+            </label>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={whatsappPhone}
+              onChange={(e) => setWhatsappPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              placeholder="10-digit mobile number"
+              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+              autoFocus
+            />
+            <button
+              type="button"
+              disabled={whatsappPhone.replace(/\D/g, "").length < 10}
+              onClick={submitWhatsApp}
+              className="mt-3 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40"
+            >
+              Send on WhatsApp
+            </button>
+          </div>
+        </div>
+      )}
       {!online && (
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-flame-from/40 bg-flame-from/10 px-3 py-2 text-sm text-flame-from">
           <WifiOff className="h-4 w-4 shrink-0" />
@@ -461,7 +471,7 @@ export function KitchenDashboard() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => shareOnWhatsApp(order)}
+                    onClick={() => openWhatsAppModal(order)}
                     className="flex items-center gap-1 rounded-lg border border-green-600/30 bg-green-500/10 px-2.5 py-1.5 text-xs text-green-400 hover:border-green-500 hover:bg-green-500/20"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
