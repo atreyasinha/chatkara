@@ -54,7 +54,7 @@ export function adminCookieOptions(maxAgeSeconds = SESSION_TTL_MS / 1000) {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     path: "/",
     maxAge: maxAgeSeconds,
   };

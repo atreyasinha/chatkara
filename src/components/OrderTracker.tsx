@@ -6,7 +6,9 @@ import Image from "next/image";
 import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR, RESTAURANT } from "@/lib/restaurant";
+import { shareReceiptOnWhatsApp } from "@/lib/receipt";
 import type { Order, OrderStatus } from "@/lib/types";
+
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "Received",
@@ -162,6 +164,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         <button
           type="button"
           onClick={() => setItemsExpanded(!itemsExpanded)}
+          aria-expanded={itemsExpanded}
           className="flex w-full items-center justify-between px-5 py-4 text-sm font-semibold text-gold hover:bg-bg-soft/20 transition active:scale-[0.99]"
         >
           <span>Items Ordered ({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span>
@@ -260,34 +263,8 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       )}
 
       <button
-        onClick={() => {
-          const itemsText = order.items
-            .map((item) => `• ${item.name} (x${item.quantity}) — ₹${item.price * item.quantity}`)
-            .join("\n");
-          const orderType = order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
-          const formattedId = order.id.slice(0, 8).toUpperCase();
-          let discountLines = "";
-          if (order.discountAmount) {
-            discountLines = `*Discount (${order.discountPercent}%):* -₹${Math.round(order.discountAmount)}\n`;
-          }
-          const receiptText = `🌟 *CHATKARA BILL RECEIPT* 🌟\n\n` +
-            `*Order Reference:* #${formattedId}\n` +
-            `*Type:* ${orderType}\n` +
-            `*Time:* ${new Date(order.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}\n` +
-            `----------------------------\n` +
-            `${itemsText}\n` +
-            `----------------------------\n` +
-            `*Subtotal:* ₹${Math.round(order.subtotal || order.total || 0)}\n` +
-            discountLines +
-            `*GST (5%):* ₹${Math.round(order.gst || 0)}\n` +
-            `*Total Amount:* ₹${Math.round(order.total)}\n\n` +
-            `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +
-            `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +
-            `*Thank you for ordering with us at ChatKara!*`;
-          
-          const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(receiptText)}`;
-          window.open(url, "_blank");
-        }}
+        type="button"
+        onClick={() => shareReceiptOnWhatsApp(order)}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600/30 bg-green-500/10 py-3 text-center text-sm font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98]"
       >
         <svg

@@ -348,14 +348,9 @@ export async function notifyKitchenTelegram(order: Order): Promise<boolean> {
 
 export function isAllowedTelegramChat(chatId: number | string): boolean {
   const configured = telegramChatId();
-  const knownAllowed = ["-1004405880647", "-5552332683"];
+  if (configured === null) return false;
 
   const idStr = String(chatId).trim();
-  if (knownAllowed.includes(idStr)) {
-    return true;
-  }
-
-  if (configured === null) return false;
   const configuredIds = String(configured)
     .split(",")
     .map((s) => s.trim())
