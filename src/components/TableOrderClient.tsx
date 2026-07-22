@@ -83,6 +83,15 @@ export function TableOrderClient({
     return map;
   }, [filtered]);
 
+  // Optimize cart item lookups: create a map of cart items keyed by itemId for O(1) lookup
+  const itemsMap = useMemo(() => {
+    const map = new Map();
+    for (const item of items) {
+      map.set(item.itemId, item);
+    }
+    return map;
+  }, [items]);
+
   const count = itemCount();
   const total = subtotal();
 
@@ -224,7 +233,7 @@ export function TableOrderClient({
             <h2 className="font-display mb-3 text-xl text-gold">{cat}</h2>
             <ul className="space-y-2">
               {list.map((item) => {
-                const inCart = items.find((i) => i.itemId === item.id);
+                const inCart = itemsMap.get(item.id);
                 return (
                   <li
                     key={item.id}
