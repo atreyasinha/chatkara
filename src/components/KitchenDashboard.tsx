@@ -121,8 +121,57 @@ export function KitchenDashboard() {
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let isMounted = true;
+
+    async function fetchKitchenOrdersApi() {
+      try {
+        const res = await fetch("/api/orders", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { orders?: Order[] };
+          if (data.orders && isMounted) {
+            const newOrders = data.orders;
+
+            if (seenOrderIds.current.size > 0) {
+              for (const order of newOrders) {
+                if (
+                  !seenOrderIds.current.has(order.id) &&
+                  order.status === "pending"
+                ) {
+                  playChime();
+                  break;
+                }
+                if (
+                  order.needsKitchenAck &&
+                  !seenAckIds.current.has(`${order.id}:${order.updatedAt}`)
+                ) {
+                  playChime();
+                  seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
+                }
+              }
+            }
+
+            for (const order of newOrders) {
+              seenOrderIds.current.add(order.id);
+              if (order.needsKitchenAck) {
+                seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
+              }
+            }
+
+            setOrders(newOrders);
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        console.warn("HTTP kitchen orders fetch failed:", err);
+      }
+    }
 
     async function subscribe() {
+      await fetchKitchenOrdersApi();
+
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
         const { collection, onSnapshot, query, orderBy } = await import(
@@ -132,57 +181,82 @@ export function KitchenDashboard() {
         const db = await getClientDb();
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          const newOrders: Order[] = [];
-          snapshot.forEach((d) => {
-            const data = d.data() as Order;
-            newOrders.push({
-              ...data,
-              id: data.id || d.id,
-              subtotal: data.subtotal || data.total || 0,
-              gst: data.gst || 0,
-              paymentMethod: data.paymentMethod || "cash",
-              paymentStatus: data.paymentStatus || "pending",
+        unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            if (!isMounted) return;
+            const newOrders: Order[] = [];
+            snapshot.forEach((d) => {
+              const data = d.data() as Order;
+              newOrders.push({
+                ...data,
+                id: data.id || d.id,
+                subtotal: data.subtotal || data.total || 0,
+                gst: data.gst || 0,
+                paymentMethod: data.paymentMethod || "cash",
+                paymentStatus: data.paymentStatus || "pending",
+              });
             });
-          });
 
-          if (seenOrderIds.current.size > 0) {
-            for (const order of newOrders) {
-              if (
-                !seenOrderIds.current.has(order.id) &&
-                order.status === "pending"
-              ) {
-                playChime();
-                break;
+            if (seenOrderIds.current.size > 0) {
+              for (const order of newOrders) {
+                if (
+                  !seenOrderIds.current.has(order.id) &&
+                  order.status === "pending"
+                ) {
+                  playChime();
+                  break;
+                }
+                if (
+                  order.needsKitchenAck &&
+                  !seenAckIds.current.has(`${order.id}:${order.updatedAt}`)
+                ) {
+                  playChime();
+                  seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
+                }
               }
-              if (
-                order.needsKitchenAck &&
-                !seenAckIds.current.has(`${order.id}:${order.updatedAt}`)
-              ) {
-                playChime();
+            }
+
+            for (const order of newOrders) {
+              seenOrderIds.current.add(order.id);
+              if (order.needsKitchenAck) {
                 seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
               }
             }
-          }
 
-          for (const order of newOrders) {
-            seenOrderIds.current.add(order.id);
-            if (order.needsKitchenAck) {
-              seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
-            }
-          }
-
-          setOrders(newOrders);
-          setLoading(false);
-        });
+            setOrders(newOrders);
+            setLoading(false);
+          },
+          (err) => {
+            console.warn("Kitchen Firestore stream warning (using HTTP polling):", err);
+          },
+        );
       } catch (err) {
-        console.error("Kitchen live subscription failed:", err);
+        console.warn("Kitchen live subscription failed (using HTTP polling):", err);
         setLoading(false);
       }
     }
 
     subscribe();
-    return () => unsubscribe?.();
+
+    const interval = setInterval(fetchKitchenOrdersApi, 5000);
+
+    function handleSync() {
+      if (document.visibilityState === "visible" || navigator.onLine) {
+        fetchKitchenOrdersApi();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleSync);
+    window.addEventListener("online", handleSync);
+
+    return () => {
+      isMounted = false;
+      unsubscribe?.();
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("online", handleSync);
+    };
   }, []);
 
   useEffect(() => {

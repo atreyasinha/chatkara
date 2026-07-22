@@ -43,8 +43,33 @@ export function OrderTracker({ orderId }: { orderId: string }) {
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
+    let isMounted = true;
+
+    async function fetchOrderApi() {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+          cache: "no-store",
+        });
+        if (res.status === 404) {
+          if (isMounted) setError("Order not found");
+          return;
+        }
+        if (res.ok) {
+          const data = (await res.json()) as { order?: Order };
+          if (data.order && isMounted) {
+            setOrder(data.order);
+            setError("");
+          }
+        }
+      } catch (err) {
+        console.warn("HTTP order fetch failed:", err);
+      }
+    }
 
     async function subscribe() {
+      // Fast initial HTTP fetch
+      await fetchOrderApi();
+
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
         const { doc, onSnapshot } = await import("firebase/firestore");
@@ -52,33 +77,55 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         const db = await getClientDb();
         const docRef = doc(db, "orders", orderId);
 
-        unsubscribe = onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data() as Order;
-            setOrder({
-              ...data,
-              id: data.id || docSnap.id,
-              subtotal: data.subtotal || data.total || 0,
-              gst: data.gst || 0,
-              paymentMethod: data.paymentMethod || "cash",
-              paymentStatus: data.paymentStatus || "pending",
-            });
-          } else {
-            setError("Order not found");
-          }
-        }, (err) => {
-          console.error("Firestore onSnapshot error:", err);
-          setError("Failed to stream order updates");
-        });
+        unsubscribe = onSnapshot(
+          docRef,
+          (docSnap) => {
+            if (!isMounted) return;
+            if (docSnap.exists()) {
+              const data = docSnap.data() as Order;
+              setOrder({
+                ...data,
+                id: data.id || docSnap.id,
+                subtotal: data.subtotal || data.total || 0,
+                gst: data.gst || 0,
+                paymentMethod: data.paymentMethod || "cash",
+                paymentStatus: data.paymentStatus || "pending",
+              });
+              setError("");
+            } else {
+              setError("Order not found");
+            }
+          },
+          (err) => {
+            console.warn("Firestore onSnapshot error (falling back to polling):", err);
+          },
+        );
       } catch (e) {
-        console.error("Failed to setup real-time order listener:", e);
-        setError(e instanceof Error ? e.message : "Failed to load order");
+        console.warn("Failed to setup real-time order listener (using polling fallback):", e);
       }
     }
 
     subscribe();
+
+    // 4-second HTTP polling fallback for maximum reliability across app backgrounding
+    const interval = setInterval(fetchOrderApi, 4000);
+
+    // Instant re-sync when customer returns to tab after UPI payment
+    function handleSync() {
+      if (document.visibilityState === "visible" || navigator.onLine) {
+        fetchOrderApi();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleSync);
+    window.addEventListener("online", handleSync);
+
     return () => {
+      isMounted = false;
       if (unsubscribe) unsubscribe();
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("online", handleSync);
     };
   }, [orderId]);
 
