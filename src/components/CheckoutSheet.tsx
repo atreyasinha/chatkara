@@ -227,10 +227,11 @@ export function CheckoutSheet({
         <div className="space-y-4 px-4 py-4">
           {tableNumber === 0 && (
             <div>
-              <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+              <label htmlFor="customer-name" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
                 Your Name (Required)
               </label>
               <input
+                id="customer-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
@@ -240,10 +241,11 @@ export function CheckoutSheet({
           )}
 
           <div>
-            <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+            <label htmlFor="customer-phone" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
               Phone number (10-digit)
             </label>
             <input
+              id="customer-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               type="text"
@@ -254,10 +256,11 @@ export function CheckoutSheet({
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+            <label htmlFor="special-notes" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
               Special notes
             </label>
             <textarea
+              id="special-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
