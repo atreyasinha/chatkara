@@ -35,30 +35,21 @@ type TelegramUpdate = {
   };
 };
 
-function verifyTelegramSecret(
-  request: Request,
-  update?: TelegramUpdate,
-): boolean {
+function verifyTelegramSecret(request: Request): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   if (!expected) {
-    return Boolean(process.env.TELEGRAM_BOT_TOKEN?.trim());
+    return false;
   }
   const got = request.headers.get("x-telegram-bot-api-secret-token");
-  if (got) {
-    const a = Buffer.from(got);
-    const b = Buffer.from(expected);
-    if (a.length === b.length && timingSafeEqual(a, b)) {
-      return true;
-    }
+  if (!got) {
+    return false;
   }
 
-  // Fallback: If secret header is missing or mismatched from Vercel env,
-  // allow the update if it is a callback_query from an authorized chat ID.
-  const chatId = update?.callback_query?.message?.chat?.id;
-  if (chatId !== undefined && isAllowedTelegramChat(chatId)) {
-    return true;
-  }
-  return false;
+  const a = Buffer.from(got);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+
+  return timingSafeEqual(a, b);
 }
 
 async function applyKitchenAction(
@@ -121,7 +112,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Bad JSON" }, { status: 400 });
   }
 
-  if (!verifyTelegramSecret(request, update)) {
+  if (!verifyTelegramSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
