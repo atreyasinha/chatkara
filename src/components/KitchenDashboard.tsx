@@ -327,10 +327,11 @@ export function KitchenDashboard() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <label className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
+            <label htmlFor="whatsapp-phone" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
               Customer phone number
             </label>
             <input
+              id="whatsapp-phone"
               type="text"
               inputMode="numeric"
               maxLength={10}
