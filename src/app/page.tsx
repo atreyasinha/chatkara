@@ -109,46 +109,86 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="overflow-hidden rounded-2xl border border-line">
+        <div className="mt-6 space-y-3">
+          {/* Storefront Facade Banner */}
+          <div className="overflow-hidden rounded-2xl border border-line shadow-md">
             <Image
-              src="/photo-pizza.jpg"
-              alt="Cheese pizza at ChatKara"
+              src="/photo-facade.jpg"
+              alt="ChatKara Flavors of India illuminated storefront"
               width={1024}
-              height={766}
-              className="h-36 w-full object-cover"
-              sizes="220px"
+              height={571}
+              className="h-44 w-full object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 500px"
+              priority
             />
           </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
-            <Image
-              src="/photo-tikka.jpg"
-              alt="Fresh lemon over grilled tikka"
-              width={934}
-              height={1024}
-              className="h-36 w-full object-cover"
-              sizes="220px"
-            />
+
+          {/* 4 Food & Drinks Showcase */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-tikka.jpg"
+                alt="Fresh lemon squeezed over charred tandoori tikka"
+                width={1024}
+                height={1024}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-roll.jpg"
+                alt="Handcrafted Kathi Roll at ChatKara"
+                width={1024}
+                height={1024}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-pizza.jpg"
+                alt="Freshly baked cheese pizza on wooden paddle"
+                width={1024}
+                height={764}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-drink.jpg"
+                alt="Refreshing mocktail with lemon & mint at ChatKara bar"
+                width={764}
+                height={1024}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
-            <Image
-              src="/photo-roll.jpg"
-              alt="Hand-rolled egg roll being prepared"
-              width={1024}
-              height={924}
-              className="h-36 w-full object-cover"
-              sizes="220px"
-            />
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
-            <Image
-              src="/photo-drink.jpg"
-              alt="Fresh drink served at ChatKara"
-              width={782}
-              height={1024}
-              className="h-36 w-full object-cover"
-              sizes="220px"
-            />
+
+          {/* Garden & Outdoor Ambiance */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-ambiance.jpg"
+                alt="Outdoor garden seating with purple ambient lighting"
+                width={764}
+                height={1024}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+              <Image
+                src="/photo-patio.jpg"
+                alt="Patio dining setup under umbrellas at ChatKara"
+                width={764}
+                height={1024}
+                className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 250px"
+              />
+            </div>
           </div>
         </div>
 
