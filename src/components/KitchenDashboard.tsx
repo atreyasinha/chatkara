@@ -302,9 +302,26 @@ export function KitchenDashboard() {
   }
 
 
-  const visible = orders.filter((o) =>
-    filter === "all" ? true : !["served", "cancelled"].includes(o.status),
-  );
+  const [orderTypeFilter, setOrderTypeFilter] = useState<"all" | "dinein" | "pickup">("all");
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const visible = orders.filter((o) => {
+    const matchesStatus =
+      filter === "all" ? true : !["served", "cancelled"].includes(o.status);
+    const matchesType =
+      orderTypeFilter === "all"
+        ? true
+        : orderTypeFilter === "dinein"
+          ? o.tableNumber > 0
+          : o.tableNumber === 0;
+    return matchesStatus && matchesType;
+  });
 
   const newCount = orders.filter(
     (o) => o.status === "pending" || o.needsKitchenAck,
@@ -414,6 +431,17 @@ export function KitchenDashboard() {
               Audio alerts active
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => {
+              setAudioUnlocked(true);
+              playChime();
+              setToast("Tested chime audio");
+            }}
+            className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+          >
+            🔔 Test Chime
+          </button>
           <Link
             href="/admin/qr"
             className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
@@ -431,21 +459,46 @@ export function KitchenDashboard() {
         </div>
       </header>
 
-      <div className="mb-4 flex gap-2">
-        {(["active", "all"] as const).map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-sm ${
-              filter === f
-                ? "bg-gold text-bg font-semibold"
-                : "border border-line text-muted"
-            }`}
-          >
-            {f === "active" ? "Active" : "All orders"}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          {(["active", "all"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`rounded-full px-4 py-1.5 text-sm ${
+                filter === f
+                  ? "bg-gold text-bg font-semibold"
+                  : "border border-line text-muted"
+              }`}
+            >
+              {f === "active" ? "Active" : "All orders"}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          {(
+            [
+              { id: "all", label: "All types" },
+              { id: "dinein", label: "Dine-in" },
+              { id: "pickup", label: "Pickup" },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setOrderTypeFilter(t.id)}
+              className={`rounded-full px-3 py-1 text-xs transition ${
+                orderTypeFilter === t.id
+                  ? "flame-bg font-semibold text-white"
+                  : "border border-line text-muted"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading && orders.length === 0 ? (
@@ -463,22 +516,42 @@ export function KitchenDashboard() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((order) => {
             const next = NEXT[order.status];
+            const elapsedMinutes = Math.max(
+              0,
+              Math.floor((now - new Date(order.createdAt).getTime()) / 60000),
+            );
+            const isDelayed =
+              elapsedMinutes >= 15 && !["served", "cancelled"].includes(order.status);
+
             return (
               <article
                 key={order.id}
                 className={`rounded-2xl border bg-bg-elevated p-4 ${
-                  order.status === "pending" || order.needsKitchenAck
-                    ? "border-flame-from/60 shadow-lg shadow-flame-from/10"
-                    : "border-line"
+                  isDelayed
+                    ? "border-nonveg/70 shadow-lg shadow-nonveg/10"
+                    : order.status === "pending" || order.needsKitchenAck
+                      ? "border-flame-from/60 shadow-lg shadow-flame-from/10"
+                      : "border-line"
                 }`}
               >
                 <div className="mb-3 flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-display text-2xl text-gold">
-                      {order.tableNumber === 0
-                        ? "Pickup"
-                        : `Table ${order.tableNumber}`}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-display text-2xl text-gold">
+                        {order.tableNumber === 0
+                          ? "Pickup"
+                          : `Table ${order.tableNumber}`}
+                      </p>
+                      {isDelayed ? (
+                        <span className="rounded-full bg-nonveg/20 px-2 py-0.5 text-[10px] font-semibold text-nonveg animate-pulse">
+                          🚨 {elapsedMinutes}m wait
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted">
+                          ⏱️ {elapsedMinutes}m ago
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted">
                       #{order.id.slice(0, 8).toUpperCase()} ·{" "}
                       {new Date(order.createdAt).toLocaleTimeString("en-IN", {
