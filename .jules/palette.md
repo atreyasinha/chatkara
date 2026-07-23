@@ -1,3 +1,3 @@
-## 2024-07-22 - Form Accessibility
-**Learning:** Found multiple instances where labels were visually styled to look like form labels but did not use the `htmlFor` attribute. This is bad for screen readers, and also prevents clicking the label from focusing the input.
-**Action:** Added `htmlFor` and associated `id` attributes to all form labels to ensure they are explicitly linked to their inputs. I will look for this pattern moving forward.
+## $(date +%Y-%m-%d) - Added helpful CTA to empty search state
+**Learning:** Empty states caused by restrictive filters/searches are a common UX dead end. Providing a single "Clear search & filters" button drastically improves the user's ability to recover from overly specific queries.
+**Action:** Always include a way to easily reset applied filters when presenting a "no results" state to the user.
