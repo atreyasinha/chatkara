@@ -304,7 +304,20 @@ export function TableOrderClient({
         ))}
 
         {filtered.length === 0 && (
-          <p className="py-16 text-center text-muted">No dishes match your search.</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-up">
+            <p className="mb-4 text-muted">No dishes match your search.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setFilter("all");
+                setCategory("All");
+              }}
+              className="rounded-full border border-line px-4 py-2 text-sm text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:ring-2 focus-visible:outline-none"
+            >
+              Clear search & filters
+            </button>
+          </div>
         )}
       </main>
 
