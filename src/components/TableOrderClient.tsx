@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
 import { Minus, Plus, Search, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -235,68 +235,13 @@ export function TableOrderClient({
               {list.map((item) => {
                 const inCart = itemsMap.get(item.id);
                 return (
-                  <li
+                  <MenuItemRow
                     key={item.id}
-                    className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated/80 p-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start gap-2">
-                        <VegBadge veg={item.veg} />
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-ink">
-                            {item.name}
-                            {item.popular && (
-                              <span className="ml-2 text-[10px] uppercase tracking-wider text-flame-from">
-                                Popular
-                              </span>
-                            )}
-                          </p>
-                          {item.subcategory && (
-                            <p className="text-xs text-muted">{item.subcategory}</p>
-                          )}
-                        </div>
-                      </div>
-                      <p className="mt-1 pl-5 text-sm font-semibold text-gold">
-                        {formatINR(item.price)}
-                      </p>
-                    </div>
-
-                    {inCart ? (
-                      <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
-                        <button
-                          type="button"
-                          aria-label="Decrease"
-                          className="rounded-full p-1 text-gold hover:bg-gold-dim"
-                          onClick={() =>
-                            setQuantity(item.id, inCart.quantity - 1)
-                          }
-                        >
-                          <Minus className="h-3.5 w-3.5" />
-                        </button>
-                        <span className="w-5 text-center text-sm font-semibold">
-                          {inCart.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          aria-label="Increase"
-                          className="rounded-full p-1 text-gold hover:bg-gold-dim"
-                          onClick={() =>
-                            setQuantity(item.id, inCart.quantity + 1)
-                          }
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => addItem(item)}
-                        className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
-                      >
-                        Add
-                      </button>
-                    )}
-                  </li>
+                    item={item}
+                    inCart={inCart}
+                    setQuantity={setQuantity}
+                    addItem={addItem}
+                  />
                 );
               })}
             </ul>
@@ -448,3 +393,75 @@ function CategoryChip({
     </button>
   );
 }
+
+// ⚡ Bolt: Memoized component prevents the entire menu list (~150 items)
+// from re-rendering whenever the cart state changes (e.g. quantity updates).
+const MenuItemRow = memo(function MenuItemRow({
+  item,
+  inCart,
+  setQuantity,
+  addItem,
+}: {
+  item: MenuItem;
+  inCart: { quantity: number } | undefined;
+  setQuantity: (itemId: string, quantity: number) => void;
+  addItem: (item: MenuItem) => void;
+}) {
+  return (
+    <li className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated/80 p-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <VegBadge veg={item.veg} />
+          <div className="min-w-0">
+            <p className="truncate font-medium text-ink">
+              {item.name}
+              {item.popular && (
+                <span className="ml-2 text-[10px] uppercase tracking-wider text-flame-from">
+                  Popular
+                </span>
+              )}
+            </p>
+            {item.subcategory && (
+              <p className="text-xs text-muted">{item.subcategory}</p>
+            )}
+          </div>
+        </div>
+        <p className="mt-1 pl-5 text-sm font-semibold text-gold">
+          {formatINR(item.price)}
+        </p>
+      </div>
+
+      {inCart ? (
+        <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
+          <button
+            type="button"
+            aria-label="Decrease"
+            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            onClick={() => setQuantity(item.id, inCart.quantity - 1)}
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          <span className="w-5 text-center text-sm font-semibold">
+            {inCart.quantity}
+          </span>
+          <button
+            type="button"
+            aria-label="Increase"
+            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            onClick={() => setQuantity(item.id, inCart.quantity + 1)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => addItem(item)}
+          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+        >
+          Add
+        </button>
+      )}
+    </li>
+  );
+});
