@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual, createHash } from "crypto";
 import {
   ADMIN_SESSION_COOKIE,
   adminCookieOptions,
@@ -24,11 +24,9 @@ export async function POST(request: Request) {
 
     let isPasswordValid = false;
     if (typeof password === "string") {
-      const a = Buffer.from(password, "utf8");
-      const b = Buffer.from(correctPassword, "utf8");
-      if (a.length === b.length) {
-        isPasswordValid = timingSafeEqual(a, b);
-      }
+      const a = createHash("sha256").update(password).digest();
+      const b = createHash("sha256").update(correctPassword).digest();
+      isPasswordValid = timingSafeEqual(a, b);
     }
 
     if (!isPasswordValid) {

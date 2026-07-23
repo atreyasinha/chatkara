@@ -1,4 +1,4 @@
-## 2025-02-28 - Timing Attacks in Password & Secret Comparisons
-**Vulnerability:** The codebase was using standard string equality comparisons (`===` or `!==`) to verify sensitive values like the admin password (`password !== correctPassword`) and the E2E test secret (`request.headers.get(...) === secret`).
-**Learning:** Standard JavaScript string comparison returns early as soon as a character mismatch is found. This slight variance in response time could allow an attacker to guess a password or secret character-by-character by measuring exactly how long the server takes to respond (a "timing attack").
-**Prevention:** Always use Node's `crypto.timingSafeEqual` when comparing passwords, tokens, API keys, or secrets. Ensure both buffers are converted to exactly the same length before comparison to avoid length-based early exits.
+## 2024-05-24 - [Timing Attack Risk on Admin Login]
+**Vulnerability:** The admin login endpoint (`src/app/api/admin/login/route.ts`) was vulnerable to timing attacks that leaked the admin password's length. It skipped `timingSafeEqual` if the provided string's length didn't match the correct string's length.
+**Learning:** `timingSafeEqual` throws an error or requires strings of equal length to work, which makes it easy to accidentally introduce a length check that leaks the correct secret's size by taking substantially less time for incorrect lengths.
+**Prevention:** When comparing passwords or strings of potentially different lengths, always hash both strings (e.g. using `createHash("sha256")`) to produce a constant-length digest before calling `timingSafeEqual`. This avoids length leakage and allows constant-time comparison.
