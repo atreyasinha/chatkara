@@ -110,44 +110,54 @@ export default function HomePage() {
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="overflow-hidden rounded-2xl border border-line">
-            <Image
-              src="/photo-pizza.jpg"
-              alt="Cheese pizza at ChatKara"
-              width={1024}
-              height={766}
-              className="h-36 w-full object-cover"
-              sizes="220px"
-            />
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
-            <Image
-              src="/photo-tikka.jpg"
-              alt="Fresh lemon over grilled tikka"
-              width={934}
-              height={1024}
-              className="h-36 w-full object-cover"
-              sizes="220px"
-            />
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
+          <div className="overflow-hidden rounded-2xl border border-line shadow-md">
             <Image
               src="/photo-roll.jpg"
-              alt="Hand-rolled egg roll being prepared"
+              alt="Handcrafted Kathi Roll at ChatKara"
               width={1024}
-              height={924}
-              className="h-36 w-full object-cover"
-              sizes="220px"
+              height={1024}
+              className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 250px"
             />
           </div>
-          <div className="overflow-hidden rounded-2xl border border-line">
+          <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+            <Image
+              src="/photo-pizza.jpg"
+              alt="Freshly baked cheese pizza on wooden paddle"
+              width={1024}
+              height={764}
+              className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 250px"
+            />
+          </div>
+          <div className="col-span-2 overflow-hidden rounded-2xl border border-line shadow-md">
             <Image
               src="/photo-drink.jpg"
-              alt="Fresh drink served at ChatKara"
-              width={782}
+              alt="Refreshing drinks & mocktails at ChatKara bar"
+              width={764}
               height={1024}
-              className="h-36 w-full object-cover"
-              sizes="220px"
+              className="h-48 w-full object-cover object-center transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 500px"
+            />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+            <Image
+              src="/photo-ambiance.jpg"
+              alt="Outdoor garden seating with purple ambient lighting"
+              width={764}
+              height={1024}
+              className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 250px"
+            />
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-line shadow-md">
+            <Image
+              src="/photo-patio.jpg"
+              alt="Patio dining setup under umbrellas at ChatKara"
+              width={764}
+              height={1024}
+              className="h-40 w-full object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 768px) 50vw, 250px"
             />
           </div>
         </div>
