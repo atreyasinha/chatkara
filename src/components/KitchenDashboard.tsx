@@ -322,7 +322,7 @@ export function KitchenDashboard() {
                 type="button"
                 aria-label="Close"
                 onClick={() => setWhatsappOrder(null)}
-                className="rounded-full p-1.5 text-muted hover:bg-bg-soft"
+                className="rounded-full p-1.5 text-muted hover:bg-bg-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -345,7 +345,7 @@ export function KitchenDashboard() {
               type="button"
               disabled={whatsappPhone.replace(/\D/g, "").length < 10}
               onClick={submitWhatsApp}
-              className="mt-3 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40"
+              className="mt-3 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
             >
               Send on WhatsApp
             </button>
@@ -368,7 +368,7 @@ export function KitchenDashboard() {
           <span>{queued} queued update{queued === 1 ? "" : "s"} waiting to sync</span>
           <button
             type="button"
-            className="rounded-full border border-gold/50 px-3 py-1 text-xs font-semibold"
+            className="rounded-full border border-gold/50 px-3 py-1 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             onClick={() =>
               flushKitchenQueue().then((r) => {
                 refreshQueueCount();
@@ -417,14 +417,14 @@ export function KitchenDashboard() {
           )}
           <Link
             href="/admin/qr"
-            className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+            className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             Table QR codes
           </Link>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
@@ -438,10 +438,10 @@ export function KitchenDashboard() {
             key={f}
             type="button"
             onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-sm ${
+            className={`rounded-full px-4 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
               filter === f
                 ? "bg-gold text-bg font-semibold"
-                : "border border-line text-muted"
+                : "border border-line text-muted hover:border-gold/50 hover:text-ink"
             }`}
           >
             {f === "active" ? "Active" : "All orders"}
@@ -548,7 +548,7 @@ export function KitchenDashboard() {
                   <button
                     type="button"
                     onClick={() => openWhatsAppModal(order)}
-                    className="flex items-center gap-1 rounded-lg border border-green-600/30 bg-green-500/10 px-2.5 py-1.5 text-xs text-green-400 hover:border-green-500 hover:bg-green-500/20"
+                    className="flex items-center gap-1 rounded-lg border border-green-600/30 bg-green-500/10 px-2.5 py-1.5 text-xs text-green-400 hover:border-green-500 hover:bg-green-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
                     WhatsApp Bill
@@ -559,7 +559,7 @@ export function KitchenDashboard() {
                       onClick={() =>
                         runMutation(order.id, { clearKitchenAck: true })
                       }
-                      className="rounded-lg border border-flame-from/50 px-3 py-1.5 text-xs text-flame-from hover:bg-flame-from/10"
+                      className="rounded-lg border border-flame-from/50 px-3 py-1.5 text-xs text-flame-from hover:bg-flame-from/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-flame-from"
                     >
                       Ack new items
                     </button>
@@ -568,7 +568,7 @@ export function KitchenDashboard() {
                     <button
                       type="button"
                       onClick={() => runMutation(order.id, { markPaid: true })}
-                      className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-veg hover:text-veg"
+                      className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-veg hover:text-veg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-veg"
                     >
                       Mark paid
                     </button>
@@ -577,7 +577,7 @@ export function KitchenDashboard() {
                     <button
                       type="button"
                       onClick={() => runMutation(order.id, { status: next })}
-                      className="flame-bg flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+                      className="flame-bg flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                     >
                       Mark {LABEL[next].toLowerCase()}
                     </button>
@@ -589,7 +589,7 @@ export function KitchenDashboard() {
                         onClick={() =>
                           runMutation(order.id, { status: "cancelled" })
                         }
-                        className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-nonveg hover:text-nonveg"
+                        className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-nonveg hover:text-nonveg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nonveg"
                       >
                         Cancel
                       </button>
