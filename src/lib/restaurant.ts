@@ -35,7 +35,13 @@ export function formatINR(amount: number): string {
   return `₹${(amount || 0).toLocaleString("en-IN")}`;
 }
 
-export function buildUpiLink(amount: number, orderId: string): string {
+export type UpiApp = "generic" | "gpay" | "phonepe" | "paytm" | "bhim";
+
+export function buildUpiLink(
+  amount: number,
+  orderId: string,
+  app: UpiApp = "generic"
+): string {
   const params = new URLSearchParams({
     pa: RESTAURANT.upiId,
     pn: RESTAURANT.upiPayeeName,
@@ -43,5 +49,19 @@ export function buildUpiLink(amount: number, orderId: string): string {
     cu: "INR",
     tn: `ChatKara Order ${orderId.slice(0, 8).toUpperCase()}`,
   });
-  return `upi://pay?${params.toString()}`;
+  const query = params.toString();
+
+  switch (app) {
+    case "gpay":
+      return `gpay://upi/pay?${query}`;
+    case "phonepe":
+      return `phonepe://upi/pay?${query}`;
+    case "paytm":
+      return `paytmmp://upi/pay?${query}`;
+    case "bhim":
+      return `bhim://upi/pay?${query}`;
+    default:
+      return `upi://pay?${query}`;
+  }
 }
+
