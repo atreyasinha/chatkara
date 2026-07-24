@@ -20,6 +20,7 @@ export const RESTAURANT = {
   tableCount: 7,
   currency: "INR" as const,
   currencySymbol: "₹",
+  developer: "Shriumasha Enterprises Private Limited",
   tableTokens: {
     1: "ck_t1_x92a",
     2: "ck_t2_p83b",
