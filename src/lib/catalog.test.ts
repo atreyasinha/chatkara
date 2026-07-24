@@ -69,6 +69,11 @@ describe("restaurant config", () => {
     assert.match(link, /pa=/);
     assert.match(link, /am=250\.50/);
     assert.match(link, /cu=INR/);
+
+    assert.match(buildUpiLink(100, "12345678", "gpay"), /^gpay:\/\/upi\/pay\?/);
+    assert.match(buildUpiLink(100, "12345678", "phonepe"), /^phonepe:\/\/upi\/pay\?/);
+    assert.match(buildUpiLink(100, "12345678", "paytm"), /^paytmmp:\/\/upi\/pay\?/);
+    assert.match(buildUpiLink(100, "12345678", "bhim"), /^bhim:\/\/upi\/pay\?/);
   });
 });
 

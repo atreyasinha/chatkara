@@ -95,9 +95,15 @@ export function CheckoutSheet({
   const gst = Math.round((taxableSubtotal * RESTAURANT.gstPercent) / 100);
   const total = taxableSubtotal + gst;
 
-  const upiLink = useMemo(() => {
-    if (!order) return "";
-    return buildUpiLink(order.total, order.id);
+  const upiLinks = useMemo(() => {
+    if (!order) return { generic: "", gpay: "", phonepe: "", paytm: "", bhim: "" };
+    return {
+      generic: buildUpiLink(order.total, order.id, "generic"),
+      gpay: buildUpiLink(order.total, order.id, "gpay"),
+      phonepe: buildUpiLink(order.total, order.id, "phonepe"),
+      paytm: buildUpiLink(order.total, order.id, "paytm"),
+      bhim: buildUpiLink(order.total, order.id, "bhim"),
+    };
   }, [order]);
 
   async function placeOrder() {
@@ -175,11 +181,11 @@ export function CheckoutSheet({
           </div>
 
           <div className="mx-auto mb-4 flex w-fit justify-center rounded-2xl bg-white p-4">
-            <QRCodeSVG value={upiLink} size={200} level="M" />
+            <QRCodeSVG value={upiLinks.generic} size={200} level="M" />
           </div>
 
           <p className="mb-1 text-center text-sm text-muted">
-            Scan with GPay, PhonePe, Paytm, or BHIM
+            Scan QR code or select your preferred payment app below
           </p>
           <p className="mb-2 text-center text-xs text-muted">
             UPI ID: {RESTAURANT.upiId}
@@ -189,13 +195,44 @@ export function CheckoutSheet({
             is already with the kitchen.
           </p>
 
-          <a
-            href={upiLink}
-            className="flame-bg mb-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 font-semibold text-white"
-          >
-            <Smartphone className="h-4 w-4" />
-            Open UPI app
-          </a>
+          <div className="mb-3 space-y-2">
+            <p className="text-center text-xs font-semibold text-gold">
+              Open directly in your app:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={upiLinks.gpay}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
+              >
+                Google Pay
+              </a>
+              <a
+                href={upiLinks.phonepe}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
+              >
+                PhonePe
+              </a>
+              <a
+                href={upiLinks.paytm}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
+              >
+                Paytm
+              </a>
+              <a
+                href={upiLinks.bhim}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
+              >
+                BHIM
+              </a>
+            </div>
+            <a
+              href={upiLinks.generic}
+              className="flame-bg flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold text-white mt-2"
+            >
+              <Smartphone className="h-4 w-4" />
+              Other / Default UPI App
+            </a>
+          </div>
 
           <button
             type="button"
