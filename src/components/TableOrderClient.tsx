@@ -296,65 +296,81 @@ export function TableOrderClient({
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="max-h-[50dvh] overflow-y-auto px-4 py-3 scrollbar-thin">
-              {items.map((item) => (
-                <div
-                  key={item.itemId}
-                  className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                <ShoppingBag className="mb-4 h-12 w-12 text-muted/30" />
+                <p className="mb-6 text-muted">Your cart is empty.</p>
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  className="rounded-full border border-line px-6 py-2.5 text-sm font-semibold text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:outline-none focus-visible:ring-2"
                 >
-                  <VegBadge veg={item.veg} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{item.name}</p>
-                    <p className="text-sm text-gold">
-                      {formatINR(item.price * item.quantity)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
-                    <button
-                      type="button"
-                      aria-label="Decrease quantity"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
-                      onClick={() => setQuantity(item.itemId, item.quantity - 1)}
+                  Browse menu
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="max-h-[50dvh] overflow-y-auto px-4 py-3 scrollbar-thin">
+                  {items.map((item) => (
+                    <div
+                      key={item.itemId}
+                      className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
                     >
-                      <Minus className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="w-5 text-center text-sm">{item.quantity}</span>
-                    <button
-                      type="button"
-                      aria-label="Increase quantity"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
-                      onClick={() => setQuantity(item.itemId, item.quantity + 1)}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
+                      <VegBadge veg={item.veg} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{item.name}</p>
+                        <p className="text-sm text-gold">
+                          {formatINR(item.price * item.quantity)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
+                        <button
+                          type="button"
+                          aria-label="Decrease quantity"
+                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          onClick={() => setQuantity(item.itemId, item.quantity - 1)}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-5 text-center text-sm">{item.quantity}</span>
+                        <button
+                          type="button"
+                          aria-label="Increase quantity"
+                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          onClick={() => setQuantity(item.itemId, item.quantity + 1)}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label="Remove item"
+                        className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
+                        onClick={() => removeItem(item.itemId)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-line px-4 py-4">
+                  <div className="mb-3 flex justify-between text-sm">
+                    <span className="text-muted">Subtotal</span>
+                    <span>{formatINR(total)}</span>
                   </div>
                   <button
                     type="button"
-                    aria-label="Remove item"
-                    className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
-                    onClick={() => removeItem(item.itemId)}
+                    onClick={() => {
+                      setCartOpen(false);
+                      setCheckoutOpen(true);
+                    }}
+                    className="flame-bg w-full rounded-xl py-3 font-semibold text-white"
                   >
-                    Remove
+                    Proceed to pay
                   </button>
                 </div>
-              ))}
-            </div>
-            <div className="border-t border-line px-4 py-4">
-              <div className="mb-3 flex justify-between text-sm">
-                <span className="text-muted">Subtotal</span>
-                <span>{formatINR(total)}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setCartOpen(false);
-                  setCheckoutOpen(true);
-                }}
-                className="flame-bg w-full rounded-xl py-3 font-semibold text-white"
-              >
-                Proceed to pay
-              </button>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
