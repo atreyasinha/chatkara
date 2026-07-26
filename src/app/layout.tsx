@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Source_Sans_3 } from "next/font/google";
+import { Cormorant_Garamond, Source_Sans_3, Caveat } from "next/font/google";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -13,6 +13,13 @@ const body = Source_Sans_3({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const betania = Caveat({
+  variable: "--font-betania",
+  subsets: ["latin"],
+  weight: ["400", "600"],
   display: "swap",
 });
 
@@ -106,7 +113,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${betania.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col ambient">{children}</body>
       <Script
