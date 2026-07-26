@@ -249,14 +249,19 @@ export default function HomePage() {
       </section>
 
       {/* Footer / POS Access */}
-      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center">
-        <Link
-          href="/kitchen"
-          className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
-        >
-          <Monitor className="h-3 w-3" />
-          Kitchen POS
-        </Link>
+      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center space-y-2">
+        <p className="text-xs text-muted/60">
+          Website built by {RESTAURANT.developer}
+        </p>
+        <div>
+          <Link
+            href="/kitchen"
+            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+          >
+            <Monitor className="h-3 w-3" />
+            Kitchen POS
+          </Link>
+        </div>
       </footer>
     </main>
   );
