@@ -266,6 +266,10 @@ export function TableOrderClient({
         )}
       </main>
 
+      <footer className="relative z-10 mx-auto w-full max-w-md pb-24 pt-8 text-center text-xs text-muted/60">
+        <p>Website built by {RESTAURANT.developer}</p>
+      </footer>
+
       {count > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
           <button

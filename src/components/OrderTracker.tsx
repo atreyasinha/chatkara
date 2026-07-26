@@ -322,6 +322,10 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         </svg>
         Share Bill on WhatsApp
       </button>
+
+      <footer className="mt-8 text-center text-xs text-muted/60">
+        <p>Website built by {RESTAURANT.developer}</p>
+      </footer>
     </div>
   );
 }
