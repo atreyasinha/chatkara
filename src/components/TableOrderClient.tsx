@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, memo } from "react";
+import { useEffect, useMemo, useState, memo, useDeferredValue } from "react";
 import { Minus, Plus, Search, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -25,6 +25,10 @@ export function TableOrderClient({
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
+  // ⚡ Bolt: Defer search query updates to keep typing instantly responsive
+  // while the large list filters in the background
+  const deferredQuery = useDeferredValue(query);
 
   const { setTable, addItem, items, itemCount, subtotal, setQuantity, removeItem } =
     useCart();
@@ -63,7 +67,7 @@ export function TableOrderClient({
   }, [tableNumber, setTable]);
 
   const filtered = useMemo(() => {
-    let list = query ? searchMenu(query) : MENU;
+    let list = deferredQuery ? searchMenu(deferredQuery) : MENU;
     if (category !== "All") {
       list = list.filter((m) => m.category === category);
     }
@@ -71,7 +75,7 @@ export function TableOrderClient({
       list = list.filter((m) => m.veg === filter);
     }
     return list;
-  }, [query, category, filter]);
+  }, [deferredQuery, category, filter]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
