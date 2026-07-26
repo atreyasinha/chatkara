@@ -90,6 +90,7 @@ export default function HomePage() {
             width={240}
             height={240}
             priority
+            sizes="(max-width: 640px) 180px, 240px"
             className="mx-auto rounded-full shadow-[0_0_65px_rgba(212,175,55,0.25)]"
           />
         </div>
@@ -131,7 +132,6 @@ export default function HomePage() {
               height={571}
               className="h-44 w-full object-cover transition duration-300 hover:scale-105"
               sizes="(max-width: 768px) 100vw, 500px"
-              priority
             />
           </div>
 
