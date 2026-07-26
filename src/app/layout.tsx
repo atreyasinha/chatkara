@@ -76,6 +76,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: {
+    google: "TMCdqtonTUx8n-KjoyFzCH7qZhz1fXBw4Bfz83LCFGA",
+  },
   category: "restaurant",
   icons: {
     icon: [
