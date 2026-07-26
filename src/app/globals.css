@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Betania+Patmos&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -128,5 +127,5 @@ body {
 }
 
 .font-betania {
-  font-family: 'Betania Patmos', cursive;
+  font-family: var(--font-betania), cursive;
 }
