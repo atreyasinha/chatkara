@@ -15,14 +15,36 @@ const body = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "ChatKara — Flavours of India",
+  title: {
+    default: "ChatKara — Authentic Indian Restaurant & Chaat in Bokaro",
+    template: "%s | ChatKara Restaurant",
+  },
   description:
-    "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+    "Order online for pickup or dine-in at ChatKara, Bokaro Steel City. Enjoy authentic North & South Indian delicacies, tandoori starters, street food, chaat & beverages at La Gardenia.",
+  keywords: [
+    "ChatKara",
+    "ChatKara Bokaro",
+    "Restaurant in Bokaro",
+    "Indian Restaurant Bokaro",
+    "Chaat Bokaro",
+    "La Gardenia Bokaro",
+    "Online Food Order Bokaro",
+    "Tandoori Bokaro",
+    "Bokaro Steel City Restaurant",
+    "Street Food Bokaro",
+    "Flavours of India",
+  ],
+  authors: [{ name: "Shriumasha Enterprises Private Limited" }],
+  creator: "Shriumasha Enterprises Private Limited",
+  publisher: "Shriumasha Enterprises Private Limited",
   metadataBase: new URL("https://chatkara.lagardenia.in"),
+  alternates: {
+    canonical: "https://chatkara.lagardenia.in",
+  },
   openGraph: {
-    title: "ChatKara — Flavours of India",
+    title: "ChatKara — Authentic Indian Restaurant & Chaat in Bokaro",
     description:
-      "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+      "Order online for pickup or dine-in at ChatKara, Bokaro Steel City. Enjoy authentic North & South Indian delicacies, tandoori starters, street food, chaat & beverages at La Gardenia.",
     url: "https://chatkara.lagardenia.in",
     siteName: "ChatKara",
     images: [
@@ -38,11 +60,23 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ChatKara — Flavours of India",
+    title: "ChatKara — Authentic Indian Restaurant & Chaat in Bokaro",
     description:
-      "Order from your table at ChatKara. Scan the QR code and enjoy Flavours of India.",
+      "Order online for pickup or dine-in at ChatKara, Bokaro Steel City. Enjoy authentic North & South Indian delicacies, tandoori starters, street food, chaat & beverages at La Gardenia.",
     images: ["/og-image.png"],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  category: "restaurant",
   icons: {
     icon: [
       { url: "/icon-48.png", sizes: "48x48", type: "image/png" },

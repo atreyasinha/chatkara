@@ -14,13 +14,24 @@ export default function HomePage() {
             "@context": "https://schema.org",
             "@type": "Restaurant",
             "name": "ChatKara",
+            "description": "Authentic Indian Restaurant, Chaat & Tandoori in Bokaro Steel City. Order online for pickup or scan QR code for table service.",
             "image": "https://chatkara.lagardenia.in/og-image.png",
             "@id": "https://chatkara.lagardenia.in",
             "url": "https://chatkara.lagardenia.in",
             "telephone": RESTAURANT.phone,
-            "priceRange": "₹",
+            "priceRange": "₹₹",
             "menu": "https://chatkara.lagardenia.in/pickup",
-            "servesCuisine": "Indian, Street Food, Chaat, Desserts",
+            "hasMenu": "https://chatkara.lagardenia.in/pickup",
+            "servesCuisine": "Indian, North Indian, Street Food, Chaat, Tandoori, Desserts",
+            "acceptsReservations": "True",
+            "paymentAccepted": "Cash, UPI, Google Pay, PhonePe, Paytm",
+            "currenciesAccepted": "INR",
+            "sameAs": [RESTAURANT.location.mapsUrl],
+            "parentOrganization": {
+              "@type": "Organization",
+              "name": "La Gardenia",
+              "url": "https://lagardenia.in"
+            },
             "address": {
               "@type": "PostalAddress",
               "streetAddress": "Bokaro Steel City",
@@ -31,8 +42,8 @@ export default function HomePage() {
             },
             "geo": {
               "@type": "GeoCoordinates",
-              "latitude": 23.619147660495543,
-              "longitude": 86.18070429732468
+              "latitude": RESTAURANT.location.lat,
+              "longitude": RESTAURANT.location.lng
             },
             "openingHoursSpecification": {
               "@type": "OpeningHoursSpecification",
@@ -70,6 +81,7 @@ export default function HomePage() {
 
       {/* Main Section */}
       <section className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-10 pt-16 text-center">
+        <h1 className="sr-only">ChatKara — Authentic Indian Restaurant &amp; Chaat in Bokaro</h1>
         {/* Emblem Only */}
         <div className="animate-fade-up">
           <Image
