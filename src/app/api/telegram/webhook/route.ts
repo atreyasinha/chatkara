@@ -37,6 +37,7 @@ type TelegramUpdate = {
 
 function verifyTelegramSecret(
   request: Request,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update?: TelegramUpdate,
 ): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
@@ -50,12 +51,8 @@ function verifyTelegramSecret(
     }
   }
 
-  // Fallback: If secret token header is missing or unconfigured, verify if callback_query originates from an authorized kitchen Telegram chat ID
-  const chatId = update?.callback_query?.message?.chat?.id;
-  if (chatId !== undefined && isAllowedTelegramChat(chatId)) {
-    return true;
-  }
-
+  // Security: Do not fallback to checking the user-controlled update payload,
+  // as this allows an attacker to easily spoof the JSON and bypass authentication.
   return false;
 }
 
