@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { Banknote, Smartphone, X } from "lucide-react";
+import { Banknote, Smartphone, X, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
 import type { Order, PaymentMethod } from "@/lib/types";
@@ -238,9 +238,16 @@ export function CheckoutSheet({
             type="button"
             disabled={loading}
             onClick={confirmUpiPaid}
-            className="w-full rounded-xl border border-gold/50 py-3 font-semibold text-gold hover:bg-gold-dim disabled:opacity-50"
+            className="w-full rounded-xl border border-gold/50 py-3 font-semibold text-gold hover:bg-gold-dim disabled:opacity-50 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated"
           >
-            I&apos;ve paid — track order
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Confirming…
+              </>
+            ) : (
+              "I've paid — track order"
+            )}
           </button>
         </div>
       </div>
@@ -380,17 +387,22 @@ export function CheckoutSheet({
             type="button"
             disabled={loading || items.length === 0 || phone.trim().length !== 10 || (tableNumber === 0 && name.trim().length === 0)}
             onClick={placeOrder}
-            className="flame-bg w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50"
+            className="flame-bg w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg-elevated"
           >
-            {loading
-              ? "Placing order…"
-              : phone.trim().length !== 10
-                ? "Enter 10-digit Phone"
-                : (tableNumber === 0 && name.trim().length === 0)
-                  ? "Enter Your Name"
-                  : method === "upi"
-                    ? `Place order · Pay ${formatINR(total)}`
-                    : `Place order · Pay cash ${formatINR(total)}`}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Placing order…
+              </>
+            ) : phone.trim().length !== 10 ? (
+              "Enter 10-digit Phone"
+            ) : tableNumber === 0 && name.trim().length === 0 ? (
+              "Enter Your Name"
+            ) : method === "upi" ? (
+              `Place order · Pay ${formatINR(total)}`
+            ) : (
+              `Place order · Pay cash ${formatINR(total)}`
+            )}
           </button>
         </div>
       </div>
