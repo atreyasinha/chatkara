@@ -92,9 +92,10 @@ export default function HomePage() {
           rel="noopener noreferrer"
           aria-label="Contact on WhatsApp"
           title="Contact on WhatsApp"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-green-600/40 bg-green-500/10 text-green-400 shadow-sm transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
+          className="flex items-center gap-1.5 rounded-full border border-green-600/40 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 shadow-sm transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
         >
-          <WhatsAppIcon className="h-4 w-4" />
+          <WhatsAppIcon className="h-3.5 w-3.5" />
+          <span>WhatsApp</span>
         </a>
       </nav>
 
