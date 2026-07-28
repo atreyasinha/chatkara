@@ -13,3 +13,7 @@
 ## 2026-07-26 - [Search Input Debouncing via useDeferredValue]
 **Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices.
 **Action:** Use React's `useDeferredValue` hook on text inputs that drive large list filtering. This prioritizes input rendering (making typing feel instant) and defers the expensive filtering computation to the background.
+
+## 2024-07-28 - [Bounded Queries for Polling and Analytics]
+**Learning:** Polling loops and dashboards loading time-series data without time bounds cause O(N) database reads and bandwidth bottlenecks as the table grows over time.
+**Action:** Always verify that queries in polling loops (like `fetch("/api/orders")` or Firestore listeners) and analytics dashboards use an indexed time condition (like `where("createdAt", ">=", since)`) to bound the result size.

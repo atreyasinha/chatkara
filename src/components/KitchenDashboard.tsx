@@ -125,7 +125,8 @@ export function KitchenDashboard() {
 
     async function fetchKitchenOrdersApi() {
       try {
-        const res = await fetch("/api/orders", {
+        // ⚡ Bolt: Fetch only recent orders instead of entire order history every 5 seconds
+        const res = await fetch("/api/orders?recent=true", {
           cache: "no-store",
           credentials: "include",
         });
@@ -174,12 +175,20 @@ export function KitchenDashboard() {
 
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
-        const { collection, onSnapshot, query, orderBy } = await import(
+        const { collection, onSnapshot, query, orderBy, where } = await import(
           "firebase/firestore"
         );
 
         const db = await getClientDb();
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+
+        // ⚡ Bolt: Only listen to recent orders to avoid large initial payload sizes
+        // from Firestore and prevent large state updates
+        const recentDate = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const q = query(
+          collection(db, "orders"),
+          where("createdAt", ">=", recentDate),
+          orderBy("createdAt", "desc")
+        );
 
         unsubscribe = onSnapshot(
           q,

@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const startLimit = new Date();
 
@@ -31,6 +29,13 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // ⚡ Bolt: Analytics always needs data from the start of the year for monthly
+    // charts, but we don't need years of previous history.
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const fetchSince = startLimit < startOfYear ? startLimit : startOfYear;
+
+    const orders = await listOrders({ since: fetchSince });
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),
