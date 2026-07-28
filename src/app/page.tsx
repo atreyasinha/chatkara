@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShoppingBag, Monitor, Clock, Utensils } from "lucide-react";
+import { MapPin, ShoppingBag, Monitor, Clock, Utensils, Phone } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 
@@ -77,6 +77,15 @@ export default function HomePage() {
         <p className="font-betania text-xl tracking-wide text-gold-soft/90">
           a La Gardenia concept
         </p>
+        <a
+          href="https://wa.me/919431911929"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 rounded-full border border-green-600/30 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20"
+        >
+          <Phone className="h-3 w-3" />
+          +91 94319 11929
+        </a>
       </nav>
 
       {/* Main Section */}
@@ -115,6 +124,16 @@ export default function HomePage() {
             <Utensils className="h-4 w-4" />
             View Menu &amp; Prices
           </Link>
+
+          <a
+            href="https://wa.me/919431911929"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-green-600/30 bg-green-500/10 py-3 text-xs font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98]"
+          >
+            <Phone className="h-3.5 w-3.5" />
+            WhatsApp: +91 94319 11929
+          </a>
         </div>
       </section>
 
