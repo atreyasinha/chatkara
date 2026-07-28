@@ -50,12 +50,6 @@ function verifyTelegramSecret(
     }
   }
 
-  // Fallback: If secret token header is missing or unconfigured, verify if callback_query originates from an authorized kitchen Telegram chat ID
-  const chatId = update?.callback_query?.message?.chat?.id;
-  if (chatId !== undefined && isAllowedTelegramChat(chatId)) {
-    return true;
-  }
-
   return false;
 }
 
