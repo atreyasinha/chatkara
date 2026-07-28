@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShoppingBag, Monitor, Clock } from "lucide-react";
+import { MapPin, ShoppingBag, Monitor, Clock, Utensils } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 
@@ -95,17 +95,25 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Order Pickup Button */}
+        {/* Call to Action Buttons */}
         <div 
-          className="mt-10 w-full flex justify-center animate-fade-up"
+          className="mt-8 flex w-full max-w-xs flex-col gap-3 animate-fade-up"
           style={{ animationDelay: "150ms" }}
         >
           <Link
             href="/pickup"
-            className="flame-bg flex w-full max-w-xs items-center justify-center gap-2.5 rounded-2xl py-4 font-semibold text-white transition hover:brightness-110 shadow-lg shadow-flame-from/20 active:scale-[0.98]"
+            className="flame-bg flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 font-semibold text-white transition hover:brightness-110 shadow-lg shadow-flame-from/20 active:scale-[0.98]"
           >
             <ShoppingBag className="h-5 w-5" />
             Order Online Pickup
+          </Link>
+
+          <Link
+            href="/pickup"
+            className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-line bg-bg-elevated/70 py-3.5 text-sm font-semibold text-gold transition hover:border-gold hover:bg-gold-dim/20 active:scale-[0.98]"
+          >
+            <Utensils className="h-4 w-4" />
+            View Menu &amp; Prices
           </Link>
         </div>
       </section>
