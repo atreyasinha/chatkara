@@ -134,16 +134,6 @@ export default function HomePage() {
             <Utensils className="h-4 w-4" />
             View Menu &amp; Prices
           </Link>
-
-          <a
-            href={`https://wa.me/${RESTAURANT.whatsapp.replace(/[^0-9]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-green-600/30 bg-green-500/10 py-3.5 text-sm font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98]"
-          >
-            <WhatsAppIcon className="h-4 w-4" />
-            WhatsApp Us
-          </a>
         </div>
       </section>
 
