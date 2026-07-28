@@ -26,7 +26,17 @@ function isAuthorizedTestRequest(request: Request): boolean {
 
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorizedJson();
-  return NextResponse.json({ orders: await listOrders() });
+
+  const { searchParams } = new URL(request.url);
+  const recent = searchParams.get("recent") === "true";
+
+  let since: Date | undefined = undefined;
+  if (recent) {
+    // ⚡ Bolt: Only fetch orders from the last 48 hours for active polling
+    since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  }
+
+  return NextResponse.json({ orders: await listOrders({ since }) });
 }
 
 export async function POST(request: Request) {
