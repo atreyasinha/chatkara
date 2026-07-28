@@ -81,6 +81,21 @@ export default function HomePage() {
         }}
       />
 
+      {/* Top Banner */}
+      <div className="relative z-20 bg-bg-elevated border-b border-gold-dim/30 py-2.5 px-4 text-center shadow-lg shadow-black/20">
+        <p className="text-xs sm:text-sm font-medium text-gold-soft">
+          Host your next big event at our sister venue right next door:{" "}
+          <a
+            href="https://lagardenia.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold text-white hover:text-gold transition-colors inline-flex items-center gap-1 underline underline-offset-4"
+          >
+            La Gardenia <span aria-hidden="true">&rarr;</span>
+          </a>
+        </p>
+      </div>
+
       {/* Top Navigation */}
       <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
         <p className="font-betania text-xl tracking-wide text-gold-soft/90">
@@ -277,18 +292,36 @@ export default function HomePage() {
       </section>
 
       {/* Footer / POS Access */}
-      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center space-y-2">
-        <p className="text-xs text-muted/60">
-          Website built by {RESTAURANT.developer}
-        </p>
-        <div>
-          <Link
-            href="/kitchen"
-            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+      <footer className="relative z-10 mx-auto w-full max-w-md py-8 text-center space-y-6">
+        {/* Sister Restaurant Section */}
+        <div className="rounded-xl border border-line bg-bg-soft/40 p-5 backdrop-blur-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Our Sister Restaurant</p>
+          <a
+            href="https://lagardenia.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex flex-col items-center justify-center transition-opacity hover:opacity-80"
           >
-            <Monitor className="h-3 w-3" />
-            Kitchen POS
-          </Link>
+            <span className="font-betania text-3xl text-gold-soft mb-1">La Gardenia</span>
+            <span className="text-[11px] text-muted/80 underline underline-offset-2 decoration-muted/30 group-hover:decoration-gold/50 transition-colors">
+              Banquet Hall & Event Lawn
+            </span>
+          </a>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs text-muted/60">
+            Website built by {RESTAURANT.developer}
+          </p>
+          <div>
+            <Link
+              href="/kitchen"
+              className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+            >
+              <Monitor className="h-3 w-3" />
+              Kitchen POS
+            </Link>
+          </div>
         </div>
       </footer>
     </main>
