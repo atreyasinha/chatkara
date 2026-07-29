@@ -26,7 +26,8 @@ function isAuthorizedTestRequest(request: Request): boolean {
 
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorizedJson();
-  return NextResponse.json({ orders: await listOrders() });
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+  return NextResponse.json({ orders: await listOrders(since) });
 }
 
 export async function POST(request: Request) {

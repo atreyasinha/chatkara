@@ -9,10 +9,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
-    const startLimit = new Date();
+    const startLimit = new Date(now);
+
+    const currentYearStart = new Date(now.getFullYear(), 0, 1);
+    const timeframeTime =
+      timeframe === "yearly"
+        ? new Date(now).setFullYear(now.getFullYear() - 1)
+        : timeframe === "monthly"
+          ? new Date(now).setDate(now.getDate() - 30)
+          : timeframe === "weekly"
+            ? new Date(now).setDate(now.getDate() - 7)
+            : new Date(now).setHours(0, 0, 0, 0);
+
+    // Need to get the older timestamp of the two to make sure we have enough data to calculate both
+    // the requested timeframe stats AND the monthly stats for the current year.
+    const since = new Date(Math.min(timeframeTime, currentYearStart.getTime()));
+
+    const orders = await listOrders(since);
+
 
     if (timeframe === "daily") {
       startLimit.setHours(0, 0, 0, 0);
