@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const startLimit = new Date();
 
@@ -31,6 +29,12 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const queryStart = startLimit < startOfYear ? startLimit : startOfYear;
+
+    const orders = await listOrders(queryStart.toISOString());
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),
@@ -123,7 +127,6 @@ export async function GET(request: NextRequest) {
         : null;
 
     // Calculate monthly breakdown for the current year
-    const currentYear = new Date().getFullYear();
     const monthlyRevenue: Record<number, number> = {};
     for (let m = 0; m < 12; m++) {
       monthlyRevenue[m] = 0;
