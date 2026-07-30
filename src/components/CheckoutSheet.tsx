@@ -364,10 +364,12 @@ export function CheckoutSheet({
                 <span>-{formatINR(discountAmount)}</span>
               </div>
             )}
-            <div className="mt-1 flex justify-between text-muted">
-              <span>GST ({RESTAURANT.gstPercent}%)</span>
-              <span>{formatINR(gst)}</span>
-            </div>
+            {RESTAURANT.gstPercent > 0 && (
+              <div className="mt-1 flex justify-between text-muted">
+                <span>GST ({RESTAURANT.gstPercent}%)</span>
+                <span>{formatINR(gst)}</span>
+              </div>
+            )}
             <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold text-gold">
               <span>Total</span>
               <span>{formatINR(total)}</span>

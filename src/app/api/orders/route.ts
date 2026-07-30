@@ -4,6 +4,7 @@ import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import { notifyKitchenTelegram } from "@/lib/telegram";
+import { RESTAURANT } from "@/lib/restaurant";
 import type { CartItem, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -36,19 +37,22 @@ export async function POST(request: Request) {
     const items = body.items as CartItem[];
     const paymentMethod = body.paymentMethod as PaymentMethod;
     const isTest = isAuthorizedTestRequest(request);
+    const isAdmin = isAdminRequest(request);
 
     if (
       !Number.isFinite(tableNumber) ||
       tableNumber < 0 ||
+      tableNumber > RESTAURANT.tableCount ||
       !Array.isArray(items) ||
       items.length === 0 ||
       (paymentMethod !== "upi" && paymentMethod !== "cash") ||
-      (tableNumber === 0 && paymentMethod !== "upi")
+      // Pickup is UPI-only for customers; managers may take cash at the counter
+      (tableNumber === 0 && paymentMethod !== "upi" && !isAdmin)
     ) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });
     }
 
-    const sanitized = sanitizeOrderItems(items);
+    const sanitized = sanitizeOrderItems(items, { allowCustom: isAdmin });
     if (!sanitized.ok) {
       return NextResponse.json({ error: sanitized.error }, { status: 400 });
     }

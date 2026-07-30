@@ -273,10 +273,12 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             <span>-{formatINR(order.discountAmount)}</span>
           </div>
         ) : null}
-        <div className="mt-1 flex justify-between text-muted">
-          <span>GST</span>
-          <span>{formatINR(order.gst)}</span>
-        </div>
+        {(RESTAURANT.gstPercent > 0 || order.gst > 0) && (
+          <div className="mt-1 flex justify-between text-muted">
+            <span>GST</span>
+            <span>{formatINR(order.gst)}</span>
+          </div>
+        )}
         <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold text-gold">
           <span>Total</span>
           <span>{formatINR(order.total)}</span>

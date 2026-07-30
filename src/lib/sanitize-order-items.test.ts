@@ -37,6 +37,38 @@ describe("sanitizeOrderItems (order → priced lines)", () => {
     assert.match(result.error, /not found/i);
   });
 
+  it("accepts custom lines only when allowCustom is set", () => {
+    const denied = sanitizeOrderItems([
+      {
+        itemId: "custom:special",
+        name: "House Special",
+        price: 199,
+        veg: "veg",
+        quantity: 1,
+      },
+    ]);
+    assert.equal(denied.ok, false);
+
+    const allowed = sanitizeOrderItems(
+      [
+        {
+          itemId: "custom:special",
+          name: "House Special",
+          price: 199,
+          veg: "nonveg",
+          quantity: 2,
+        },
+      ],
+      { allowCustom: true },
+    );
+    assert.equal(allowed.ok, true);
+    if (!allowed.ok) return;
+    assert.equal(allowed.items[0].name, "House Special");
+    assert.equal(allowed.items[0].price, 199);
+    assert.equal(allowed.items[0].quantity, 2);
+    assert.equal(allowed.items[0].veg, "nonveg");
+  });
+
   it("clamps quantity between 1 and 20", () => {
     const sample = MENU[0];
     assert.ok(sample);

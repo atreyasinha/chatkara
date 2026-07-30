@@ -42,7 +42,9 @@ export function formatWhatsAppReceipt(order: Order): string {
     `----------------------------\n` +
     `*Subtotal:* ₹${subtotal}\n` +
     discountLines +
-    `*GST (${RESTAURANT.gstPercent}%):* ₹${gst}\n` +
+    (RESTAURANT.gstPercent > 0 || gst > 0
+      ? `*GST (${RESTAURANT.gstPercent}%):* ₹${gst}\n`
+      : "") +
     `*Total Amount:* ₹${total}\n\n` +
     `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +
     `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +

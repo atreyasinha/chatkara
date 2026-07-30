@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AdminGuard } from "@/components/AdminGuard";
-import { formatINR } from "@/lib/restaurant";
+import { formatINR, RESTAURANT } from "@/lib/restaurant";
 
 interface LedgerOrder {
   id: string;
@@ -126,11 +126,12 @@ function AnalyticsDashboard() {
     );
   }
 
-  // Pre-tax calculations (5% GST inclusive pricing)
-  const gstPercent = 5;
+  // GST off until registration; when gstPercent > 0, treat revenue as tax-inclusive
+  const gstPercent = RESTAURANT.gstPercent;
   const grossSales = data?.totalRevenue || 0;
-  const netSales = grossSales / (1 + gstPercent / 100);
-  const estimatedGst = grossSales - netSales;
+  const netSales =
+    gstPercent > 0 ? grossSales / (1 + gstPercent / 100) : grossSales;
+  const estimatedGst = gstPercent > 0 ? grossSales - netSales : 0;
   const avgTicket =
     data && data.totalOrders > 0 ? grossSales / data.totalOrders : 0;
 
@@ -261,13 +262,17 @@ function AnalyticsDashboard() {
               {/* Estimated GST */}
               <div className="rounded-3xl border border-line bg-bg-elevated/40 p-6 backdrop-blur-sm shadow-sm">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
-                  Tax Liability (5% GST)
+                  {gstPercent > 0
+                    ? `Tax Liability (${gstPercent}% GST)`
+                    : "GST (not charged)"}
                 </span>
                 <h3 className="font-sans mt-3 text-3xl font-semibold text-neutral-300">
                   {estimatedGstFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
-                  Estimated tax value to be parsed.
+                  {gstPercent > 0
+                    ? "Estimated tax value to be parsed."
+                    : "GST registration pending — prices are tax-free for now."}
                 </p>
               </div>
 

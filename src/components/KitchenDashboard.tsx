@@ -416,6 +416,12 @@ export function KitchenDashboard() {
             </span>
           )}
           <Link
+            href="/admin/order"
+            className="rounded-full border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold hover:bg-gold/20"
+          >
+            New order
+          </Link>
+          <Link
             href="/admin/qr"
             className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
           >
