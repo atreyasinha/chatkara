@@ -174,12 +174,18 @@ export function KitchenDashboard() {
 
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
-        const { collection, onSnapshot, query, orderBy } = await import(
+        const { collection, onSnapshot, query, orderBy, where } = await import(
           "firebase/firestore"
         );
 
         const db = await getClientDb();
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const q = query(
+          collection(db, "orders"),
+          where("createdAt", ">=", sevenDaysAgo.toISOString()),
+          orderBy("createdAt", "desc")
+        );
 
         unsubscribe = onSnapshot(
           q,
