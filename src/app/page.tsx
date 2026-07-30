@@ -71,26 +71,26 @@ export default function HomePage() {
       />
 
       {/* Full-bleed hero — one composition */}
-      <section className="relative flex min-h-dvh flex-col">
-        <div className="absolute inset-0">
+      <section className="relative flex min-h-dvh flex-col overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
           <Image
             src="/photo-tikka.jpg"
             alt=""
             fill
             priority
             sizes="100vw"
-            className="object-cover object-center animate-ken-burns"
+            className="object-cover object-[center_35%] animate-ken-burns"
           />
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-bg"
+            className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-bg"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-50"
+            className="pointer-events-none absolute inset-0"
             style={{
               backgroundImage:
-                "radial-gradient(ellipse 70% 45% at 50% 20%, rgba(212,175,55,0.22), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 80%, rgba(185,28,28,0.25), transparent 50%)",
+                "radial-gradient(ellipse 70% 50% at 50% 35%, rgba(0,0,0,0.45), transparent 65%), radial-gradient(ellipse 70% 45% at 50% 15%, rgba(212,175,55,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 80%, rgba(185,28,28,0.22), transparent 50%)",
             }}
           />
         </div>
@@ -112,7 +112,11 @@ export default function HomePage() {
           </a>
         </nav>
 
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-16 pt-6 text-center">
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-12 pt-4 text-center">
+          <h1 className="sr-only">
+            ChatKara — Authentic Indian Restaurant &amp; Chaat in Bokaro
+          </h1>
+
           <div className="animate-fade-up">
             <Image
               src="/logo.png"
@@ -121,28 +125,21 @@ export default function HomePage() {
               height={200}
               priority
               sizes="(max-width: 640px) 160px, 200px"
-              className="mx-auto rounded-full shadow-[0_0_80px_rgba(212,175,55,0.35)] ring-1 ring-gold/30"
+              className="mx-auto h-40 w-40 rounded-full object-cover shadow-[0_0_80px_rgba(212,175,55,0.35)] ring-1 ring-gold/30 sm:h-[200px] sm:w-[200px]"
             />
           </div>
 
           <p
-            className="font-display mt-6 text-4xl tracking-wide text-gold sm:text-5xl animate-fade-up"
-            style={{ animationDelay: "80ms" }}
-          >
-            ChatKara
-          </p>
-
-          <p
-            className="mt-3 max-w-sm text-sm leading-relaxed text-ink/90 sm:text-base animate-fade-up"
-            style={{ animationDelay: "160ms" }}
+            className="mt-5 max-w-sm text-sm leading-relaxed text-ink drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] sm:text-base animate-fade-up"
+            style={{ animationDelay: "100ms" }}
           >
             Tandoor heat, chaat spice, and slow-cooked gravies — Bokaro&apos;s
             Flavours of India.
           </p>
 
           <div
-            className="mt-8 flex w-full max-w-xs flex-col gap-3 animate-fade-up"
-            style={{ animationDelay: "240ms" }}
+            className="mt-7 flex w-full max-w-xs flex-col gap-3 animate-fade-up"
+            style={{ animationDelay: "180ms" }}
           >
             <Link
               href="/pickup"
@@ -153,18 +150,13 @@ export default function HomePage() {
             </Link>
             <Link
               href="/pickup"
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/40 bg-black/35 py-3.5 text-sm font-semibold text-gold backdrop-blur-sm transition hover:border-gold hover:bg-gold/10 active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/50 bg-black/50 py-3.5 text-sm font-semibold text-gold backdrop-blur-sm transition hover:border-gold hover:bg-gold/10 active:scale-[0.98]"
             >
               <Utensils className="h-4 w-4" />
               View Menu &amp; Prices
             </Link>
           </div>
         </div>
-
-        <div
-          aria-hidden
-          className="absolute bottom-6 left-1/2 z-10 h-8 w-px -translate-x-1/2 bg-gradient-to-b from-gold/60 to-transparent animate-pulse-soft"
-        />
       </section>
 
       {/* Story + place — below the fold */}
