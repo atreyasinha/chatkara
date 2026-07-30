@@ -117,7 +117,7 @@ export default function HomePage() {
             ChatKara — Authentic Indian Restaurant &amp; Chaat in Bokaro
           </h1>
 
-          <div className="animate-fade-up">
+          <div className="animate-fade-up p-4">
             <Image
               src="/logo.png"
               alt={RESTAURANT.name}
@@ -125,7 +125,7 @@ export default function HomePage() {
               height={200}
               priority
               sizes="(max-width: 640px) 160px, 200px"
-              className="mx-auto h-40 w-40 rounded-full object-cover shadow-[0_0_80px_rgba(212,175,55,0.35)] ring-1 ring-gold/30 sm:h-[200px] sm:w-[200px]"
+              className="mx-auto h-auto w-40 sm:w-[200px] drop-shadow-[0_0_48px_rgba(212,175,55,0.5)]"
             />
           </div>
 
