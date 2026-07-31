@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       !Array.isArray(items) ||
       items.length === 0 ||
       (paymentMethod !== "upi" && paymentMethod !== "cash") ||
-      // Pickup is UPI-only for customers; managers may take cash at the counter
+      // Pickup is UPI-only for customers; waiters/staff may take cash at the counter
       (tableNumber === 0 && paymentMethod !== "upi" && !isAdmin)
     ) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });

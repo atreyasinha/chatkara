@@ -8,7 +8,7 @@ export type SanitizeResult =
 const VEG_FLAGS: readonly VegFlag[] = ["veg", "nonveg", "egg"];
 
 export type SanitizeOptions = {
-  /** Admin/manager may add off-menu custom lines (itemId must start with `custom:`). */
+  /** Staff (waiter) may add off-menu custom lines (itemId must start with `custom:`). */
   allowCustom?: boolean;
 };
 

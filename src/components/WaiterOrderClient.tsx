@@ -24,7 +24,7 @@ function newCustomId(): string {
   return `custom:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export function ManagerOrderClient() {
+export function WaiterOrderClient() {
   const router = useRouter();
   const [tableNumber, setTableNumber] = useState(0);
   const [query, setQuery] = useState("");
@@ -182,8 +182,10 @@ export function ManagerOrderClient() {
             <BrandMark size="sm" href="/kitchen" />
           </div>
           <div className="text-right">
-            <p className="font-display text-lg text-gold">Manager order</p>
-            <p className="text-xs text-muted">Cash / UPI · no GST for now</p>
+            <p className="font-display text-lg text-gold">Waiter order</p>
+            <p className="text-xs text-muted">
+              Place orders until table QR codes are ready
+            </p>
           </div>
         </div>
 
