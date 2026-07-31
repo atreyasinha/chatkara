@@ -334,7 +334,7 @@ export function TableOrderClient({
                       <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
                         <button
                           type="button"
-                          aria-label="Decrease quantity"
+                          aria-label={`Decrease quantity of ${item.name}`}
                           className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity - 1)}
                         >
@@ -343,7 +343,7 @@ export function TableOrderClient({
                         <span className="w-5 text-center text-sm">{item.quantity}</span>
                         <button
                           type="button"
-                          aria-label="Increase quantity"
+                          aria-label={`Increase quantity of ${item.name}`}
                           className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity + 1)}
                         >
@@ -352,7 +352,7 @@ export function TableOrderClient({
                       </div>
                       <button
                         type="button"
-                        aria-label="Remove item"
+                        aria-label={`Remove ${item.name} from cart`}
                         className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
                         onClick={() => removeItem(item.itemId)}
                       >
@@ -459,8 +459,8 @@ const MenuItemRow = memo(function MenuItemRow({
         <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
           <button
             type="button"
-            aria-label="Decrease"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            aria-label={`Decrease quantity of ${item.name}`}
+            className="rounded-full p-1 text-gold hover:bg-gold-dim focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             onClick={() => setQuantity(item.id, inCart.quantity - 1)}
           >
             <Minus className="h-3.5 w-3.5" />
@@ -470,8 +470,8 @@ const MenuItemRow = memo(function MenuItemRow({
           </span>
           <button
             type="button"
-            aria-label="Increase"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            aria-label={`Increase quantity of ${item.name}`}
+            className="rounded-full p-1 text-gold hover:bg-gold-dim focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             onClick={() => setQuantity(item.id, inCart.quantity + 1)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -480,8 +480,9 @@ const MenuItemRow = memo(function MenuItemRow({
       ) : (
         <button
           type="button"
+          aria-label={`Add ${item.name} to cart`}
           onClick={() => addItem(item)}
-          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           Add
         </button>

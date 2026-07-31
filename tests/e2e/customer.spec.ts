@@ -22,7 +22,7 @@ test.describe("Customer-facing UI", () => {
     await page.goto(`/table/1?token=${token}`);
     await expect(page.getByText(/table 1/i)).toBeVisible();
     await expect(page.getByPlaceholder(/search dishes/i)).toBeVisible();
-    const addBtn = page.getByRole("button", { name: /^add$/i }).first();
+    const addBtn = page.getByRole("button", { name: /^Add .* to cart$/i }).first();
     await expect(addBtn).toBeVisible();
     await addBtn.click();
     await expect(page.getByText(/view cart/i)).toBeVisible();
@@ -31,13 +31,13 @@ test.describe("Customer-facing UI", () => {
   test("pickup page opens menu without token", async ({ page }) => {
     await page.goto("/pickup");
     await expect(page.getByText(/online pickup/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /^add$/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Add .* to cart$/i }).first()).toBeVisible();
   });
 
   test("customer can open checkout with cart item", async ({ page }) => {
     const token = RESTAURANT.tableTokens[2];
     await page.goto(`/table/2?token=${token}`);
-    await page.getByRole("button", { name: /^add$/i }).first().click();
+    await page.getByRole("button", { name: /^Add .* to cart$/i }).first().click();
     await page.getByText(/view cart/i).click();
     await page.getByRole("button", { name: /proceed to pay/i }).click();
     await expect(page.getByText(/checkout/i)).toBeVisible();
@@ -59,7 +59,7 @@ test.describe("Admin UI gates", () => {
   test("checkout UPI does not offer self-serve mark paid", async ({ page }) => {
     const token = RESTAURANT.tableTokens[2];
     await page.goto(`/table/2?token=${token}`);
-    await page.getByRole("button", { name: /^add$/i }).first().click();
+    await page.getByRole("button", { name: /^Add .* to cart$/i }).first().click();
     await page.getByText(/view cart/i).click();
     await page.getByRole("button", { name: /proceed to pay/i }).click();
     await expect(page.getByText(/checkout/i)).toBeVisible();
