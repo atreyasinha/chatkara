@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const startLimit = new Date();
 
@@ -31,6 +29,11 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const queryLimit = new Date(Math.min(startLimit.getTime(), startOfYear.getTime()));
+
+    const orders = await listOrders(queryLimit);
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),

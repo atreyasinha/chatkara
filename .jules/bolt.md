@@ -13,3 +13,6 @@
 ## 2026-07-26 - [Search Input Debouncing via useDeferredValue]
 **Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices.
 **Action:** Use React's `useDeferredValue` hook on text inputs that drive large list filtering. This prioritizes input rendering (making typing feel instant) and defers the expensive filtering computation to the background.
+## 2024-05-18 - [Bounded order queries to prevent O(N) Firestore reads]
+**Learning:** Querying Firestore for orders (e.g., active orders or analytics) without a `where` condition bounding the timeline scales O(N) relative to all orders ever created.
+**Action:** Always time bound queries in polling functions (like `/api/orders`), analytics logic, and active dashboard listeners to at least a safe margin (like 7 days for active or `startOfYear` for yearly breakdown) using a `since` parameter to avoid unbounded database reads.
