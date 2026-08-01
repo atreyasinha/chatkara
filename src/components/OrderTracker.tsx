@@ -212,6 +212,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
           type="button"
           onClick={() => setItemsExpanded(!itemsExpanded)}
           aria-expanded={itemsExpanded}
+          aria-controls="order-items-list"
           className="flex w-full items-center justify-between px-5 py-4 text-sm font-semibold text-gold hover:bg-bg-soft/20 transition active:scale-[0.99]"
         >
           <span>Items Ordered ({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span>
@@ -236,7 +237,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         </button>
 
         {itemsExpanded && (
-          <ul className="border-t border-line divide-y divide-line/30 bg-bg-soft/10">
+          <ul id="order-items-list" className="border-t border-line divide-y divide-line/30 bg-bg-soft/10">
             {order.items.map((item) => (
               <li
                 key={`${item.itemId}-${item.notes || ""}`}
