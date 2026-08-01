@@ -13,3 +13,7 @@
 ## 2026-07-26 - [Search Input Debouncing via useDeferredValue]
 **Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices.
 **Action:** Use React's `useDeferredValue` hook on text inputs that drive large list filtering. This prioritizes input rendering (making typing feel instant) and defers the expensive filtering computation to the background.
+
+## 2026-08-01 - Bound Firestore Queries
+**Learning:** In Firebase, querying with `where` and `orderBy` on the same field (e.g., `createdAt`) uses a single-field index and does not require a composite index. Always bound time-based queries (e.g., fetching active orders for polling loops or analytics) with conditions like `where('createdAt', '>=', since)` to prevent unbounded O(N) database reads and performance bottlenecks as the database grows.
+**Action:** When querying orders for real-time polling or dashboard analytics, ensure an appropriate timeframe is calculated and applied to the query.
