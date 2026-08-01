@@ -416,12 +416,6 @@ export function KitchenDashboard() {
             </span>
           )}
           <Link
-            href="/admin/waiter"
-            className="rounded-full border border-gold/50 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold hover:bg-gold/20"
-          >
-            Waiter order
-          </Link>
-          <Link
             href="/admin/qr"
             className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
           >
@@ -463,7 +457,7 @@ export function KitchenDashboard() {
         <div className="rounded-3xl border border-dashed border-line py-20 text-center">
           <p className="font-display text-2xl text-gold">No active orders</p>
           <p className="mt-2 text-sm text-muted">
-            New orders from waiter entry or table QR scans will appear here.
+            New orders from table QR scans will appear here.
           </p>
         </div>
       ) : (

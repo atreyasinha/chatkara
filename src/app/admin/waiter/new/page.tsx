@@ -1,15 +1,15 @@
-import { WaiterDashboard } from "@/components/WaiterDashboard";
+import { WaiterOrderClient } from "@/components/WaiterOrderClient";
 import { AdminGuard } from "@/components/AdminGuard";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Waiter — ChatKara",
+  title: "New Waiter Order — ChatKara",
 };
 
-export default function WaiterPage() {
+export default function WaiterNewOrderPage() {
   return (
     <AdminGuard>
-      <WaiterDashboard />
+      <WaiterOrderClient />
     </AdminGuard>
   );
 }

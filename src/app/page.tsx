@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShoppingBag, Monitor, Clock, Utensils } from "lucide-react";
+import { MapPin, ShoppingBag, Monitor, Clock, Utensils, ClipboardList } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -269,7 +269,14 @@ export default function HomePage() {
         <p className="text-xs text-muted/60">
           Website built by {RESTAURANT.developer}
         </p>
-        <div>
+        <div className="flex items-center justify-center gap-4">
+          <Link
+            href="/admin/waiter"
+            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+          >
+            <ClipboardList className="h-3 w-3" />
+            Waiter
+          </Link>
           <Link
             href="/kitchen"
             className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"

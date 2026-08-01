@@ -153,11 +153,11 @@ export function WaiterOrderClient() {
       setItems([]);
       setCheckoutOpen(false);
       setCartOpen(false);
-      router.push("/kitchen");
+      router.push("/admin/waiter");
     } catch (e) {
       setError(
         e instanceof DOMException && e.name === "TimeoutError"
-          ? "Order timed out — check kitchen board"
+          ? "Order timed out — check today’s list or try again"
           : e instanceof Error
             ? e.message
             : "Something went wrong",
@@ -173,18 +173,18 @@ export function WaiterOrderClient() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
-              href="/kitchen"
+              href="/admin/waiter"
               className="rounded-full border border-line p-2 text-muted hover:border-gold hover:text-gold"
-              aria-label="Back to kitchen"
+              aria-label="Back to today’s orders"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <BrandMark size="sm" href="/kitchen" />
+            <BrandMark size="sm" href="/admin/waiter" />
           </div>
           <div className="text-right">
-            <p className="font-display text-lg text-gold">Waiter order</p>
+            <p className="font-display text-lg text-gold">New order</p>
             <p className="text-xs text-muted">
-              Place orders until table QR codes are ready
+              Table or pickup · until QR codes are ready
             </p>
           </div>
         </div>
