@@ -44,13 +44,15 @@ async function withTimeout<T>(
 
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
+ * @param since - Optional date to bound the query (prevents unbounded O(N) reads)
  */
-export async function listOrders(): Promise<Order[]> {
+export async function listOrders(since?: Date): Promise<Order[]> {
   try {
-    const q = query(
-      collection(db, ORDERS_COLLECTION),
-      orderBy("createdAt", "desc"),
-    );
+    const conditions = since
+      ? [where("createdAt", ">=", since.toISOString()), orderBy("createdAt", "desc")]
+      : [orderBy("createdAt", "desc")];
+
+    const q = query(collection(db, ORDERS_COLLECTION), ...conditions);
     const querySnapshot = await getDocs(q);
     const results: Order[] = [];
     querySnapshot.forEach((snap) => {
