@@ -9,6 +9,7 @@ import {
   updateDoc,
   deleteDoc,
   where,
+  QueryConstraint,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { randomUUID } from "crypto";
@@ -48,7 +49,7 @@ async function withTimeout<T>(
  */
 export async function listOrders(since?: Date): Promise<Order[]> {
   try {
-    const constraints: any[] = [orderBy("createdAt", "desc")];
+    const constraints: QueryConstraint[] = [orderBy("createdAt", "desc")];
     if (since) {
       constraints.push(where("createdAt", ">=", since.toISOString()));
     }
