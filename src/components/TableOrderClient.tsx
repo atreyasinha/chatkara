@@ -198,8 +198,9 @@ export function TableOrderClient({
             <button
               key={f}
               type="button"
+              aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                 filter === f
                   ? "flame-bg text-white"
                   : "border border-line bg-bg-soft text-muted"
@@ -406,8 +407,9 @@ function CategoryChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
         active
           ? "bg-gold text-bg font-semibold"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"
@@ -460,7 +462,7 @@ const MenuItemRow = memo(function MenuItemRow({
           <button
             type="button"
             aria-label="Decrease"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            className="rounded-full p-1 text-gold hover:bg-gold-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             onClick={() => setQuantity(item.id, inCart.quantity - 1)}
           >
             <Minus className="h-3.5 w-3.5" />
@@ -471,7 +473,7 @@ const MenuItemRow = memo(function MenuItemRow({
           <button
             type="button"
             aria-label="Increase"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            className="rounded-full p-1 text-gold hover:bg-gold-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             onClick={() => setQuantity(item.id, inCart.quantity + 1)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -481,7 +483,7 @@ const MenuItemRow = memo(function MenuItemRow({
         <button
           type="button"
           onClick={() => addItem(item)}
-          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         >
           Add
         </button>
