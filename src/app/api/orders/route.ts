@@ -80,22 +80,26 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
-    if (isOrderRateLimited(ip)) {
-      return NextResponse.json(
-        { error: "Too many orders — please wait a moment" },
-        { status: 429 },
-      );
+    const isTest = isAuthorizedTestRequest(request);
+    const isAdmin = isAdminRequest(request);
+
+    // Staff and the test harness are exempt — the limiter guards the public path.
+    if (!isAdmin && !isTest) {
+      const ip =
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        "unknown";
+      if (isOrderRateLimited(ip)) {
+        return NextResponse.json(
+          { error: "Too many orders — please wait a moment" },
+          { status: 429 },
+        );
+      }
     }
 
     const body = await request.json();
     const tableNumber = Number(body.tableNumber);
     const items = body.items as CartItem[];
     const paymentMethod = body.paymentMethod as PaymentMethod;
-    const isTest = isAuthorizedTestRequest(request);
-    const isAdmin = isAdminRequest(request);
 
     if (
       !Number.isFinite(tableNumber) ||
