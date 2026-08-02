@@ -44,6 +44,9 @@ export function WaiterOrderClient() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [customError, setCustomError] = useState("");
+  // Idempotency key: a retry after a client-side timeout returns the same order.
+  const [requestId] = useState(() => crypto.randomUUID());
 
   const filtered = useMemo(() => {
     let list = query ? searchMenu(query) : MENU;
@@ -105,10 +108,10 @@ export function WaiterOrderClient() {
     const price = Math.round(Number(customPrice));
     const trimmed = customName.trim();
     if (!trimmed || !Number.isFinite(price) || price < 1) {
-      setError("Enter a dish name and price (₹1+)");
+      setCustomError("Enter a dish name and price (₹1+)");
       return;
     }
-    setError("");
+    setCustomError("");
     setItems((prev) => [
       ...prev,
       {
@@ -129,24 +132,40 @@ export function WaiterOrderClient() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tableNumber,
-          items,
-          paymentMethod: method,
-          customerName: name.trim() || undefined,
-          customerPhone: phone.trim().length === 10 ? phone.trim() : undefined,
-          notes: notes.trim() || undefined,
-        }),
-        signal: AbortSignal.timeout(25_000),
-      });
+      // AbortSignal.timeout is missing on older browsers — hand-roll it.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25_000);
+      let res: Response;
+      try {
+        res = await fetch("/api/orders", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tableNumber,
+            items,
+            paymentMethod: method,
+            customerName: name.trim() || undefined,
+            customerPhone: /^[6-9]\d{9}$/.test(phone.trim())
+              ? phone.trim()
+              : undefined,
+            notes: notes.trim() || undefined,
+            requestId,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const data = (await res.json().catch(() => ({}))) as {
         order?: { id: string };
         error?: string;
       };
+      if (res.status === 401) {
+        // Session expired mid-shift — bounce to the AdminGuard login.
+        window.location.reload();
+        return;
+      }
       if (!res.ok || !data.order) {
         throw new Error(data.error || `Failed to place order (${res.status})`);
       }
@@ -156,8 +175,9 @@ export function WaiterOrderClient() {
       router.push("/admin/waiter");
     } catch (e) {
       setError(
-        e instanceof DOMException && e.name === "TimeoutError"
-          ? "Order timed out — check today’s list or try again"
+        e instanceof DOMException &&
+          (e.name === "TimeoutError" || e.name === "AbortError")
+          ? "Order timed out — check today’s list before retrying"
           : e instanceof Error
             ? e.message
             : "Something went wrong",
@@ -279,7 +299,7 @@ export function WaiterOrderClient() {
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               placeholder="Dish name"
-              className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-sm outline-none focus:border-gold"
+              className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-base outline-none focus:border-gold"
             />
             <div className="flex gap-2">
               <input
@@ -289,12 +309,12 @@ export function WaiterOrderClient() {
                   setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
                 }
                 placeholder="Price ₹"
-                className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-base outline-none focus:border-gold"
               />
               <select
                 value={customVeg}
                 onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
-                className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-sm outline-none focus:border-gold"
+                className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-base outline-none focus:border-gold"
               >
                 <option value="veg">Veg</option>
                 <option value="nonveg">Non-veg</option>
@@ -308,6 +328,9 @@ export function WaiterOrderClient() {
                 Add
               </button>
             </div>
+            {customError && (
+              <p className="text-sm text-nonveg">{customError}</p>
+            )}
           </div>
         </section>
 
@@ -554,7 +577,7 @@ export function WaiterOrderClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               />
               <input
                 inputMode="numeric"
@@ -564,14 +587,14 @@ export function WaiterOrderClient() {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
                 placeholder="Phone (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Kitchen notes (optional)"
                 rows={2}
-                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               />
             </div>
 

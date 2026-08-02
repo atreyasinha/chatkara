@@ -3,6 +3,34 @@ import { listOrders } from "@/lib/orders";
 import { isActiveOrderStatus } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 
+/** Start of the current calendar day in Asia/Kolkata, as a UTC instant. */
+function startOfTodayIST(now = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const d = parts.find((p) => p.type === "day")!.value;
+  // IST midnight = 18:30 UTC of the previous calendar day
+  return new Date(Date.UTC(Number(y), Number(m) - 1, Number(d), 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+}
+
+/** Year/month in Asia/Kolkata for monthly breakdowns. */
+function istYearMonth(date: Date): { year: number; month: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(date);
+  return {
+    year: Number(parts.find((p) => p.type === "year")!.value),
+    month: Number(parts.find((p) => p.type === "month")!.value) - 1,
+  };
+}
+
 export async function GET(request: NextRequest) {
   if (!isAdminRequest(request)) return unauthorizedJson();
   try {
@@ -12,19 +40,17 @@ export async function GET(request: NextRequest) {
     const orders = await listOrders();
 
     const now = new Date();
-    const startLimit = new Date();
+    const todayStartIST = startOfTodayIST(now);
+    let startLimit: Date;
 
     if (timeframe === "daily") {
-      startLimit.setHours(0, 0, 0, 0);
+      startLimit = todayStartIST;
     } else if (timeframe === "weekly") {
-      startLimit.setDate(now.getDate() - 7);
-      startLimit.setHours(0, 0, 0, 0);
+      startLimit = new Date(todayStartIST.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (timeframe === "monthly") {
-      startLimit.setDate(now.getDate() - 30);
-      startLimit.setHours(0, 0, 0, 0);
+      startLimit = new Date(todayStartIST.getTime() - 30 * 24 * 60 * 60 * 1000);
     } else if (timeframe === "yearly") {
-      startLimit.setDate(now.getDate() - 365);
-      startLimit.setHours(0, 0, 0, 0);
+      startLimit = new Date(todayStartIST.getTime() - 365 * 24 * 60 * 60 * 1000);
     } else {
       return NextResponse.json(
         { success: false, error: "Invalid timeframe parameter" },
@@ -122,8 +148,8 @@ export async function GET(request: NextRequest) {
         ? Math.round((totalPrepTimeMs / prepTimeCount / 60000) * 10) / 10
         : null;
 
-    // Calculate monthly breakdown for the current year
-    const currentYear = new Date().getFullYear();
+    // Calculate monthly breakdown for the current IST year
+    const currentYear = istYearMonth(now).year;
     const monthlyRevenue: Record<number, number> = {};
     for (let m = 0; m < 12; m++) {
       monthlyRevenue[m] = 0;
@@ -131,9 +157,9 @@ export async function GET(request: NextRequest) {
 
     orders.forEach((o) => {
       const d = new Date(o.createdAt);
-      if (d.getFullYear() === currentYear && o.status !== "cancelled") {
-        const m = d.getMonth();
-        monthlyRevenue[m] += o.total || 0;
+      const { year, month } = istYearMonth(d);
+      if (year === currentYear && o.status !== "cancelled") {
+        monthlyRevenue[month] += o.total || 0;
       }
     });
 
@@ -162,6 +188,7 @@ export async function GET(request: NextRequest) {
         upiRevenue,
         cashRevenue,
         totalOrders: todayOrders.length,
+        billableOrders: todayOrders.length - cancelledOrders,
         activeOrders,
         completedOrders,
         cancelledOrders,

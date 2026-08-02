@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { BrandMark } from "@/components/BrandMark";
@@ -40,6 +40,8 @@ export function OrderTracker({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
   const [itemsExpanded, setItemsExpanded] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
+  const failures = useRef(0);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -54,15 +56,20 @@ export function OrderTracker({ orderId }: { orderId: string }) {
           if (isMounted) setError("Order not found");
           return;
         }
-        if (res.ok) {
-          const data = (await res.json()) as { order?: Order };
-          if (data.order && isMounted) {
-            setOrder(data.order);
-            setError("");
-          }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as { order?: Order };
+        if (data.order && isMounted) {
+          failures.current = 0;
+          setOrder(data.order);
+          setError("");
         }
       } catch (err) {
         console.warn("HTTP order fetch failed:", err);
+        // After repeated failures with nothing on screen, stop spinning and offer retry.
+        failures.current += 1;
+        if (isMounted && failures.current >= 3) {
+          setError((prev) => prev || "Can't reach the kitchen — check your connection");
+        }
       }
     }
 
@@ -107,8 +114,18 @@ export function OrderTracker({ orderId }: { orderId: string }) {
 
     subscribe();
 
-    // 4-second HTTP polling fallback for maximum reliability across app backgrounding
-    const interval = setInterval(fetchOrderApi, 4000);
+    // 4-second HTTP polling fallback for maximum reliability across app backgrounding.
+    // Stops once the order reaches a terminal state.
+    const interval = setInterval(() => {
+      setOrder((current) => {
+        if (current && (current.status === "served" || current.status === "cancelled")) {
+          clearInterval(interval);
+          return current;
+        }
+        void fetchOrderApi();
+        return current;
+      });
+    }, 4000);
 
     // Instant re-sync when customer returns to tab after UPI payment
     function handleSync() {
@@ -127,12 +144,23 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       document.removeEventListener("visibilitychange", handleSync);
       window.removeEventListener("online", handleSync);
     };
-  }, [orderId]);
+  }, [orderId, retryTick]);
 
-  if (error) {
+  if (error && !order) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg flex-col items-center justify-center px-4 text-center">
         <p className="text-nonveg">{error}</p>
+        <button
+          type="button"
+          onClick={() => {
+            failures.current = 0;
+            setError("");
+            setRetryTick((t) => t + 1);
+          }}
+          className="mt-4 rounded-xl border border-gold/50 px-6 py-2.5 font-semibold text-gold hover:bg-gold-dim"
+        >
+          Retry
+        </button>
         <Link href="/" className="mt-4 text-gold underline">
           Home
         </Link>

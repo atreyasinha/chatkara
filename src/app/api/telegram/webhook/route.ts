@@ -35,28 +35,18 @@ type TelegramUpdate = {
   };
 };
 
-function verifyTelegramSecret(
-  request: Request,
-  update?: TelegramUpdate,
-): boolean {
+function verifyTelegramSecret(request: Request): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   const got = request.headers.get("x-telegram-bot-api-secret-token");
 
-  if (expected && got) {
-    const a = Buffer.from(got);
-    const b = Buffer.from(expected);
-    if (a.length === b.length && timingSafeEqual(a, b)) {
-      return true;
-    }
-  }
+  // Fail closed: no configured secret, or a missing/mismatched header, is never authorized.
+  // Chat IDs are not secrets — any group member can see them — so they must never
+  // substitute for the webhook secret.
+  if (!expected || !got) return false;
 
-  // Fallback: If secret token header is missing or unconfigured, verify if callback_query originates from an authorized kitchen Telegram chat ID
-  const chatId = update?.callback_query?.message?.chat?.id;
-  if (chatId !== undefined && isAllowedTelegramChat(chatId)) {
-    return true;
-  }
-
-  return false;
+  const a = Buffer.from(got);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 async function applyKitchenAction(
@@ -119,7 +109,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Bad JSON" }, { status: 400 });
   }
 
-  if (!verifyTelegramSecret(request, update)) {
+  if (!verifyTelegramSecret(request)) {
     if (update.callback_query?.id) {
       await answerTelegramCallback(update.callback_query.id, "Unauthorized request");
     }
@@ -135,10 +125,7 @@ export async function POST(request: Request) {
   const chatId = cb.message?.chat.id;
   const messageId = cb.message?.message_id;
   if (chatId === undefined || !isAllowedTelegramChat(chatId)) {
-    console.warn("Telegram callback rejected: unauthorized chat", {
-      chatId,
-      configured: process.env.TELEGRAM_CHAT_ID,
-    });
+    console.warn("Telegram callback rejected: unauthorized chat", { chatId });
     await answerTelegramCallback(cb.id, "Unauthorized chat");
     return NextResponse.json({ ok: true, rejected: "unauthorized_chat" });
   }

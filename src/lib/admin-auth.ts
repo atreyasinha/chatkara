@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const ADMIN_SESSION_COOKIE = "chatkara_admin_session";
-const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+const SESSION_TTL_MS = 18 * 60 * 60 * 1000; // 18 hours — covers a full service day
 
 function sessionSecret(): string | null {
   const password = process.env.ADMIN_PASSWORD;
@@ -68,8 +68,14 @@ export function isAdminRequest(request: Request): boolean {
     .map((c) => c.trim())
     .find((c) => c.startsWith(`${ADMIN_SESSION_COOKIE}=`));
   if (!match) return false;
-  const value = decodeURIComponent(match.slice(ADMIN_SESSION_COOKIE.length + 1));
-  return verifyAdminSessionToken(value);
+  try {
+    const value = decodeURIComponent(
+      match.slice(ADMIN_SESSION_COOKIE.length + 1),
+    );
+    return verifyAdminSessionToken(value);
+  } catch {
+    return false;
+  }
 }
 
 export async function isAdminFromCookies(): Promise<boolean> {

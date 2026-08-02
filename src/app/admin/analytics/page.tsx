@@ -34,6 +34,7 @@ interface AnalyticsData {
   upiRevenue: number;
   cashRevenue: number;
   totalOrders: number;
+  billableOrders?: number;
   activeOrders: number;
   completedOrders: number;
   cancelledOrders: number;
@@ -132,8 +133,11 @@ function AnalyticsDashboard() {
   const netSales =
     gstPercent > 0 ? grossSales / (1 + gstPercent / 100) : grossSales;
   const estimatedGst = gstPercent > 0 ? grossSales - netSales : 0;
+  const billableOrders =
+    data?.billableOrders ??
+    (data ? data.totalOrders - data.cancelledOrders : 0);
   const avgTicket =
-    data && data.totalOrders > 0 ? grossSales / data.totalOrders : 0;
+    data && billableOrders > 0 ? grossSales / billableOrders : 0;
 
   // Formatted rounded numbers for clean legibility
   const grossSalesFormatted = formatINR(Math.round(grossSales));
@@ -377,6 +381,7 @@ function AnalyticsDashboard() {
                 ) : (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     {data.tableBreakdown
+                      .slice()
                       .sort((a, b) => a.tableNumber - b.tableNumber)
                       .map((tbl) => {
                         const isPickup = tbl.tableNumber === 0;
@@ -535,6 +540,7 @@ function AnalyticsDashboard() {
                     </thead>
                     <tbody className="divide-y divide-line/35">
                       {data.orders
+                        .slice()
                         .sort(
                           (a, b) =>
                             new Date(b.createdAt).getTime() -

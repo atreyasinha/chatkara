@@ -25,6 +25,7 @@ export function TableOrderClient({
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [verifiedToken, setVerifiedToken] = useState<string | undefined>(undefined);
 
   // ⚡ Bolt: Defer search query updates to keep typing instantly responsive
   // while the large list filters in the background
@@ -36,6 +37,10 @@ export function TableOrderClient({
   // Handle table token verification and silent URL cleanup
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Swap the cart to this table before revealing the UI so a rehydrated
+      // cart from another table never flashes or takes a stray write.
+      setTable(tableNumber);
+
       if (tableNumber === 0) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsVerified(true);
@@ -49,21 +54,19 @@ export function TableOrderClient({
 
       if (urlToken === expectedToken) {
         sessionStorage.setItem(`chatkara_table_${tableNumber}_token`, urlToken);
+        setVerifiedToken(urlToken);
         setIsVerified(true);
 
         // Remove token from address bar silently
         url.searchParams.delete("token");
         window.history.replaceState({}, "", url.pathname + url.search);
       } else if (savedToken === expectedToken) {
+        setVerifiedToken(savedToken);
         setIsVerified(true);
       } else {
         setIsVerified(false);
       }
     }
-  }, [tableNumber]);
-
-  useEffect(() => {
-    setTable(tableNumber);
   }, [tableNumber, setTable]);
 
   const filtered = useMemo(() => {
@@ -179,7 +182,7 @@ export function TableOrderClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
           />
           {query && (
             <button
@@ -386,6 +389,7 @@ export function TableOrderClient({
       {checkoutOpen && (
         <CheckoutSheet
           tableNumber={tableNumber}
+          tableToken={verifiedToken}
           parentOrderId={parentOrderId}
           onClose={() => setCheckoutOpen(false)}
         />

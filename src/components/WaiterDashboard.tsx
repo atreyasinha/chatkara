@@ -26,7 +26,15 @@ export function WaiterDashboard() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders", { credentials: "include" });
+      const res = await fetch("/api/orders", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (res.status === 401) {
+        // Session expired mid-shift — bounce to the AdminGuard login.
+        window.location.reload();
+        return;
+      }
       if (!res.ok) throw new Error("Could not load orders");
       const data = (await res.json()) as { orders?: Order[] };
       setOrders(data.orders ?? []);
@@ -39,9 +47,12 @@ export function WaiterDashboard() {
   }, []);
 
   useEffect(() => {
-    load();
+    const first = setTimeout(load, 0);
     const id = setInterval(load, 15_000);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
   }, [load]);
 
   const todaysOrders = useMemo(
@@ -144,9 +155,9 @@ export function WaiterDashboard() {
               </div>
 
               <ul className="mt-3 space-y-1.5 border-t border-line/50 pt-3">
-                {order.items.map((item) => (
+                {order.items.map((item, idx) => (
                   <li
-                    key={`${order.id}-${item.itemId}-${item.name}`}
+                    key={`${order.id}-${item.itemId}-${idx}`}
                     className="flex items-center gap-2 text-sm"
                   >
                     <VegBadge veg={item.veg} />
