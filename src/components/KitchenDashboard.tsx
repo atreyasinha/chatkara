@@ -125,7 +125,8 @@ export function KitchenDashboard() {
 
     async function fetchKitchenOrdersApi() {
       try {
-        const res = await fetch("/api/orders", {
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const res = await fetch(`/api/orders?since=${encodeURIComponent(since)}`, {
           cache: "no-store",
           credentials: "include",
         });
