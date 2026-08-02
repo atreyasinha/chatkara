@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const startLimit = new Date();
 
@@ -31,6 +29,12 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // We need current year data for monthlyBreakdown, and timeframe data for the rest.
+    const startOfCurrentYear = new Date(now.getFullYear(), 0, 1);
+    const fetchSince = startLimit < startOfCurrentYear ? startLimit : startOfCurrentYear;
+
+    const orders = await listOrders(fetchSince);
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),

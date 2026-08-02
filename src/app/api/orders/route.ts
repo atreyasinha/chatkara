@@ -26,7 +26,12 @@ function isAuthorizedTestRequest(request: Request): boolean {
 
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorizedJson();
-  return NextResponse.json({ orders: await listOrders() });
+
+  const { searchParams } = new URL(request.url);
+  const sinceParam = searchParams.get("since");
+  const since = sinceParam ? new Date(sinceParam) : undefined;
+
+  return NextResponse.json({ orders: await listOrders(since && !isNaN(since.getTime()) ? since : undefined) });
 }
 
 export async function POST(request: Request) {
