@@ -37,8 +37,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const todayStartIST = startOfTodayIST(now);
     let startLimit: Date;
@@ -57,6 +55,12 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // Determine query boundaries
+    const currentYearIST = istYearMonth(now).year;
+    const startOfCurrentYear = new Date(Date.UTC(currentYearIST, 0, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+    const querySince = new Date(Math.min(startLimit.getTime(), startOfCurrentYear.getTime()));
+    const orders = await listOrders(querySince);
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),
