@@ -253,6 +253,7 @@ export function WaiterOrderClient() {
             <button
               key={f}
               type="button"
+              aria-pressed={filter === f}
               onClick={() => setFilter(f)}
               className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
                 filter === f
@@ -629,6 +630,7 @@ function TableChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
         active
@@ -653,6 +655,7 @@ function CategoryChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
         active
