@@ -237,6 +237,7 @@ export const MENU: MenuItem[] = [
 
   // —— BREADS FROM THE TANDOOR (Page 10 in PDF / page index 12) ——
   item("br-tandoori-roti", "Tandoori Roti", 20, "Breads from the Tandoor", "veg"),
+  item("br-tawa-roti", "Tawa Roti", 10, "Breads from the Tandoor", "veg"),
   item("br-butter-tandoori-roti", "Butter Tandoori Roti", 25, "Breads from the Tandoor", "veg"),
   item("br-plain-naan", "Plain Naan", 30, "Breads from the Tandoor", "veg"),
   item("br-butter-naan", "Butter Naan", 40, "Breads from the Tandoor", "veg"),
@@ -282,6 +283,16 @@ export const MENU: MenuItem[] = [
   item("ds-matka-kulfi", "Matka Kulfi", 45, "Desserts", "veg"),
   item("ds-cornetto", "Cornetto", 40, "Desserts", "veg"),
   item("ds-sugar-free", "Sugar Free Ice Cream", 70, "Desserts", "veg"),
+
+  // —— BEVERAGES ——
+  item("bv-cold-drink", "Beverage", 30, "Beverages", "veg"),
+  item("bv-masala-cold-drink", "Masala Cold Drink", 50, "Beverages", "veg"),
+  item("bv-masala-soda", "Masala Soda", 60, "Beverages", "veg"),
+  item("bv-coffee", "Coffee", 30, "Beverages", "veg"),
+  item("bv-tea", "Tea", 30, "Beverages", "veg"),
+  item("bv-water-1l", "Water 1ltr", 20, "Beverages", "veg"),
+  item("bv-water-500ml", "Water 1/2ltr", 10, "Beverages", "veg"),
+  item("bv-energy-drink", "Energy Drink", 125, "Beverages", "veg"),
 ];
 
 export const CATEGORIES = Array.from(
