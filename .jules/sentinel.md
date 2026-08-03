@@ -2,3 +2,8 @@
 **Vulnerability:** The Telegram webhook (`/api/telegram/webhook/route.ts`) verified requests by falling back to checking if the user-controlled JSON payload (`update?.callback_query?.message?.chat?.id`) matched an authorized `TELEGRAM_CHAT_ID` if the `TELEGRAM_WEBHOOK_SECRET` was missing or mismatched. Because webhooks are publicly accessible, an attacker could spoof this JSON payload to bypass authentication completely and update order states (e.g., mark as paid or cancelled).
 **Learning:** Never use data from a user-supplied JSON payload as a fallback authentication mechanism for webhooks. Secrets should be enforced strictly.
 **Prevention:** Always rely strictly on cryptographically secure tokens (like `x-telegram-bot-api-secret-token`) sent in headers and verified with a constant-time comparison (`timingSafeEqual`) to authenticate webhook calls.
+
+## 2026-08-03 - [HIGH] Telegram Webhook SSRF / Payload Validation
+**Vulnerability:** The webhook at `/api/telegram/webhook/route.ts` processed the unauthenticated JSON payload (via `await request.json()`) before validating the `x-telegram-bot-api-secret-token` header. It also attempted to use data from this unauthenticated JSON body (`update.callback_query?.id`) to interact with the Telegram API (`answerTelegramCallback`) when returning an unauthorized error. An attacker could craft a large payload causing a DoS or provide malicious `callback_query.id` values to potentially cause SSRF or abuse the Telegram API credentials.
+**Learning:** Webhook endpoints must validate their authentication headers before attempting to parse or act upon any body data.
+**Prevention:** Perform header-based authentication checks strictly at the top of the route handler before reading the request body.
