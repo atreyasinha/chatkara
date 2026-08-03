@@ -31,14 +31,33 @@ const LABEL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
-function playChime() {
+// Reuse one AudioContext for the whole session — Chrome caps live contexts (~6),
+// so creating one per chime silently kills the alert sound mid-shift.
+let sharedAudioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
   try {
-    const AudioContext =
+    const Ctor =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof window.AudioContext })
         .webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if (!Ctor) return null;
+    if (!sharedAudioCtx || sharedAudioCtx.state === "closed") {
+      sharedAudioCtx = new Ctor();
+    }
+    if (sharedAudioCtx.state === "suspended") {
+      void sharedAudioCtx.resume();
+    }
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+
+function playChime() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
     const now = ctx.currentTime;
 
     const osc1 = ctx.createOscillator();
@@ -129,28 +148,34 @@ export function KitchenDashboard() {
           cache: "no-store",
           credentials: "include",
         });
+        if (res.status === 401) {
+          // Session expired mid-shift — bounce to the AdminGuard login.
+          window.location.reload();
+          return;
+        }
         if (res.ok) {
           const data = (await res.json()) as { orders?: Order[] };
           if (data.orders && isMounted) {
             const newOrders = data.orders;
 
             if (seenOrderIds.current.size > 0) {
+              let shouldChime = false;
               for (const order of newOrders) {
                 if (
                   !seenOrderIds.current.has(order.id) &&
                   order.status === "pending"
                 ) {
-                  playChime();
-                  break;
+                  shouldChime = true;
                 }
                 if (
                   order.needsKitchenAck &&
                   !seenAckIds.current.has(`${order.id}:${order.updatedAt}`)
                 ) {
-                  playChime();
+                  shouldChime = true;
                   seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
                 }
               }
+              if (shouldChime) playChime();
             }
 
             for (const order of newOrders) {
@@ -161,11 +186,12 @@ export function KitchenDashboard() {
             }
 
             setOrders(newOrders);
-            setLoading(false);
           }
         }
       } catch (err) {
         console.warn("HTTP kitchen orders fetch failed:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
 
@@ -199,22 +225,23 @@ export function KitchenDashboard() {
             });
 
             if (seenOrderIds.current.size > 0) {
+              let shouldChime = false;
               for (const order of newOrders) {
                 if (
                   !seenOrderIds.current.has(order.id) &&
                   order.status === "pending"
                 ) {
-                  playChime();
-                  break;
+                  shouldChime = true;
                 }
                 if (
                   order.needsKitchenAck &&
                   !seenAckIds.current.has(`${order.id}:${order.updatedAt}`)
                 ) {
-                  playChime();
+                  shouldChime = true;
                   seenAckIds.current.add(`${order.id}:${order.updatedAt}`);
                 }
               }
+              if (shouldChime) playChime();
             }
 
             for (const order of newOrders) {
@@ -485,6 +512,7 @@ export function KitchenDashboard() {
                       {new Date(order.createdAt).toLocaleTimeString("en-IN", {
                         hour: "2-digit",
                         minute: "2-digit",
+                        timeZone: "Asia/Kolkata",
                       })}
                     </p>
                     {order.customerName && (

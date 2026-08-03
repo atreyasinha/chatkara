@@ -2,10 +2,31 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { MENU } from "@/lib/menu";
 import type { CartItem, MenuItem, VegFlag } from "@/lib/types";
 
 function tableKey(n: number): string {
   return String(n);
+}
+
+const PRICE_BY_ID = new Map(MENU.map((m) => [m.id, m]));
+
+/** Re-sync persisted carts to current menu prices/names so a price change never
+ * shows the customer one total and charges another (server reprices anyway). */
+function syncWithMenu(items: CartItem[]): CartItem[] {
+  return items
+    .filter((i) => !i.itemId.startsWith("custom:"))
+    .map((i) => {
+      const menuItem = PRICE_BY_ID.get(i.itemId);
+      if (!menuItem) return null;
+      return {
+        ...i,
+        name: menuItem.name,
+        price: menuItem.price,
+        veg: menuItem.veg,
+      };
+    })
+    .filter((i): i is CartItem => i !== null);
 }
 
 interface CartState {
@@ -102,6 +123,19 @@ export const useCart = create<CartState>()(
         items: state.items,
         cartsByTable: state.cartsByTable,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const carts = Object.fromEntries(
+          Object.entries(state.cartsByTable).map(([k, v]) => [
+            k,
+            syncWithMenu(v),
+          ]),
+        );
+        useCart.setState({
+          cartsByTable: carts,
+          items: syncWithMenu(state.items),
+        });
+      },
     },
   ),
 );

@@ -1,5 +1,4 @@
 import type { Order } from "./types";
-import { RESTAURANT } from "./restaurant";
 
 /**
  * Formats a WhatsApp-ready bill receipt for a given order.
@@ -30,6 +29,7 @@ export function formatWhatsAppReceipt(order: Order): string {
   const time = new Date(order.createdAt).toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 
   return (
@@ -42,7 +42,9 @@ export function formatWhatsAppReceipt(order: Order): string {
     `----------------------------\n` +
     `*Subtotal:* ₹${subtotal}\n` +
     discountLines +
-    `*GST (${RESTAURANT.gstPercent}%):* ₹${gst}\n` +
+    // GST is off (registration pending); legacy orders with gst > 0 show the
+    // amount without a stale percent from the current config.
+    (gst > 0 ? `*GST:* ₹${gst}\n` : "") +
     `*Total Amount:* ₹${total}\n\n` +
     `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n` +
     `*Payment Status:* ${order.paymentStatus === "paid" ? "PAID" : "DUE"}\n\n` +
@@ -53,8 +55,16 @@ export function formatWhatsAppReceipt(order: Order): string {
 /** Opens WhatsApp with the bill receipt pre-filled for sharing. */
 export function shareReceiptOnWhatsApp(order: Order, phone?: string): void {
   const text = formatWhatsAppReceipt(order);
-  const url = phone
-    ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+  // wa.me requires a full international number — stored phones are 10-digit Indian mobiles.
+  const digits = phone?.replace(/\D/g, "");
+  const fullPhone =
+    digits && digits.length === 10
+      ? `91${digits}`
+      : digits && digits.length > 10
+        ? digits
+        : undefined;
+  const url = fullPhone
+    ? `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`
     : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
   window.open(url, "_blank");
 }

@@ -7,8 +7,27 @@ import {
   createAdminSessionToken,
 } from "@/lib/admin-auth";
 
+/** In-memory per-IP login throttle. */
+const loginAttempts = new Map<string, number[]>();
+
 export async function POST(request: Request) {
   try {
+    // Throttle brute-force attempts — 5 tries/min per IP.
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "unknown";
+    const now = Date.now();
+    const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
+    if (hits.length >= 5) {
+      return NextResponse.json(
+        { success: false, error: "Too many attempts — wait a minute" },
+        { status: 429 },
+      );
+    }
+    hits.push(now);
+    loginAttempts.set(ip, hits);
+    if (loginAttempts.size > 5000) loginAttempts.clear();
+
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
         {
