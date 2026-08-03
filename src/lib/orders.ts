@@ -11,6 +11,7 @@ import {
   where,
   limit,
   runTransaction,
+  type QueryConstraint,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { randomUUID } from "crypto";
@@ -48,11 +49,12 @@ async function withTimeout<T>(
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
  * Throws on failure — callers must surface 503, never pretend there are zero orders.
  */
-export async function listOrders(): Promise<Order[]> {
-  const q = query(
-    collection(db, ORDERS_COLLECTION),
-    orderBy("createdAt", "desc"),
-  );
+export async function listOrders(since?: Date): Promise<Order[]> {
+  const constraints: QueryConstraint[] = [orderBy("createdAt", "desc")];
+  if (since) {
+    constraints.push(where("createdAt", ">=", since.toISOString()));
+  }
+  const q = query(collection(db, ORDERS_COLLECTION), ...constraints);
   const querySnapshot = await getDocs(q);
   const results: Order[] = [];
   querySnapshot.forEach((snap) => {

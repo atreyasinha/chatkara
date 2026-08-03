@@ -13,3 +13,7 @@
 ## 2026-07-26 - [Search Input Debouncing via useDeferredValue]
 **Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices.
 **Action:** Use React's `useDeferredValue` hook on text inputs that drive large list filtering. This prioritizes input rendering (making typing feel instant) and defers the expensive filtering computation to the background.
+
+## 2024-08-03 - Firebase Query Constraints & Types
+**Learning:** When conditionally appending constraints like `where` and `orderBy` into an array for Firestore `query()`, TypeScript may throw union inference errors (e.g., 'QueryFieldFilterConstraint' not being assignable to 'QueryOrderByConstraint') if you use `any[]`.
+**Action:** Explicitly import and type the array as `QueryConstraint[]` from `firebase/firestore` rather than `any[]` to satisfy strict linting rules and ensure type safety.
