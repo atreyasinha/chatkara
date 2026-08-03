@@ -285,7 +285,9 @@ export const MENU: MenuItem[] = [
   item("ds-sugar-free", "Sugar Free Ice Cream", 70, "Desserts", "veg"),
 
   // —— BEVERAGES ——
-  item("bv-cold-drink", "Beverage", 30, "Beverages", "veg"),
+  item("bv-cold-drink-20", "Beverage(₹20)", 20, "Beverages", "veg"),
+  item("bv-cold-drink-30", "Beverage(₹30)", 30, "Beverages", "veg"),
+  item("bv-cold-drink-50", "Beverage (₹50)", 50, "Beverages", "veg"),
   item("bv-masala-cold-drink", "Masala Cold Drink", 50, "Beverages", "veg"),
   item("bv-masala-soda", "Masala Soda", 60, "Beverages", "veg"),
   item("bv-coffee", "Coffee", 30, "Beverages", "veg"),
