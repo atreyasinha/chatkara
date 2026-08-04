@@ -434,12 +434,12 @@ function AnalyticsDashboard() {
                     return (
                       <div key={m.month} className="flex flex-1 min-w-[45px] flex-col items-center justify-end h-full group relative">
                         {/* Hover Amount Tooltip */}
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-bg-soft/90 text-gold-soft text-[10px] font-sans font-semibold py-0.5 px-1.5 rounded border border-line/30 mb-2 pointer-events-none whitespace-nowrap absolute bottom-[calc(100%-8px)] z-10">
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-bg-soft/90 text-gold-soft text-[10px] font-sans font-semibold py-0.5 px-1.5 rounded border border-line/30 mb-2 pointer-events-none whitespace-nowrap absolute bottom-[calc(100%-8px)] z-10">
                           {formatINR(Math.round(m.revenue))}
                         </span>
                         {/* Bar Segment */}
                         <div
-                          style={{ height: `${Math.max(4, heightPercent)}%` }}
+                          style={{ height: m.revenue > 0 ? `${Math.max(4, heightPercent)}%` : '0%' }}
                           className="w-full rounded-t-md bg-gradient-to-t from-flame-to to-gold shadow-md group-hover:brightness-110 transition-all duration-300"
                         />
                         {/* Month Indicator Label */}
