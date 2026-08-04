@@ -37,8 +37,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "daily";
 
-    const orders = await listOrders();
-
     const now = new Date();
     const todayStartIST = startOfTodayIST(now);
     let startLimit: Date;
@@ -57,6 +55,13 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    const currentYear = istYearMonth(now).year;
+    // IST midnight of Jan 1 of the current year
+    const yearStartIST = new Date(Date.UTC(currentYear, 0, 1, 0, 0, 0) - 5.5 * 60 * 60 * 1000);
+    const minStart = startLimit.getTime() < yearStartIST.getTime() ? startLimit : yearStartIST;
+
+    const orders = await listOrders(minStart.toISOString());
 
     const todayOrders = orders.filter(
       (o) => new Date(o.createdAt).getTime() >= startLimit.getTime(),
@@ -149,7 +154,6 @@ export async function GET(request: NextRequest) {
         : null;
 
     // Calculate monthly breakdown for the current IST year
-    const currentYear = istYearMonth(now).year;
     const monthlyRevenue: Record<number, number> = {};
     for (let m = 0; m < 12; m++) {
       monthlyRevenue[m] = 0;
