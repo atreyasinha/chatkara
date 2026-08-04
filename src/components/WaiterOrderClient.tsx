@@ -253,11 +253,12 @@ export function WaiterOrderClient() {
             <button
               key={f}
               type="button"
+              aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                 filter === f
                   ? "flame-bg text-white"
-                  : "border border-line bg-bg-soft text-muted"
+                  : "border border-line bg-bg-soft text-muted hover:border-gold/50 hover:text-ink"
               }`}
             >
               {f === "all"
@@ -629,8 +630,9 @@ function TableChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
         active
           ? "bg-gold text-bg font-semibold"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"
@@ -653,8 +655,9 @@ function CategoryChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
         active
           ? "bg-gold text-bg font-semibold"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"
