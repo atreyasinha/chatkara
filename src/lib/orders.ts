@@ -48,10 +48,16 @@ async function withTimeout<T>(
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
  * Throws on failure — callers must surface 503, never pretend there are zero orders.
  */
-export async function listOrders(): Promise<Order[]> {
+export async function listOrders(since?: string): Promise<Order[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const constraints: any[] = [orderBy("createdAt", "desc")];
+  if (since) {
+    constraints.push(where("createdAt", ">=", since));
+  }
+
   const q = query(
     collection(db, ORDERS_COLLECTION),
-    orderBy("createdAt", "desc"),
+    ...constraints
   );
   const querySnapshot = await getDocs(q);
   const results: Order[] = [];

@@ -13,3 +13,6 @@
 ## 2026-07-26 - [Search Input Debouncing via useDeferredValue]
 **Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices.
 **Action:** Use React's `useDeferredValue` hook on text inputs that drive large list filtering. This prioritizes input rendering (making typing feel instant) and defers the expensive filtering computation to the background.
+## 2024-08-04 - Bounding Firebase Queries
+**Learning:** When querying Firebase collections (e.g., fetching orders for polling loops or analytics), failing to use bounded time conditions (e.g., `where('createdAt', '>=', since)`) leads to unbounded O(N) database reads and subsequent performance bottlenecks as the collection grows.
+**Action:** Always pass a `since` parameter when listing records for recent activity feeds or analytics, ensuring the default polling and stream queries are capped to a sensible window (e.g., 48 hours for active operations or the start of the current year for annual reports).

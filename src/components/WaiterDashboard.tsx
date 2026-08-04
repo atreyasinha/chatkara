@@ -26,7 +26,8 @@ export function WaiterDashboard() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/orders", {
+      const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+      const res = await fetch(`/api/orders?since=${encodeURIComponent(since)}`, {
         credentials: "include",
         cache: "no-store",
       });

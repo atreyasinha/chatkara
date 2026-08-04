@@ -144,7 +144,8 @@ export function KitchenDashboard() {
 
     async function fetchKitchenOrdersApi() {
       try {
-        const res = await fetch("/api/orders", {
+        const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const res = await fetch(`/api/orders?since=${encodeURIComponent(since)}`, {
           cache: "no-store",
           credentials: "include",
         });
@@ -200,12 +201,17 @@ export function KitchenDashboard() {
 
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
-        const { collection, onSnapshot, query, orderBy } = await import(
+        const { collection, onSnapshot, query, orderBy, where } = await import(
           "firebase/firestore"
         );
 
         const db = await getClientDb();
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const q = query(
+          collection(db, "orders"),
+          orderBy("createdAt", "desc"),
+          where("createdAt", ">=", since)
+        );
 
         unsubscribe = onSnapshot(
           q,

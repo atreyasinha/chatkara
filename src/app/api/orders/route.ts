@@ -68,7 +68,9 @@ function scrubOrder(order: Order): Omit<Order, "customerPhone"> {
 export async function GET(request: Request) {
   if (!isAdminRequest(request)) return unauthorizedJson();
   try {
-    return NextResponse.json({ orders: await listOrders() });
+    const { searchParams } = new URL(request.url);
+    const since = searchParams.get("since") || undefined;
+    return NextResponse.json({ orders: await listOrders(since) });
   } catch (err) {
     console.error("GET /api/orders failed:", err);
     return NextResponse.json(
