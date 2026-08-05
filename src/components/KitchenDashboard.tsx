@@ -470,6 +470,7 @@ export function KitchenDashboard() {
           <button
             key={f}
             type="button"
+            aria-pressed={filter === f}
             onClick={() => setFilter(f)}
             className={`rounded-full px-4 py-1.5 text-sm ${
               filter === f
