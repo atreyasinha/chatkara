@@ -272,7 +272,11 @@ export function KitchenDashboard() {
 
     subscribe();
 
-    const interval = setInterval(fetchKitchenOrdersApi, 5000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchKitchenOrdersApi();
+      }
+    }, 5000);
 
     function handleSync() {
       if (document.visibilityState === "visible" || navigator.onLine) {

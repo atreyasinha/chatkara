@@ -117,14 +117,16 @@ export function OrderTracker({ orderId }: { orderId: string }) {
     // 4-second HTTP polling fallback for maximum reliability across app backgrounding.
     // Stops once the order reaches a terminal state.
     const interval = setInterval(() => {
-      setOrder((current) => {
-        if (current && (current.status === "served" || current.status === "cancelled")) {
-          clearInterval(interval);
+      if (document.visibilityState === "visible") {
+        setOrder((current) => {
+          if (current && (current.status === "served" || current.status === "cancelled")) {
+            clearInterval(interval);
+            return current;
+          }
+          void fetchOrderApi();
           return current;
-        }
-        void fetchOrderApi();
-        return current;
-      });
+        });
+      }
     }, 4000);
 
     // Instant re-sync when customer returns to tab after UPI payment

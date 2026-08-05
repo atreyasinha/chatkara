@@ -49,10 +49,26 @@ export function WaiterDashboard() {
 
   useEffect(() => {
     const first = setTimeout(load, 0);
-    const id = setInterval(load, 15_000);
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void load();
+      }
+    }, 15_000);
+
+    function handleSync() {
+      if (document.visibilityState === "visible" || navigator.onLine) {
+        void load();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleSync);
+    window.addEventListener("online", handleSync);
+
     return () => {
       clearTimeout(first);
       clearInterval(id);
+      document.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("online", handleSync);
     };
   }, [load]);
 
