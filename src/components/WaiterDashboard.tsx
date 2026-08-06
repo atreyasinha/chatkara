@@ -89,7 +89,7 @@ export function WaiterDashboard() {
           <div>
             <h1 className="font-display text-2xl text-gold">Waiter</h1>
             <p className="text-xs text-muted">
-              Today · {todayLabelIST()} · place orders until table QR codes are ready
+              Today · {todayLabelIST()}
             </p>
           </div>
         </div>
