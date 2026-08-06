@@ -5,49 +5,62 @@ import { NextResponse } from "next/server";
 export const ADMIN_SESSION_COOKIE = "chatkara_admin_session";
 const SESSION_TTL_MS = 18 * 60 * 60 * 1000; // 18 hours — covers a full service day
 
+export type AdminRole = "admin" | "waiter";
+
 function sessionSecret(): string | null {
-  const password = process.env.ADMIN_PASSWORD;
+  const password = process.env.ADMIN_PASSWORD || process.env.WAITER_PASSWORD;
   if (!password) return null;
   return process.env.ADMIN_SESSION_SECRET || password;
 }
 
 export function adminPasswordConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD);
+  return Boolean(process.env.ADMIN_PASSWORD || process.env.WAITER_PASSWORD);
 }
 
-export function createAdminSessionToken(): string | null {
+export function createAdminSessionToken(role: AdminRole = "admin"): string | null {
   const secret = sessionSecret();
   if (!secret) return null;
   const exp = Date.now() + SESSION_TTL_MS;
-  const payload = `admin.${exp}`;
+  const payload = `${role}.${exp}`;
   const sig = createHmac("sha256", secret).update(payload).digest("hex");
   return `${payload}.${sig}`;
 }
 
-export function verifyAdminSessionToken(token: string | undefined | null): boolean {
-  if (!token) return false;
+export function getAdminRoleFromToken(token: string | undefined | null): AdminRole | null {
+  if (!token) return null;
   const secret = sessionSecret();
-  if (!secret) return false;
+  if (!secret) return null;
 
   const lastDot = token.lastIndexOf(".");
-  if (lastDot <= 0) return false;
+  if (lastDot <= 0) return null;
   const payload = token.slice(0, lastDot);
   const sig = token.slice(lastDot + 1);
   const [role, expStr] = payload.split(".");
-  if (role !== "admin" || !expStr) return false;
+  if ((role !== "admin" && role !== "waiter") || !expStr) return null;
 
   const exp = Number(expStr);
-  if (!Number.isFinite(exp) || Date.now() > exp) return false;
+  if (!Number.isFinite(exp) || Date.now() > exp) return null;
 
   const expected = createHmac("sha256", secret).update(payload).digest("hex");
   try {
     const a = Buffer.from(sig, "utf8");
     const b = Buffer.from(expected, "utf8");
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
+    if (a.length !== b.length) return null;
+    if (!timingSafeEqual(a, b)) return null;
+    return role as AdminRole;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function verifyAdminSessionToken(
+  token: string | undefined | null,
+  requiredRole: AdminRole = "admin",
+): boolean {
+  const role = getAdminRoleFromToken(token);
+  if (!role) return false;
+  if (requiredRole === "admin") return role === "admin";
+  return role === "admin" || role === "waiter";
 }
 
 export function adminCookieOptions(maxAgeSeconds = SESSION_TTL_MS / 1000) {
@@ -61,7 +74,10 @@ export function adminCookieOptions(maxAgeSeconds = SESSION_TTL_MS / 1000) {
 }
 
 /** Read session cookie from an incoming Request (Route Handlers). */
-export function isAdminRequest(request: Request): boolean {
+export function isAdminRequest(
+  request: Request,
+  requiredRole: AdminRole = "admin",
+): boolean {
   const cookieHeader = request.headers.get("cookie") || "";
   const match = cookieHeader
     .split(";")
@@ -72,15 +88,25 @@ export function isAdminRequest(request: Request): boolean {
     const value = decodeURIComponent(
       match.slice(ADMIN_SESSION_COOKIE.length + 1),
     );
-    return verifyAdminSessionToken(value);
+    return verifyAdminSessionToken(value, requiredRole);
   } catch {
     return false;
   }
 }
 
-export async function isAdminFromCookies(): Promise<boolean> {
+export async function getRoleFromCookies(): Promise<AdminRole | null> {
   const jar = await cookies();
-  return verifyAdminSessionToken(jar.get(ADMIN_SESSION_COOKIE)?.value);
+  return getAdminRoleFromToken(jar.get(ADMIN_SESSION_COOKIE)?.value);
+}
+
+export async function isAdminFromCookies(
+  requiredRole: AdminRole = "admin",
+): Promise<boolean> {
+  const jar = await cookies();
+  return verifyAdminSessionToken(
+    jar.get(ADMIN_SESSION_COOKIE)?.value,
+    requiredRole,
+  );
 }
 
 export function unauthorizedJson() {

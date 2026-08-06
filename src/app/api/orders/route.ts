@@ -66,7 +66,7 @@ function scrubOrder(order: Order): Omit<Order, "customerPhone"> {
 }
 
 export async function GET(request: Request) {
-  if (!isAdminRequest(request)) return unauthorizedJson();
+  if (!isAdminRequest(request, "waiter")) return unauthorizedJson();
   try {
     const { searchParams } = new URL(request.url);
     const since = searchParams.get("since") || undefined;
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const isTest = isAuthorizedTestRequest(request);
-    const isAdmin = isAdminRequest(request);
+    const isAdmin = isAdminRequest(request, "waiter");
 
     // Staff and the test harness are exempt — the limiter guards the public path.
     if (!isAdmin && !isTest) {

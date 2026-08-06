@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual, createHash } from "crypto";
 import {
   ADMIN_SESSION_COOKIE,
+  AdminRole,
   adminCookieOptions,
   adminPasswordConfigured,
   createAdminSessionToken,
@@ -39,23 +40,32 @@ export async function POST(request: Request) {
     }
 
     const { password } = await request.json();
-    const correctPassword = process.env.ADMIN_PASSWORD!;
+    const correctAdminPassword = process.env.ADMIN_PASSWORD;
+    const correctWaiterPassword = process.env.WAITER_PASSWORD;
 
-    let isPasswordValid = false;
+    let authenticatedRole: AdminRole | null = null;
+
     if (typeof password === "string") {
-      const a = createHash("sha256").update(password).digest();
-      const b = createHash("sha256").update(correctPassword).digest();
-      isPasswordValid = timingSafeEqual(a, b);
+      if (correctAdminPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctAdminPassword).digest();
+        if (timingSafeEqual(a, b)) authenticatedRole = "admin";
+      }
+      if (!authenticatedRole && correctWaiterPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctWaiterPassword).digest();
+        if (timingSafeEqual(a, b)) authenticatedRole = "waiter";
+      }
     }
 
-    if (!isPasswordValid) {
+    if (!authenticatedRole) {
       return NextResponse.json(
         { success: false, error: "Invalid password" },
         { status: 401 },
       );
     }
 
-    const token = createAdminSessionToken();
+    const token = createAdminSessionToken(authenticatedRole);
     if (!token) {
       return NextResponse.json(
         { success: false, error: "Could not create session" },
@@ -63,7 +73,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const res = NextResponse.json({ success: true });
+    const res = NextResponse.json({ success: true, role: authenticatedRole });
     res.cookies.set(ADMIN_SESSION_COOKIE, token, adminCookieOptions());
     return res;
   } catch {

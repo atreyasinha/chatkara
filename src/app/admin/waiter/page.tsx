@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function WaiterPage() {
   return (
-    <AdminGuard>
+    <AdminGuard requiredRole="waiter">
       <WaiterDashboard />
     </AdminGuard>
   );
