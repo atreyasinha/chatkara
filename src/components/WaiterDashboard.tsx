@@ -8,7 +8,7 @@ import { formatINR } from "@/lib/restaurant";
 import { shareReceiptOnWhatsApp } from "@/lib/receipt";
 import { isOrderFromTodayIST, todayLabelIST } from "@/lib/waiter-day";
 import type { Order, OrderStatus } from "@/lib/types";
-import { MessageSquare, Plus, RefreshCw } from "lucide-react";
+import { HelpCircle, MessageSquare, Plus, RefreshCw } from "lucide-react";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "Received",
@@ -89,11 +89,27 @@ export function WaiterDashboard() {
         </button>
       </header>
 
+      {/* Beginner-friendly quick guide banner */}
+      <div className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 p-3.5 text-xs">
+        <div className="flex items-center justify-between text-gold font-semibold mb-1">
+          <span className="flex items-center gap-1.5">
+            <HelpCircle className="h-4 w-4" /> Quick Waiter Guide
+          </span>
+          <span className="text-[10px] text-gold/70 uppercase tracking-wider font-mono">Simple Steps</span>
+        </div>
+        <p className="text-muted leading-relaxed">
+          1. Tap <strong className="text-ink">+ New order</strong> below &nbsp;→&nbsp; 
+          2. Choose <strong className="text-ink">Table #</strong> &nbsp;→&nbsp; 
+          3. Tap dishes &nbsp;→&nbsp; 
+          4. Send to Kitchen!
+        </p>
+      </div>
+
       <div className="mb-4 flex items-center justify-between text-sm">
         <p className="text-muted">
           {todaysOrders.length} order{todaysOrders.length === 1 ? "" : "s"} today
           {activeCount > 0 ? (
-            <span className="text-gold"> · {activeCount} open</span>
+            <span className="text-gold font-semibold"> · {activeCount} active</span>
           ) : null}
         </p>
       </div>
