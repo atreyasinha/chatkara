@@ -231,7 +231,7 @@ export function WaiterOrderClient() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes (e.g. Paneer, Naan, Biryani)…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
           />
           {query && (
             <button
@@ -315,7 +315,7 @@ export function WaiterOrderClient() {
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
-                  className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-gold"
+                  className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                 />
                 <div className="flex gap-2">
                   <input
@@ -325,12 +325,12 @@ export function WaiterOrderClient() {
                       setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
                     }
                     placeholder="Price ₹"
-                    className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-gold"
+                    className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                   />
                   <select
                     value={customVeg}
                     onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
-                    className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm outline-none focus:border-gold"
+                    className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none focus:border-gold"
                   >
                     <option value="veg">Veg</option>
                     <option value="nonveg">Non-veg</option>
@@ -697,7 +697,7 @@ export function WaiterOrderClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
                 inputMode="numeric"
@@ -707,14 +707,14 @@ export function WaiterOrderClient() {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
                 placeholder="Customer Phone (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
                 rows={2}
-                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-sm outline-none focus:border-gold"
+                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
             </div>
 
