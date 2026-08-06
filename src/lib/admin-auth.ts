@@ -6,13 +6,13 @@ export const ADMIN_SESSION_COOKIE = "chatkara_admin_session";
 const SESSION_TTL_MS = 18 * 60 * 60 * 1000; // 18 hours — covers a full service day
 
 function sessionSecret(): string | null {
-  const password = process.env.ADMIN_PASSWORD;
+  const password = process.env.ADMIN_PASSWORD || process.env.WAITER_PASSWORD;
   if (!password) return null;
   return process.env.ADMIN_SESSION_SECRET || password;
 }
 
 export function adminPasswordConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD);
+  return Boolean(process.env.ADMIN_PASSWORD || process.env.WAITER_PASSWORD);
 }
 
 export function createAdminSessionToken(): string | null {

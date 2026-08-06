@@ -39,13 +39,21 @@ export async function POST(request: Request) {
     }
 
     const { password } = await request.json();
-    const correctPassword = process.env.ADMIN_PASSWORD!;
+    const correctAdminPassword = process.env.ADMIN_PASSWORD;
+    const correctWaiterPassword = process.env.WAITER_PASSWORD;
 
     let isPasswordValid = false;
     if (typeof password === "string") {
-      const a = createHash("sha256").update(password).digest();
-      const b = createHash("sha256").update(correctPassword).digest();
-      isPasswordValid = timingSafeEqual(a, b);
+      if (correctAdminPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctAdminPassword).digest();
+        if (timingSafeEqual(a, b)) isPasswordValid = true;
+      }
+      if (!isPasswordValid && correctWaiterPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctWaiterPassword).digest();
+        if (timingSafeEqual(a, b)) isPasswordValid = true;
+      }
     }
 
     if (!isPasswordValid) {
