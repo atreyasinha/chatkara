@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -70,6 +70,14 @@ export function WaiterOrderClient() {
     }
     return map;
   }, [filtered]);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map();
+    for (const item of items) {
+      map.set(item.itemId, item);
+    }
+    return map;
+  }, [items]);
 
   const { subtotal, gst, total } = computeOrderTotals(items);
   const count = items.reduce((n, i) => n + i.quantity, 0);
@@ -362,71 +370,15 @@ export function WaiterOrderClient() {
             <h2 className="font-display mb-3 text-lg font-bold text-gold">{cat}</h2>
             <ul className="space-y-2.5">
               {list.map((item) => {
-                const inCart = items.find((i) => i.itemId === item.id);
+                const inCart = itemsMap.get(item.id);
                 return (
-                  <li
+                  <WaiterMenuItemRow
                     key={item.id}
-                    className={`flex items-center justify-between gap-3 rounded-2xl border p-3.5 transition ${
-                      inCart
-                        ? "border-gold/60 bg-gold/5 shadow-sm"
-                        : "border-line bg-bg-elevated/80"
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start gap-2">
-                        <VegBadge veg={item.veg} />
-                        <div className="min-w-0">
-                          <p className="font-semibold text-ink text-base">
-                            {item.name}
-                          </p>
-                          {item.subcategory && (
-                            <p className="text-xs text-muted">
-                              {item.subcategory}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <p className="mt-1 pl-5 text-sm font-bold text-gold">
-                        {formatINR(item.price)}
-                      </p>
-                    </div>
-
-                    {inCart ? (
-                      <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-bg-soft px-2 py-1.5">
-                        <button
-                          type="button"
-                          aria-label="Decrease"
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold transition active:scale-90"
-                          onClick={() =>
-                            setQuantity(item.id, inCart.quantity - 1)
-                          }
-                        >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <span className="w-6 text-center font-sans font-bold text-sm text-ink">
-                          {inCart.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          aria-label="Increase"
-                          className="flex h-7 w-7 items-center justify-center rounded-full flame-bg text-white transition active:scale-90"
-                          onClick={() =>
-                            setQuantity(item.id, inCart.quantity + 1)
-                          }
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => addMenuItem(item)}
-                        className="shrink-0 rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
-                      >
-                        + ADD
-                      </button>
-                    )}
-                  </li>
+                    item={item}
+                    inCart={inCart}
+                    setQuantity={setQuantity}
+                    addMenuItem={addMenuItem}
+                  />
                 );
               })}
             </ul>
@@ -762,3 +714,80 @@ function CategoryChip({
     </button>
   );
 }
+
+const WaiterMenuItemRow = memo(function WaiterMenuItemRow({
+  item,
+  inCart,
+  setQuantity,
+  addMenuItem,
+}: {
+  item: MenuItem;
+  inCart: { quantity: number } | undefined;
+  setQuantity: (itemId: string, quantity: number) => void;
+  addMenuItem: (item: MenuItem) => void;
+}) {
+  return (
+    <li
+      className={`flex items-center justify-between gap-3 rounded-2xl border p-3.5 transition ${
+        inCart
+          ? "border-gold/60 bg-gold/5 shadow-sm"
+          : "border-line bg-bg-elevated/80"
+      }`}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <VegBadge veg={item.veg} />
+          <div className="min-w-0">
+            <p className="font-semibold text-ink text-base">
+              {item.name}
+            </p>
+            {item.subcategory && (
+              <p className="text-xs text-muted">
+                {item.subcategory}
+              </p>
+            )}
+          </div>
+        </div>
+        <p className="mt-1 pl-5 text-sm font-bold text-gold">
+          {formatINR(item.price)}
+        </p>
+      </div>
+
+      {inCart ? (
+        <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-bg-soft px-2 py-1.5">
+          <button
+            type="button"
+            aria-label="Decrease"
+            className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold transition active:scale-90"
+            onClick={() =>
+              setQuantity(item.id, inCart.quantity - 1)
+            }
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <span className="w-6 text-center font-sans font-bold text-sm text-ink">
+            {inCart.quantity}
+          </span>
+          <button
+            type="button"
+            aria-label="Increase"
+            className="flex h-7 w-7 items-center justify-center rounded-full flame-bg text-white transition active:scale-90"
+            onClick={() =>
+              setQuantity(item.id, inCart.quantity + 1)
+            }
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => addMenuItem(item)}
+          className="shrink-0 rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
+        >
+          + ADD
+        </button>
+      )}
+    </li>
+  );
+});
