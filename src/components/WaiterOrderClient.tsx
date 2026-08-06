@@ -706,7 +706,7 @@ export function WaiterOrderClient() {
                 onChange={(e) =>
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
-                placeholder="Customer Phone (optional for WhatsApp bill)"
+                placeholder="Customer Phone (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               />
               <textarea
