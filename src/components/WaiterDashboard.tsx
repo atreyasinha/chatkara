@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
+import { AdminGuard, LogoutButton } from "@/components/AdminGuard";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
-import { shareReceiptOnWhatsApp } from "@/lib/receipt";
 import { isOrderFromTodayIST, todayLabelIST } from "@/lib/waiter-day";
 import type { Order, OrderStatus } from "@/lib/types";
-import { HelpCircle, MessageSquare, Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "Received",
@@ -89,38 +89,25 @@ export function WaiterDashboard() {
           <div>
             <h1 className="font-display text-2xl text-gold">Waiter</h1>
             <p className="text-xs text-muted">
-              Today · {todayLabelIST()} · place orders until table QR codes are ready
+              Today · {todayLabelIST()}
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setLoading(true);
-            load();
-          }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-      </header>
-
-      {/* Beginner-friendly quick guide banner */}
-      <div className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 p-3.5 text-xs">
-        <div className="flex items-center justify-between text-gold font-semibold mb-1">
-          <span className="flex items-center gap-1.5">
-            <HelpCircle className="h-4 w-4" /> Quick Waiter Guide
-          </span>
-          <span className="text-[10px] text-gold/70 uppercase tracking-wider font-mono">Simple Steps</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              load();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <LogoutButton />
         </div>
-        <p className="text-muted leading-relaxed">
-          1. Tap <strong className="text-ink">+ New order</strong> below &nbsp;→&nbsp; 
-          2. Choose <strong className="text-ink">Table #</strong> &nbsp;→&nbsp; 
-          3. Tap dishes &nbsp;→&nbsp; 
-          4. Submit Order!
-        </p>
-      </div>
+      </header>
 
       <div className="mb-4 flex items-center justify-between text-sm">
         <p className="text-muted">
@@ -145,7 +132,7 @@ export function WaiterDashboard() {
         <div className="rounded-3xl border border-dashed border-line py-16 text-center">
           <p className="font-display text-2xl text-gold">No orders yet today</p>
           <p className="mt-2 px-6 text-sm text-muted">
-            Tap New order to take a table or pickup order for the kitchen.
+            Tap New order to log a table or pickup order.
           </p>
         </div>
       ) : (
@@ -204,30 +191,14 @@ export function WaiterDashboard() {
                 ))}
               </ul>
 
-              <div className="mt-3 flex items-center justify-between border-t border-line/50 pt-3">
-                <div className="text-sm">
-                  <span className="font-semibold text-gold">
-                    {formatINR(order.total)}
-                  </span>
-                  <span className="ml-2 text-xs text-muted">
-                    {order.paymentMethod === "upi" ? "UPI" : "Cash"}
-                    {order.paymentStatus === "paid"
-                      ? " · Paid"
-                      : order.paymentStatus === "cash_on_delivery"
-                        ? " · Due"
-                        : " · Pending"}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    shareReceiptOnWhatsApp(order, order.customerPhone)
-                  }
-                  className="inline-flex items-center gap-1 rounded-full border border-line px-2.5 py-1 text-[11px] text-muted hover:border-gold hover:text-gold"
-                >
-                  <MessageSquare className="h-3 w-3" />
-                  Bill
-                </button>
+              <div className="mt-3 flex items-center justify-between border-t border-line/50 pt-3 text-sm">
+                <span className="font-semibold text-gold">
+                  {formatINR(order.total)}
+                </span>
+                <span className="text-xs text-muted">
+                  {order.paymentMethod === "upi" ? "UPI" : "Cash"}
+                  {order.paymentStatus === "paid" ? " · Paid" : ""}
+                </span>
               </div>
             </li>
           ))}

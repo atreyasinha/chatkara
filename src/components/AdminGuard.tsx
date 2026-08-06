@@ -1,10 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { Lock, AlertCircle, RefreshCw, ShieldAlert } from "lucide-react";
+import { Lock, AlertCircle, RefreshCw, ShieldAlert, LogOut } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { EnvBanner } from "@/components/EnvBanner";
+
+type AdminAuthContextType = {
+  userRole: "admin" | "waiter" | null;
+  logout: () => Promise<void>;
+};
+
+const AdminAuthContext = createContext<AdminAuthContextType>({
+  userRole: null,
+  logout: async () => {},
+});
+
+export function useAdminAuth() {
+  return useContext(AdminAuthContext);
+}
+
+export function LogoutButton({ className = "" }: { className?: string }) {
+  const { userRole, logout } = useAdminAuth();
+  if (!userRole) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={logout}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elevated/80 px-3 py-1.5 text-xs font-medium text-muted backdrop-blur hover:border-gold hover:text-gold active:scale-95 transition ${className}`}
+      title="Log out of session"
+    >
+      <LogOut className="h-3.5 w-3.5 text-gold" />
+      <span>
+        Log out{" "}
+        <span className="text-[10px] opacity-75">
+          ({userRole === "waiter" ? "Waiter" : "Admin"})
+        </span>
+      </span>
+    </button>
+  );
+}
 
 export function AdminGuard({
   children,
@@ -193,18 +229,9 @@ export function AdminGuard({
   }
 
   return (
-    <>
+    <AdminAuthContext.Provider value={{ userRole, logout: handleLogout }}>
       <EnvBanner />
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full border border-line bg-bg-elevated/90 px-3 py-1.5 text-[11px] text-muted backdrop-blur hover:border-gold hover:text-gold"
-        >
-          Log out ({userRole === "waiter" ? "Waiter" : "Admin"})
-        </button>
-      </div>
       {children}
-    </>
+    </AdminAuthContext.Provider>
   );
 }
