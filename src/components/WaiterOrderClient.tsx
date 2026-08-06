@@ -644,7 +644,7 @@ export function WaiterOrderClient() {
                 <span className="text-[10px] uppercase font-bold tracking-wider text-gold block">
                   Step 3 of 3
                 </span>
-                <h3 className="font-display text-2xl text-gold">Confirm & Send</h3>
+                <h3 className="font-display text-2xl text-gold">Confirm & Place Order</h3>
                 <p className="text-sm text-muted">
                   {tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`} ·{" "}
                   <strong className="text-gold">{formatINR(total)}</strong>
@@ -712,7 +712,7 @@ export function WaiterOrderClient() {
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Special kitchen notes (e.g. Less spicy, Extra gravy)"
+                placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
                 rows={2}
                 className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-sm outline-none focus:border-gold"
               />
@@ -727,8 +727,8 @@ export function WaiterOrderClient() {
               className="flame-bg w-full rounded-xl py-4 text-base font-bold text-white shadow-lg disabled:opacity-50 transition hover:brightness-110"
             >
               {loading
-                ? "Sending to kitchen…"
-                : `🔥 Send Order to Kitchen (${formatINR(total)})`}
+                ? "Submitting order…"
+                : `✅ Submit & Save Order (${formatINR(total)})`}
             </button>
           </div>
         </div>

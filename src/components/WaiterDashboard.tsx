@@ -118,7 +118,7 @@ export function WaiterDashboard() {
           1. Tap <strong className="text-ink">+ New order</strong> below &nbsp;→&nbsp; 
           2. Choose <strong className="text-ink">Table #</strong> &nbsp;→&nbsp; 
           3. Tap dishes &nbsp;→&nbsp; 
-          4. Send to Kitchen!
+          4. Submit Order!
         </p>
       </div>
 
