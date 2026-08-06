@@ -115,7 +115,7 @@ export function AdminGuard({
               <Lock className="h-5 w-5" />
             </div>
 
-            <h2 className="font-display mt-4 text-2xl text-gold">Passcode Protection</h2>
+            <h2 className="font-display mt-4 text-2xl text-gold">Admin Access</h2>
             <p className="mt-1.5 text-xs text-muted">
               Enter staff or administrator password to proceed.
             </p>
@@ -144,7 +144,7 @@ export function AdminGuard({
                 disabled={loading}
                 className="flame-bg flex w-full items-center justify-center rounded-xl py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? "Verifying..." : "Unlock Access"}
+                {loading ? "Verifying..." : "Unlock Dashboard"}
               </button>
             </form>
           </div>
