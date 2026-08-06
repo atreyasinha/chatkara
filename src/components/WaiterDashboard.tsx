@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
+import { AdminGuard, LogoutButton } from "@/components/AdminGuard";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import { isOrderFromTodayIST, todayLabelIST } from "@/lib/waiter-day";
@@ -92,17 +93,20 @@ export function WaiterDashboard() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setLoading(true);
-            load();
-          }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              load();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <LogoutButton />
+        </div>
       </header>
 
       <div className="mb-4 flex items-center justify-between text-sm">
