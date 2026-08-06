@@ -243,9 +243,63 @@ export async function createOrder(input: {
       if (updatedOrder) return updatedOrder;
     } catch (err) {
       console.error(
-        "Failed to append to parent order, fallback to new order:",
+        "Transaction failed to append to parent order, trying direct update:",
         err,
       );
+      try {
+        const docRef = doc(db, ORDERS_COLLECTION, input.parentOrderId);
+        const snap = await withTimeout(
+          getDoc(docRef),
+          FIRESTORE_WRITE_TIMEOUT_MS,
+          "Firestore getDoc",
+        );
+        if (snap.exists()) {
+          const parentOrder = {
+            ...(snap.data() as Order),
+            id: (snap.data() as Order).id || snap.id,
+          };
+          if (
+            parentOrder.status !== "served" &&
+            parentOrder.status !== "cancelled" &&
+            parentOrder.paymentStatus !== "paid" &&
+            (input.allowAnyParent ||
+              parentOrder.tableNumber === input.tableNumber)
+          ) {
+            const mergedItems = mergeCartItems(parentOrder.items, input.items);
+            const discountPercent = parentOrder.discountPercent || 0;
+            const { subtotal, discountAmount, gst, total } = computeOrderTotals(
+              mergedItems,
+              discountPercent,
+            );
+            const merged: Order = {
+              ...parentOrder,
+              items: mergedItems,
+              subtotal,
+              discountPercent: discountPercent || undefined,
+              discountAmount: discountAmount || undefined,
+              gst,
+              total,
+              status: parentOrder.status,
+              needsKitchenAck: true,
+              updatedAt: now,
+              isTest: parentOrder.isTest || input.isTest,
+            };
+            if (input.notes) {
+              merged.notes = parentOrder.notes
+                ? `${parentOrder.notes} | ${input.notes}`
+                : input.notes;
+            }
+            await withTimeout(
+              setDoc(docRef, cleanUndefined(merged)),
+              FIRESTORE_WRITE_TIMEOUT_MS,
+              "Firestore setDoc",
+            );
+            return merged;
+          }
+        }
+      } catch (fallbackErr) {
+        console.error("Direct fallback to append also failed:", fallbackErr);
+      }
     }
   }
 
