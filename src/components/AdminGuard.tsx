@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Lock, AlertCircle, RefreshCw, ShieldAlert } from "lucide-react";
+import { Lock, AlertCircle, RefreshCw, ShieldAlert, LogOut } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { EnvBanner } from "@/components/EnvBanner";
 
@@ -195,13 +195,20 @@ export function AdminGuard({
   return (
     <>
       <EnvBanner />
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed top-3.5 right-3.5 z-40">
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-full border border-line bg-bg-elevated/90 px-3 py-1.5 text-[11px] text-muted backdrop-blur hover:border-gold hover:text-gold"
+          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elevated/90 px-3 py-1.5 text-xs text-muted backdrop-blur-md shadow-md hover:border-gold hover:text-gold active:scale-95 transition"
+          title="Log out of session"
         >
-          Log out ({userRole === "waiter" ? "Waiter" : "Admin"})
+          <LogOut className="h-3.5 w-3.5 text-gold" />
+          <span>
+            Log out{" "}
+            <span className="text-[10px] opacity-75">
+              ({userRole === "waiter" ? "Waiter" : "Admin"})
+            </span>
+          </span>
         </button>
       </div>
       {children}
