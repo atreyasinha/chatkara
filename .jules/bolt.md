@@ -16,3 +16,6 @@
 ## 2024-08-04 - Bounding Firebase Queries
 **Learning:** When querying Firebase collections (e.g., fetching orders for polling loops or analytics), failing to use bounded time conditions (e.g., `where('createdAt', '>=', since)`) leads to unbounded O(N) database reads and subsequent performance bottlenecks as the collection grows.
 **Action:** Always pass a `since` parameter when listing records for recent activity feeds or analytics, ensuring the default polling and stream queries are capped to a sensible window (e.g., 48 hours for active operations or the start of the current year for annual reports).
+## 2024-08-05 - Pause background API polling
+**Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
+**Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
