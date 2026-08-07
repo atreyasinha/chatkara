@@ -666,6 +666,7 @@ export function WaiterOrderClient() {
             <div className="mb-4 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
+                aria-pressed={method === "cash"}
                 onClick={() => setMethod("cash")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "cash"
@@ -679,6 +680,7 @@ export function WaiterOrderClient() {
               </button>
               <button
                 type="button"
+                aria-pressed={method === "upi"}
                 onClick={() => setMethod("upi")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "upi"
