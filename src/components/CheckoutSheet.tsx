@@ -353,6 +353,7 @@ export function CheckoutSheet({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
+                  aria-pressed={method === "upi"}
                   onClick={() => setMethod("upi")}
                   className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
                     method === "upi"
@@ -366,6 +367,7 @@ export function CheckoutSheet({
                 </button>
                 <button
                   type="button"
+                  aria-pressed={method === "cash"}
                   onClick={() => setMethod("cash")}
                   className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
                     method === "cash"
