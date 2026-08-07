@@ -7,6 +7,7 @@ import { notifyKitchenTelegram } from "@/lib/telegram";
 import { isProductionEnv } from "@/lib/env";
 import { RESTAURANT } from "@/lib/restaurant";
 import type { CartItem, Order, PaymentMethod } from "@/lib/types";
+import { getClientIp } from "@/lib/get-ip";
 
 export const dynamic = "force-dynamic";
 // Telegram Bot API often times out from US regions on Vercel.
@@ -87,9 +88,7 @@ export async function POST(request: Request) {
 
     // Staff and the test harness are exempt — the limiter guards the public path.
     if (!isAdmin && !isTest) {
-      const ip =
-        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        "unknown";
+      const ip = getClientIp(request);
       if (isOrderRateLimited(ip)) {
         return NextResponse.json(
           { error: "Too many orders — please wait a moment" },
