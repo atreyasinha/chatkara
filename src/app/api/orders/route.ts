@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
+import { getClientIp } from "@/lib/get-ip";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import { notifyKitchenTelegram } from "@/lib/telegram";
 import { isProductionEnv } from "@/lib/env";
@@ -87,9 +88,7 @@ export async function POST(request: Request) {
 
     // Staff and the test harness are exempt — the limiter guards the public path.
     if (!isAdmin && !isTest) {
-      const ip =
-        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        "unknown";
+      const ip = getClientIp(request);
       if (isOrderRateLimited(ip)) {
         return NextResponse.json(
           { error: "Too many orders — please wait a moment" },
