@@ -7,3 +7,7 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+
+## 2026-08-08 - Add aria-pressed to toggle buttons
+**Learning:** Toggle buttons and selection cards with visual active states (like payment method selectors or table selectors) require `aria-pressed` to communicate their state to screen readers, just like category filters.
+**Action:** When implementing any button that acts as a toggle or selection (e.g., changes visual styling when "active"), always include `aria-pressed={isActive}` to ensure state is accessible.
