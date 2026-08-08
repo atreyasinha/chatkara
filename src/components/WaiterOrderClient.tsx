@@ -71,6 +71,16 @@ export function WaiterOrderClient() {
     return map;
   }, [filtered]);
 
+  // ⚡ Bolt: Optimize cart item lookups by creating a Map for O(1) retrieval
+  // during the O(N) list render loop, eliminating an O(N*M) performance bottleneck.
+  const itemsMap = useMemo(() => {
+    const map = new Map();
+    for (const item of items) {
+      map.set(item.itemId, item);
+    }
+    return map;
+  }, [items]);
+
   const { subtotal, gst, total } = computeOrderTotals(items);
   const count = items.reduce((n, i) => n + i.quantity, 0);
 
@@ -362,7 +372,7 @@ export function WaiterOrderClient() {
             <h2 className="font-display mb-3 text-lg font-bold text-gold">{cat}</h2>
             <ul className="space-y-2.5">
               {list.map((item) => {
-                const inCart = items.find((i) => i.itemId === item.id);
+                const inCart = itemsMap.get(item.id);
                 return (
                   <li
                     key={item.id}
