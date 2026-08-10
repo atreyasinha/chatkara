@@ -5,7 +5,7 @@
   --bg-elevated: #141414;
   --bg-soft: #1a1a1a;
   --gold: #d4af37;
-  --gold-soft: #c9a227;
+  --gold-soft: #e2c158;
   --gold-dim: rgba(212, 175, 55, 0.18);
   --flame-from: #f97316;
   --flame-to: #b91c1c;
@@ -61,10 +61,7 @@ body {
 }
 
 .flame-text {
-  background: linear-gradient(90deg, var(--flame-from), var(--flame-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--gold-soft);
 }
 
 .flame-bg {
@@ -75,11 +72,28 @@ body {
   border: 1px solid var(--border);
 }
 
+.gold-glow {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.18), inset 0 0 15px rgba(212, 175, 55, 0.08);
+}
+
+.glass-card {
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+}
+
+.glass-header {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 .ambient {
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(185, 28, 28, 0.1), transparent 50%),
-    radial-gradient(ellipse 50% 30% at 0% 80%, rgba(249, 115, 22, 0.08), transparent 45%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.14), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(185, 28, 28, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 30% at 0% 80%, rgba(249, 115, 22, 0.09), transparent 45%),
     var(--bg);
 }
 
@@ -95,12 +109,13 @@ body {
 }
 
 @keyframes pulse-soft {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.65;
+    opacity: 0.75;
+    transform: scale(0.98);
   }
 }
 
@@ -113,15 +128,12 @@ body {
   }
 }
 
-@keyframes ember-drift {
-  0%,
-  100% {
-    opacity: 0.35;
+@keyframes float-glow {
+  0%, 100% {
     transform: translateY(0);
   }
   50% {
-    opacity: 0.7;
-    transform: translateY(-6px);
+    transform: translateY(-4px);
   }
 }
 
@@ -137,14 +149,14 @@ body {
   animation: ken-burns 18s ease-out forwards;
 }
 
-.animate-ember {
-  animation: ember-drift 4s ease-in-out infinite;
+.animate-float {
+  animation: float-glow 3s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-ken-burns,
-  .animate-ember,
+  .animate-float,
   .animate-pulse-soft {
     animation: none !important;
   }
