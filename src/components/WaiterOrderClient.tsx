@@ -294,6 +294,7 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setCustomOpen((prev) => !prev)}
+            aria-expanded={customOpen}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
             <span className="flex items-center gap-2">
