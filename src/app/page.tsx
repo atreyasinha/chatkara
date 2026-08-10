@@ -1,6 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShoppingBag, Monitor, Clock, Utensils, ClipboardList } from "lucide-react";
+import {
+  MapPin,
+  ShoppingBag,
+  Monitor,
+  Clock,
+  Utensils,
+  ClipboardList,
+  Sparkles,
+  Flame,
+  Award,
+  ChevronRight,
+  Phone,
+} from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -13,7 +25,7 @@ function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
 
 export default function HomePage() {
   return (
-    <main className="relative flex min-h-dvh flex-col overflow-x-hidden bg-bg">
+    <main className="relative flex min-h-dvh flex-col overflow-x-hidden bg-bg ambient">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -70,107 +82,157 @@ export default function HomePage() {
         }}
       />
 
-      {/* Full-bleed hero — one composition */}
+      {/* Hero Section */}
       <section className="relative flex min-h-dvh flex-col overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src="/photo-tikka.jpg"
-            alt=""
+            alt="Tandoori starter at ChatKara"
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[center_35%] animate-ken-burns"
+            className="object-cover object-[center_35%] animate-ken-burns opacity-40"
           />
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/65 to-bg"
+            className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/75 to-bg"
           />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               backgroundImage:
-                "radial-gradient(ellipse 70% 50% at 50% 35%, rgba(0,0,0,0.45), transparent 65%), radial-gradient(ellipse 70% 45% at 50% 15%, rgba(212,175,55,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 80%, rgba(185,28,28,0.22), transparent 50%)",
+                "radial-gradient(ellipse 70% 50% at 50% 35%, rgba(0,0,0,0.5), transparent 65%), radial-gradient(ellipse 70% 45% at 50% 15%, rgba(212,175,55,0.22), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 80%, rgba(185,28,28,0.25), transparent 50%)",
             }}
           />
         </div>
 
+        {/* Top Navbar */}
         <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
-          <p className="font-betania text-lg tracking-wide text-gold-soft/90 md:text-xl">
-            a La Gardenia concept
-          </p>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-veg animate-ping" />
+            <p className="font-betania text-lg tracking-wide text-gold-soft md:text-xl">
+              a La Gardenia concept
+            </p>
+          </div>
           <a
             href={`https://wa.me/${RESTAURANT.whatsapp.replace(/[^0-9]/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Contact on WhatsApp"
             title="Contact on WhatsApp"
-            className="flex items-center gap-1.5 rounded-full border border-green-600/40 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 backdrop-blur-sm transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
+            className="flex items-center gap-1.5 rounded-full border border-green-500/40 bg-green-500/10 px-3.5 py-1.5 text-xs font-semibold text-green-400 backdrop-blur-md transition hover:border-green-400 hover:bg-green-500/20 active:scale-95 shadow-sm"
           >
-            <WhatsAppIcon className="h-3.5 w-3.5" />
+            <WhatsAppIcon className="h-4 w-4" />
             <span>WhatsApp</span>
           </a>
         </nav>
 
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-12 pt-4 text-center">
+        {/* Main Hero Content */}
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-5 pb-16 pt-6 text-center">
           <h1 className="sr-only">
             ChatKara — Authentic Indian Restaurant &amp; Chaat in Bokaro
           </h1>
 
-          <div className="animate-fade-up mx-auto w-56 overflow-hidden rounded-2xl border border-gold/25 bg-black/40 shadow-[0_0_48px_rgba(212,175,55,0.4)] sm:w-64">
+          {/* Status Badge */}
+          <div className="animate-fade-up mb-4 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1 text-xs font-semibold text-gold backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse-soft" />
+            <span>Open Daily · 12:00 PM – 11:00 PM</span>
+          </div>
+
+          {/* Glowing Brand Card */}
+          <div className="animate-fade-up mx-auto w-60 overflow-hidden rounded-3xl border border-gold/30 bg-black/60 p-2 shadow-[0_0_50px_rgba(212,175,55,0.35)] backdrop-blur-md sm:w-72 transition duration-500 hover:scale-[1.02]">
             <Image
               src="/logo.png"
               alt={RESTAURANT.name}
               width={480}
               height={319}
               priority
-              sizes="(max-width: 640px) 224px, 256px"
-              className="h-auto w-full"
+              sizes="(max-width: 640px) 240px, 288px"
+              className="h-auto w-full rounded-2xl"
             />
           </div>
 
           <p
-            className="mt-5 max-w-sm text-sm leading-relaxed text-ink drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] sm:text-base animate-fade-up"
+            className="mt-6 max-w-md text-base leading-relaxed text-ink drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] sm:text-lg animate-fade-up font-body"
             style={{ animationDelay: "100ms" }}
           >
-            Tandoor heat, chaat spice, and slow-cooked gravies — Bokaro&apos;s
-            Flavours of India.
+            Tandoor heat, chaat spice &amp; slow-cooked gravies — Bokaro&apos;s
+            premier <strong className="text-gold font-semibold">Flavours of India</strong>.
           </p>
 
+          {/* Category Chips Preview */}
           <div
-            className="mt-7 flex w-full max-w-xs flex-col gap-3 animate-fade-up"
+            className="mt-5 flex flex-wrap items-center justify-center gap-2 max-w-sm animate-fade-up"
+            style={{ animationDelay: "140ms" }}
+          >
+            {["🌶️ Tandoori Kebabs", "🍲 Rich Gravies", "🫓 Naans & Parathas", "🧋 Coolers & Shakes"].map((cat) => (
+              <span
+                key={cat}
+                className="rounded-full border border-line bg-bg-elevated/70 px-3 py-1 text-[11px] font-medium text-muted backdrop-blur-sm"
+              >
+                {cat}
+              </span>
+            ))}
+          </div>
+
+          {/* Action CTAs */}
+          <div
+            className="mt-8 flex w-full max-w-xs flex-col gap-3.5 animate-fade-up"
             style={{ animationDelay: "180ms" }}
           >
             <Link
               href="/pickup"
-              className="flame-bg flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 font-semibold text-white shadow-lg shadow-flame-from/30 transition hover:brightness-110 active:scale-[0.98]"
+              className="flame-bg flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-xl shadow-flame-from/30 transition hover:brightness-110 active:scale-[0.98]"
             >
               <ShoppingBag className="h-5 w-5" />
-              Order Online Pickup
+              <span>Order Online Pickup</span>
+              <ChevronRight className="h-4 w-4" />
             </Link>
             <Link
               href="/pickup"
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/50 bg-black/50 py-3.5 text-sm font-semibold text-gold backdrop-blur-sm transition hover:border-gold hover:bg-gold/10 active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/50 bg-black/60 py-3.5 text-sm font-semibold text-gold backdrop-blur-md transition hover:border-gold hover:bg-gold/15 active:scale-[0.98]"
             >
-              <Utensils className="h-4 w-4" />
-              View Menu &amp; Prices
+              <Utensils className="h-4 w-4 text-gold" />
+              <span>Explore Menu &amp; Prices</span>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Story + place — below the fold */}
-      <section className="relative z-10 mx-auto w-full max-w-md px-6 py-14">
+      {/* Highlights Grid */}
+      <section className="relative z-10 mx-auto w-full max-w-lg px-5 py-10">
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="rounded-2xl border border-line bg-bg-elevated/60 p-3.5 backdrop-blur-sm animate-fade-up">
+            <Flame className="mx-auto h-5 w-5 text-flame-from mb-1.5" />
+            <h4 className="text-xs font-bold text-ink">Clay Tandoor</h4>
+            <p className="text-[10px] text-muted mt-0.5">Smoky &amp; Fresh</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-bg-elevated/60 p-3.5 backdrop-blur-sm animate-fade-up" style={{ animationDelay: "60ms" }}>
+            <Award className="mx-auto h-5 w-5 text-gold mb-1.5" />
+            <h4 className="text-xs font-bold text-ink">100% Authentic</h4>
+            <p className="text-[10px] text-muted mt-0.5">Handground Spices</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-bg-elevated/60 p-3.5 backdrop-blur-sm animate-fade-up" style={{ animationDelay: "120ms" }}>
+            <Clock className="mx-auto h-5 w-5 text-veg mb-1.5" />
+            <h4 className="text-xs font-bold text-ink">Fast Service</h4>
+            <p className="text-[10px] text-muted mt-0.5">Dine-in &amp; Pickup</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Story & Gallery */}
+      <section className="relative z-10 mx-auto w-full max-w-md px-6 py-8">
         <div className="text-center animate-fade-up">
-          <h2 className="font-display text-3xl text-gold">Flavours of India</h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            Slow-cooked gravies, hand-ground spices, and clay-oven tandoor —
-            recipes that carry the culinary soul of North India.
+          <span className="text-[11px] font-bold uppercase tracking-widest text-gold/80">Culinary Experience</span>
+          <h2 className="font-display text-3xl text-gold mt-1">Flavours of India</h2>
+          <p className="mt-2.5 text-sm leading-relaxed text-muted">
+            From clay-oven tandoori starters to rich butter curries and spiced chaats — recipes crafted for true food lovers in Bokaro.
           </p>
         </div>
 
-        <div className="mt-10 space-y-4">
-          <div className="relative h-52 w-full overflow-hidden animate-fade-up">
+        <div className="mt-8 space-y-3.5">
+          <div className="relative h-56 w-full overflow-hidden rounded-3xl border border-line shadow-lg animate-fade-up">
             <Image
               src="/photo-facade.jpg"
               alt="ChatKara Flavors of India storefront"
@@ -180,8 +242,14 @@ export default function HomePage() {
             />
             <div
               aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent"
+              className="absolute inset-0 bg-gradient-to-t from-bg via-black/20 to-transparent"
             />
+            <div className="absolute bottom-3 left-4 right-4 text-left">
+              <span className="rounded-full bg-gold/20 backdrop-blur-md border border-gold/40 px-2.5 py-0.5 text-[10px] font-bold text-gold">
+                LA GARDENIA BOKARO
+              </span>
+              <p className="text-xs font-semibold text-white mt-1">Authentic Dining Ambience</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -190,62 +258,70 @@ export default function HomePage() {
                 {
                   src: "/photo-roll.jpg",
                   alt: "Handcrafted Kathi Roll at ChatKara",
+                  title: "Kathi Rolls",
                 },
                 {
                   src: "/photo-pizza.jpg",
-                  alt: "Freshly baked cheese pizza",
+                  alt: "Freshly baked pizza",
+                  title: "Fresh Pizzas",
                 },
                 {
                   src: "/photo-drink.jpg",
                   alt: "Refreshing mocktail at ChatKara",
+                  title: "Mocktails",
                 },
                 {
                   src: "/photo-patio.jpg",
                   alt: "Patio dining at ChatKara",
+                  title: "Patio Seating",
                 },
               ] as const
             ).map((photo, i) => (
               <div
                 key={photo.src}
-                className="relative h-36 overflow-hidden animate-fade-up"
+                className="group relative h-36 overflow-hidden rounded-2xl border border-line shadow-md animate-fade-up"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <Image
                   src={photo.src}
                   alt={photo.alt}
                   fill
-                  className="object-cover transition duration-500 hover:scale-105"
+                  className="object-cover transition duration-500 group-hover:scale-110"
                   sizes="(max-width: 768px) 50vw, 250px"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 transition group-hover:opacity-60" />
+                <span className="absolute bottom-2.5 left-3 text-xs font-semibold text-white drop-shadow">
+                  {photo.title}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-12 border-t border-line/50 pt-8 text-center">
-          <div className="flex items-center justify-center gap-3 text-gold-soft">
-            <Clock className="h-5 w-5" />
-            <h3 className="font-display text-lg">Hours of Operation</h3>
+        {/* Location & Map */}
+        <div className="mt-12 rounded-3xl border border-line bg-bg-elevated/70 p-5 backdrop-blur-md">
+          <div className="mb-3 flex items-center justify-between border-b border-line/60 pb-3">
+            <div className="flex items-center gap-2 text-gold">
+              <MapPin className="h-5 w-5" />
+              <h3 className="font-display text-xl font-bold">Location &amp; Maps</h3>
+            </div>
+            <a
+              href={`tel:${RESTAURANT.phone}`}
+              className="inline-flex items-center gap-1 text-xs text-muted hover:text-gold"
+            >
+              <Phone className="h-3.5 w-3.5" />
+              Call Us
+            </a>
           </div>
-          <p className="mt-2 text-sm text-muted">
-            Open Daily:{" "}
-            <span className="font-semibold text-ink">12:00 PM – 11:00 PM</span>
-          </p>
-        </div>
 
-        <div className="mt-10 border-t border-line/50 pt-8">
-          <div className="mb-4 flex items-center justify-center gap-2 text-gold-soft">
-            <MapPin className="h-5 w-5" />
-            <h3 className="font-display text-lg">Find Us</h3>
-          </div>
-          <div className="overflow-hidden border border-line bg-bg-soft">
+          <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
             <iframe
               src={
                 RESTAURANT.location.mapsEmbedUrl ||
                 `https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`
               }
               title="ChatKara location on Google Maps"
-              className="h-44 w-full opacity-80"
+              className="h-48 w-full opacity-90"
               style={{ border: 0 }}
               allowFullScreen={false}
               loading="lazy"
@@ -257,29 +333,31 @@ export default function HomePage() {
               href={RESTAURANT.location.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-muted underline underline-offset-4 transition hover:text-gold"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-gold underline underline-offset-4 transition hover:brightness-125"
             >
-              Open in Google Maps
+              Open in Google Maps →
             </a>
           </div>
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center space-y-2">
+      {/* Footer */}
+      <footer className="relative z-10 mx-auto w-full max-w-md py-8 text-center space-y-3">
         <p className="text-xs text-muted/60">
-          Website built by {RESTAURANT.developer}
+          Website &amp; Ordering System built for {RESTAURANT.name}
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 border-t border-line/40 pt-4">
           <Link
             href="/admin/waiter"
-            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/60 transition hover:text-gold"
           >
             <ClipboardList className="h-3 w-3" />
             Waiter
           </Link>
+          <span className="text-muted/30">·</span>
           <Link
             href="/kitchen"
-            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/60 transition hover:text-gold"
           >
             <Monitor className="h-3 w-3" />
             Kitchen POS
