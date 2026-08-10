@@ -61,10 +61,7 @@ body {
 }
 
 .flame-text {
-  background: linear-gradient(90deg, var(--flame-from), #eab308, var(--flame-to));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--gold-soft);
 }
 
 .flame-bg {
