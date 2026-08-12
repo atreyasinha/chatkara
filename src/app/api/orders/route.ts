@@ -6,6 +6,7 @@ import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import { notifyKitchenTelegram } from "@/lib/telegram";
 import { isProductionEnv } from "@/lib/env";
 import { RESTAURANT } from "@/lib/restaurant";
+import { getClientIp } from "@/lib/get-ip";
 import type { CartItem, Order, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -87,9 +88,7 @@ export async function POST(request: Request) {
 
     // Staff and the test harness are exempt — the limiter guards the public path.
     if (!isAdmin && !isTest) {
-      const ip =
-        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        "unknown";
+      const ip = getClientIp(request);
       if (isOrderRateLimited(ip)) {
         return NextResponse.json(
           { error: "Too many orders — please wait a moment" },
