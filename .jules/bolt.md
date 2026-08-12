@@ -19,3 +19,6 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+## 2024-08-12 - [WaiterOrderClient Search Debouncing]
+**Learning:** Instantly filtering a large array on every keystroke can block the main thread and cause typing lag, particularly on lower-end devices for staff. This was missing in the Waiter POS despite being present in the customer UI.
+**Action:** Always use React's `useDeferredValue` hook on text inputs that drive large list filtering to prioritize input rendering and defer expensive computation.
