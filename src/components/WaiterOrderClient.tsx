@@ -293,6 +293,7 @@ export function WaiterOrderClient() {
         <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
           <button
             type="button"
+            aria-expanded={customOpen}
             onClick={() => setCustomOpen((prev) => !prev)}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
@@ -488,6 +489,7 @@ export function WaiterOrderClient() {
             {/* Takeaway / Pickup Option */}
             <button
               type="button"
+              aria-pressed={tableNumber === 0}
               onClick={() => {
                 setTableNumber(0);
                 setTableModalOpen(false);
@@ -517,6 +519,7 @@ export function WaiterOrderClient() {
                   <button
                     key={n}
                     type="button"
+                    aria-pressed={tableNumber === n}
                     onClick={() => {
                       setTableNumber(n);
                       setTableModalOpen(false);
@@ -582,6 +585,7 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
+                      aria-label="Decrease quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
@@ -594,6 +598,7 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
+                      aria-label="Increase quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
@@ -666,6 +671,7 @@ export function WaiterOrderClient() {
             <div className="mb-4 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
+                aria-pressed={method === "cash"}
                 onClick={() => setMethod("cash")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "cash"
@@ -679,6 +685,7 @@ export function WaiterOrderClient() {
               </button>
               <button
                 type="button"
+                aria-pressed={method === "upi"}
                 onClick={() => setMethod("upi")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "upi"
