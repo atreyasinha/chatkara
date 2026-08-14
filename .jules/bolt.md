@@ -19,3 +19,7 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+
+## 2024-05-18 - Prevent O(N*M) lookups and full list re-renders in WaiterOrderClient
+**Learning:** Found an O(N*M) performance bottleneck in React renders due to executing `items.find()` inside the `.map()` loop over large arrays. The entire menu list re-rendered every time a cart state updated.
+**Action:** Extract conditionally rendered inline elements inside large mapped arrays (like a product menu) into their own independent components wrapped with `React.memo()`. Also pre-compute a memoized Map keyed by ID for O(1) lookups instead of `.find()` inside the map loop, and wrap passed function props in `useCallback()` to stabilize references.
