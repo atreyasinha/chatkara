@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getClientIp } from "@/lib/get-ip";
 import { getPriorOrderCount } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
@@ -25,9 +26,7 @@ function isRateLimited(ip: string): boolean {
 
 export async function GET(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const ip = getClientIp(request);
 
     if (isRateLimited(ip)) {
       return NextResponse.json(
