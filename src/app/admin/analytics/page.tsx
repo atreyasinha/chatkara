@@ -158,12 +158,12 @@ function AnalyticsDashboard() {
       />
 
       {/* Corporate Ledger Header */}
-      <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-4 backdrop-blur-md md:px-8">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-4 backdrop-blur-md md:px-8 pt-safe">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-bg-soft text-gold transition hover:border-gold hover:text-gold-soft"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-bg-soft text-gold transition hover:border-gold hover:text-gold-soft active:scale-95"
             >
               <Home className="h-4 w-4" />
             </Link>
@@ -181,16 +181,16 @@ function AnalyticsDashboard() {
             <button
               onClick={() => fetchAnalytics(true)}
               disabled={refreshing}
-              className="flex items-center gap-1.5 rounded-full border border-line bg-bg-elevated px-3 py-1.5 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold active:scale-[0.98] disabled:opacity-50"
+              className="flex min-h-[36px] items-center gap-1.5 rounded-full border border-line bg-bg-elevated px-3.5 py-1.5 text-xs font-semibold text-muted transition hover:border-gold hover:text-gold active:scale-95 disabled:opacity-50"
             >
               <RefreshCw
-                className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
+                className={`h-3.5 w-3.5 ${refreshing ? "animate-spin text-gold" : ""}`}
               />
-              Refresh Reports
+              Refresh
             </button>
             <Link
               href="/kitchen"
-              className="rounded-full border border-line bg-bg-soft px-4 py-1.5 text-xs font-semibold text-gold-soft transition hover:border-gold hover:text-gold active:scale-[0.98]"
+              className="flex min-h-[36px] items-center rounded-full border border-line bg-bg-soft px-4 py-1.5 text-xs font-semibold text-gold-soft transition hover:border-gold hover:text-gold active:scale-95"
             >
               POS Screen
             </Link>
@@ -209,12 +209,12 @@ function AnalyticsDashboard() {
 
         {/* Timeframe Selectors & Date Range */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-line/35 pb-5">
-          <div className="flex rounded-xl bg-bg-elevated/80 p-1 border border-line/45">
+          <div className="flex rounded-2xl bg-bg-elevated/80 p-1 border border-line/45">
             {(["daily", "weekly", "monthly", "yearly"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setTimeframe(t)}
-                className={`rounded-lg px-4 py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                className={`min-h-[34px] rounded-xl px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition active:scale-95 ${
                   timeframe === t
                     ? "flame-bg text-white shadow-md"
                     : "text-muted hover:text-ink"
@@ -226,7 +226,7 @@ function AnalyticsDashboard() {
           </div>
 
           <div className="flex items-center gap-2 text-gold-soft">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4 text-gold" />
             <span className="text-xs font-bold tracking-wider uppercase">
               {getReportRangeLabel()}
             </span>

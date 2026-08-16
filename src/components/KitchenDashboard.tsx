@@ -348,64 +348,63 @@ export function KitchenDashboard() {
   ).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6">
+    <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6 pt-safe pb-safe">
       {/* WhatsApp phone modal */}
       {whatsappOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-line bg-bg-elevated p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl border border-line bg-bg-elevated p-6 shadow-2xl animate-fade-up">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg text-gold">Send Bill via WhatsApp</h3>
+              <h3 className="font-display text-xl font-bold text-gold">Send Bill via WhatsApp</h3>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setWhatsappOrder(null)}
-                className="rounded-full p-1.5 text-muted hover:bg-bg-soft"
+                className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full p-1.5 text-muted hover:bg-bg-soft active:scale-90 transition"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <label htmlFor="whatsapp-phone" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
-              Customer phone number
+            <label htmlFor="whatsapp-phone" className="mb-2 block text-xs uppercase tracking-wider font-semibold text-muted">
+              Customer mobile number
             </label>
             <input
               id="whatsapp-phone"
-              type="text"
+              type="tel"
               inputMode="numeric"
               maxLength={10}
               value={whatsappPhone}
               onChange={(e) => setWhatsappPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               placeholder="10-digit mobile number"
-              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+              className="w-full rounded-2xl border border-line bg-bg-soft px-4 py-3 text-base text-ink outline-none focus:border-gold"
               autoFocus
             />
             <button
               type="button"
               disabled={whatsappPhone.replace(/\D/g, "").length < 10}
               onClick={submitWhatsApp}
-              className="mt-3 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40"
+              className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-2xl border border-green-600/40 bg-green-500/15 py-3 text-sm font-bold text-green-400 hover:bg-green-500/25 active:scale-[0.98] transition disabled:opacity-40"
             >
-              Send on WhatsApp
+              Send on WhatsApp →
             </button>
           </div>
         </div>
       )}
       {!online && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-flame-from/40 bg-flame-from/10 px-3 py-2 text-sm text-flame-from">
+        <div className="mb-4 flex items-center gap-2 rounded-2xl border border-flame-from/40 bg-flame-from/10 px-4 py-3 text-sm text-flame-from">
           <WifiOff className="h-4 w-4 shrink-0" />
           <span>
             You&apos;re offline. Status updates are queued
-            {queued > 0 ? ` (${queued} waiting)` : ""} and will sync when
-            reconnecting.
+            {queued > 0 ? ` (${queued} waiting)` : ""} and will sync when reconnecting.
           </span>
         </div>
       )}
 
       {online && queued > 0 && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gold/40 bg-gold-dim px-3 py-2 text-sm text-gold">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gold/40 bg-gold-dim px-4 py-3 text-sm text-gold">
           <span>{queued} queued update{queued === 1 ? "" : "s"} waiting to sync</span>
           <button
             type="button"
-            className="rounded-full border border-gold/50 px-3 py-1 text-xs font-semibold"
+            className="min-h-[36px] rounded-full border border-gold/50 px-4 py-1.5 text-xs font-bold active:scale-95 transition"
             onClick={() =>
               flushKitchenQueue().then((r) => {
                 refreshQueueCount();
@@ -417,51 +416,51 @@ export function KitchenDashboard() {
               })
             }
           >
-            Sync now
+            Sync Now
           </button>
         </div>
       )}
 
       {toast && (
-        <div className="mb-4 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm text-muted">
+        <div className="mb-4 rounded-2xl border border-line bg-bg-elevated px-4 py-3 text-sm text-muted animate-fade-up">
           {toast}
         </div>
       )}
 
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-line/40 pb-4">
         <div className="flex items-center gap-4">
           <BrandMark size="md" href="/" />
           <div>
-            <h1 className="font-display text-2xl text-gold">Kitchen POS</h1>
-            <p className="text-sm text-muted">Live orders · auto-refreshes</p>
+            <h1 className="font-display text-2xl font-bold text-gold">Kitchen POS</h1>
+            <p className="text-xs text-muted">Live orders · auto-refreshes every 5s</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {newCount > 0 && (
-            <span className="flex items-center gap-1.5 rounded-full flame-bg px-3 py-1 text-xs font-semibold text-white animate-pulse-soft">
-              <Bell className="h-3.5 w-3.5" />
-              {newCount} need attention
+            <span className="flex items-center gap-1.5 rounded-full flame-bg px-3.5 py-1.5 text-xs font-bold text-white animate-pulse-soft shadow-md">
+              <Bell className="h-4 w-4" />
+              {newCount} Attention
             </span>
           )}
           {!audioUnlocked ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1 text-[11px] font-medium text-yellow-500 animate-pulse-soft">
-              Click screen to enable alert sound
+            <span className="inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1.5 text-[11px] font-semibold text-yellow-500 animate-pulse-soft">
+              Tap screen to enable alert chime
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-1 text-[11px] font-medium text-green-400">
-              Audio alerts active
+            <span className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-[11px] font-semibold text-green-400">
+              Chimes Active
             </span>
           )}
           <Link
             href="/admin/qr"
-            className="rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+            className="flex min-h-[36px] items-center rounded-full border border-line px-3.5 py-1.5 text-xs font-semibold text-muted hover:border-gold hover:text-gold active:scale-95 transition"
           >
-            Table QR codes
+            Table QR Codes
           </Link>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+            className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-xs font-semibold text-muted hover:border-gold hover:text-gold active:scale-95 transition"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
@@ -469,33 +468,33 @@ export function KitchenDashboard() {
         </div>
       </header>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-5 flex gap-2">
         {(["active", "all"] as const).map((f) => (
           <button
             key={f}
             type="button"
             aria-pressed={filter === f}
             onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-sm ${
+            className={`min-h-[36px] rounded-full px-4 py-1.5 text-xs font-bold transition active:scale-95 ${
               filter === f
-                ? "bg-gold text-bg font-semibold"
-                : "border border-line text-muted"
+                ? "bg-gold text-bg font-bold shadow-sm"
+                : "border border-line bg-bg-soft text-muted hover:text-ink"
             }`}
           >
-            {f === "active" ? "Active" : "All orders"}
+            {f === "active" ? "Active Tickets" : "All Orders"}
           </button>
         ))}
       </div>
 
       {loading && orders.length === 0 ? (
-        <p className="py-20 text-center text-muted animate-pulse-soft">
-          Loading orders…
+        <p className="py-20 text-center text-muted animate-pulse-soft text-sm">
+          Loading active kitchen tickets…
         </p>
       ) : visible.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-line py-20 text-center">
-          <p className="font-display text-2xl text-gold">No active orders</p>
-          <p className="mt-2 text-sm text-muted">
-            New orders from table QR scans will appear here.
+        <div className="rounded-3xl border border-dashed border-line/60 bg-bg-elevated/40 py-20 text-center animate-fade-up">
+          <p className="font-display text-2xl font-bold text-gold">No active orders</p>
+          <p className="mt-2 text-xs text-muted">
+            New orders from table QR scans or wait-staff will appear here instantly.
           </p>
         </div>
       ) : (
@@ -505,20 +504,20 @@ export function KitchenDashboard() {
             return (
               <article
                 key={order.id}
-                className={`rounded-2xl border bg-bg-elevated p-4 ${
+                className={`rounded-3xl border bg-bg-elevated/90 p-4.5 transition shadow-sm ${
                   order.status === "pending" || order.needsKitchenAck
-                    ? "border-flame-from/60 shadow-lg shadow-flame-from/10"
+                    ? "border-flame-from/70 shadow-lg shadow-flame-from/15 ring-1 ring-flame-from/40"
                     : "border-line"
                 }`}
               >
-                <div className="mb-3 flex items-start justify-between gap-2">
+                <div className="mb-3.5 flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-display text-2xl text-gold">
+                    <p className="font-display text-2xl font-bold text-gold">
                       {order.tableNumber === 0
-                        ? "Pickup"
-                        : `Table ${order.tableNumber}`}
+                        ? "🛍️ Pickup"
+                        : `🪑 Table ${order.tableNumber}`}
                     </p>
-                    <p className="text-xs text-muted">
+                    <p className="text-xs text-muted mt-0.5">
                       #{order.id.slice(0, 8).toUpperCase()} ·{" "}
                       {new Date(order.createdAt).toLocaleTimeString("en-IN", {
                         hour: "2-digit",
@@ -527,58 +526,58 @@ export function KitchenDashboard() {
                       })}
                     </p>
                     {order.customerName && (
-                      <p className="text-xs text-muted">{order.customerName}</p>
+                      <p className="text-xs font-semibold text-ink mt-0.5">{order.customerName}</p>
                     )}
                     {order.needsKitchenAck && (
-                      <p className="mt-1 text-xs font-semibold text-flame-from">
-                        New items added — review ticket
+                      <p className="mt-1 text-xs font-bold text-flame-from animate-pulse-soft">
+                        ⚡ New items added — review ticket
                       </p>
                     )}
                   </div>
                   <span
-                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${
+                    className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
                       order.status === "pending"
-                        ? "flame-bg text-white"
+                        ? "flame-bg text-white shadow-sm"
                         : order.status === "ready"
-                          ? "bg-veg/20 text-veg"
-                          : "bg-gold-dim text-gold"
+                          ? "bg-veg/20 text-veg ring-1 ring-veg/40"
+                          : "bg-gold-dim text-gold ring-1 ring-gold/30"
                     }`}
                   >
                     {LABEL[order.status]}
                   </span>
                 </div>
 
-                <ul className="mb-3 space-y-1.5 border-b border-line pb-3">
+                <ul className="mb-3.5 space-y-2 border-b border-line/40 pb-3.5">
                   {order.items.map((item) => (
                     <li
                       key={`${item.itemId}-${item.notes || ""}`}
-                      className="flex items-center gap-2 text-sm"
+                      className="flex items-center gap-2.5 text-sm"
                     >
                       <VegBadge veg={item.veg} />
-                      <span className="font-semibold text-gold">
+                      <span className="font-bold text-gold text-base">
                         {item.quantity}×
                       </span>
-                      <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                      <span className="min-w-0 flex-1 truncate font-medium text-ink">{item.name}</span>
                     </li>
                   ))}
                 </ul>
 
                 {order.notes && (
-                  <p className="mb-2 rounded-lg bg-bg-soft px-2 py-1.5 text-xs text-muted">
-                    Note: {order.notes}
+                  <p className="mb-3 rounded-xl bg-bg-soft px-3 py-2 text-xs text-muted border border-line/30">
+                    <strong className="text-gold">Note:</strong> {order.notes}
                   </p>
                 )}
 
-                <div className="mb-3 flex items-center justify-between text-sm">
-                  <span className="text-muted">
-                    {order.paymentMethod === "upi" ? "UPI" : "Cash"} ·{" "}
+                <div className="mb-3.5 flex items-center justify-between text-sm">
+                  <span className="text-xs text-muted">
+                    {order.paymentMethod === "upi" ? "UPI Digital" : "Cash"} ·{" "}
                     {order.paymentStatus === "paid"
-                      ? "Paid"
+                      ? "✓ Paid"
                       : order.paymentStatus === "cash_on_delivery"
-                        ? "Collect cash"
-                        : "Awaiting UPI confirm"}
+                        ? "Collect Cash"
+                        : "Awaiting UPI Confirm"}
                   </span>
-                  <span className="font-semibold text-gold">
+                  <span className="font-bold text-gold text-base">
                     {formatINR(order.total)}
                   </span>
                 </div>
@@ -587,10 +586,10 @@ export function KitchenDashboard() {
                   <button
                     type="button"
                     onClick={() => openWhatsAppModal(order)}
-                    className="flex items-center gap-1 rounded-lg border border-green-600/30 bg-green-500/10 px-2.5 py-1.5 text-xs text-green-400 hover:border-green-500 hover:bg-green-500/20"
+                    className="flex min-h-[38px] items-center gap-1.5 rounded-xl border border-green-600/30 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-400 hover:border-green-500 hover:bg-green-500/20 active:scale-95 transition"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    WhatsApp Bill
+                    WhatsApp
                   </button>
                   {order.needsKitchenAck && (
                     <button
@@ -598,27 +597,27 @@ export function KitchenDashboard() {
                       onClick={() =>
                         runMutation(order.id, { clearKitchenAck: true })
                       }
-                      className="rounded-lg border border-flame-from/50 px-3 py-1.5 text-xs text-flame-from hover:bg-flame-from/10"
+                      className="flex min-h-[38px] items-center rounded-xl border border-flame-from/60 bg-flame-from/15 px-3 py-2 text-xs font-bold text-flame-from hover:bg-flame-from/25 active:scale-95 transition"
                     >
-                      Ack new items
+                      Ack New Items
                     </button>
                   )}
                   {order.paymentStatus !== "paid" && (
                     <button
                       type="button"
                       onClick={() => runMutation(order.id, { markPaid: true })}
-                      className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-veg hover:text-veg"
+                      className="flex min-h-[38px] items-center rounded-xl border border-line bg-bg-soft px-3 py-2 text-xs font-semibold text-muted hover:border-veg hover:text-veg active:scale-95 transition"
                     >
-                      Mark paid
+                      Mark Paid
                     </button>
                   )}
                   {next && (
                     <button
                       type="button"
                       onClick={() => runMutation(order.id, { status: next })}
-                      className="flame-bg flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
+                      className="flame-bg flex min-h-[38px] flex-1 items-center justify-center rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-md active:scale-95 transition hover:brightness-110"
                     >
-                      Mark {LABEL[next].toLowerCase()}
+                      Mark {LABEL[next]} →
                     </button>
                   )}
                   {order.status !== "cancelled" &&
@@ -628,7 +627,7 @@ export function KitchenDashboard() {
                         onClick={() =>
                           runMutation(order.id, { status: "cancelled" })
                         }
-                        className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:border-nonveg hover:text-nonveg"
+                        className="flex min-h-[38px] items-center rounded-xl border border-line bg-bg-soft px-3 py-2 text-xs font-medium text-muted hover:border-nonveg hover:text-nonveg active:scale-95 transition"
                       >
                         Cancel
                       </button>

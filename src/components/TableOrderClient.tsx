@@ -163,33 +163,33 @@ export function TableOrderClient({
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-28">
-      <header className="sticky top-0 z-30 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur-md">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-safe-dock">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-md pt-safe">
         <div className="flex items-center justify-between gap-3">
-          <BrandMark size="sm" />
+          <BrandMark size="sm" href="/" />
           <div className="text-right">
-            <p className="font-display text-lg text-gold">
-              {tableNumber === 0 ? "Online Pickup" : `Table ${tableNumber}`}
+            <p className="font-display text-lg font-bold text-gold">
+              {tableNumber === 0 ? "🛍️ Online Pickup" : `🪑 Table ${tableNumber}`}
             </p>
             <p className="text-xs text-muted">{RESTAURANT.tagline}</p>
           </div>
         </div>
 
         <div className="relative mt-3">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             aria-label="Search dishes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search dishes…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+            placeholder="Search dishes (e.g. Tikka, Biryani)…"
+            className="w-full rounded-2xl border border-line bg-bg-elevated py-3 pl-10 pr-12 text-base text-ink outline-none placeholder:text-muted focus:border-gold transition-colors"
           />
           {query && (
             <button
               type="button"
               aria-label="Clear search"
               onClick={() => setQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted hover:bg-bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted hover:bg-bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold active:scale-90 transition"
             >
               <X className="h-4 w-4" />
             </button>
@@ -203,20 +203,20 @@ export function TableOrderClient({
               type="button"
               aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`shrink-0 min-h-[32px] rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ${
                 filter === f
-                  ? "flame-bg text-white"
-                  : "border border-line bg-bg-soft text-muted"
+                  ? "flame-bg text-white shadow-sm"
+                  : "border border-line bg-bg-soft text-muted hover:text-ink"
               }`}
             >
-              {f === "all" ? "All" : f === "veg" ? "Veg" : f === "nonveg" ? "Non-veg" : "Egg"}
+              {f === "all" ? "All Types" : f === "veg" ? "Veg 🟢" : f === "nonveg" ? "Non-veg 🔴" : "Egg 🟡"}
             </button>
           ))}
         </div>
 
         <div className="mt-2 flex gap-2 overflow-x-auto scrollbar-thin pb-1">
           <CategoryChip
-            label="All"
+            label="All Categories"
             active={category === "All"}
             onClick={() => setCategory("All")}
           />
@@ -238,8 +238,8 @@ export function TableOrderClient({
             className="mb-6 animate-fade-up"
             style={{ animationDelay: `${idx * 40}ms` }}
           >
-            <h2 className="font-display mb-3 text-xl text-gold">{cat}</h2>
-            <ul className="space-y-2">
+            <h2 className="font-display mb-3 text-xl font-bold text-gold">{cat}</h2>
+            <ul className="space-y-2.5">
               {list.map((item) => {
                 const inCart = itemsMap.get(item.id);
                 return (
@@ -258,7 +258,7 @@ export function TableOrderClient({
 
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-up">
-            <p className="mb-4 text-muted">No dishes match your search.</p>
+            <p className="mb-4 text-muted text-sm">No dishes match your search.</p>
             <button
               type="button"
               onClick={() => {
@@ -266,7 +266,7 @@ export function TableOrderClient({
                 setFilter("all");
                 setCategory("All");
               }}
-              className="rounded-full border border-line px-4 py-2 text-sm text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:ring-2 focus-visible:outline-none"
+              className="min-h-[44px] rounded-full border border-line px-5 py-2.5 text-xs font-semibold text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:ring-2 focus-visible:outline-none active:scale-95"
             >
               Clear search & filters
             </button>
@@ -279,31 +279,32 @@ export function TableOrderClient({
       </footer>
 
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-safe pointer-events-none">
           <button
             type="button"
             onClick={() => setCartOpen(true)}
-            className="flame-bg flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-white shadow-lg shadow-black/40 transition hover:brightness-110"
+            className="pointer-events-auto flame-bg flex min-h-[56px] w-full items-center justify-between rounded-2xl px-5 py-3.5 text-white shadow-xl shadow-black/60 transition hover:brightness-110 active:scale-[0.98] animate-fade-up"
           >
-            <span className="flex items-center gap-2 font-semibold">
+            <span className="flex items-center gap-2.5 font-bold text-base">
               <ShoppingBag className="h-5 w-5" />
-              {count} item{count === 1 ? "" : "s"}
+              {count} {count === 1 ? "item" : "items"}
             </span>
-            <span className="font-semibold">{formatINR(total)} · View cart</span>
+            <span className="font-bold text-base">{formatINR(total)} · View Cart →</span>
           </button>
         </div>
       )}
 
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
-          <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up">
-            <div className="flex items-center justify-between border-b border-line px-4 py-3">
-              <h3 className="font-display text-xl text-gold">Your order</h3>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-sm">
+          <div className="max-h-[88dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated shadow-2xl animate-fade-up flex flex-col">
+            <div className="drag-handle" />
+            <div className="flex items-center justify-between border-b border-line px-5 py-3">
+              <h3 className="font-display text-xl font-bold text-gold">Your Order</h3>
               <button
                 type="button"
                 aria-label="Close cart"
                 onClick={() => setCartOpen(false)}
-                className="rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink focus-visible:ring-2"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink focus-visible:ring-2 active:scale-90 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -315,49 +316,49 @@ export function TableOrderClient({
                 <button
                   type="button"
                   onClick={() => setCartOpen(false)}
-                  className="rounded-full border border-line px-6 py-2.5 text-sm font-semibold text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:outline-none focus-visible:ring-2"
+                  className="min-h-[44px] rounded-full border border-line px-6 py-2.5 text-sm font-semibold text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:outline-none focus-visible:ring-2 active:scale-95"
                 >
-                  Browse menu
+                  Browse Menu
                 </button>
               </div>
             ) : (
               <>
-                <div className="max-h-[50dvh] overflow-y-auto px-4 py-3 scrollbar-thin">
+                <div className="max-h-[50dvh] overflow-y-auto px-5 py-3 scrollbar-thin divide-y divide-line/40">
                   {items.map((item) => (
                     <div
                       key={item.itemId}
-                      className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+                      className="flex items-center gap-3 py-3.5"
                     >
                       <VegBadge veg={item.veg} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{item.name}</p>
-                        <p className="text-sm text-gold">
+                        <p className="truncate font-semibold text-ink text-sm">{item.name}</p>
+                        <p className="text-xs font-bold text-gold mt-0.5">
                           {formatINR(item.price * item.quantity)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
+                      <div className="flex items-center gap-1.5 rounded-full border border-line bg-bg-soft px-1.5 py-1">
                         <button
                           type="button"
                           aria-label="Decrease quantity"
-                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity - 1)}
                         >
-                          <Minus className="h-3.5 w-3.5" />
+                          <Minus className="h-4 w-4" />
                         </button>
-                        <span className="w-5 text-center text-sm">{item.quantity}</span>
+                        <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
                         <button
                           type="button"
                           aria-label="Increase quantity"
-                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity + 1)}
                         >
-                          <Plus className="h-3.5 w-3.5" />
+                          <Plus className="h-4 w-4" />
                         </button>
                       </div>
                       <button
                         type="button"
                         aria-label="Remove item"
-                        className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
+                        className="min-h-[44px] min-w-[36px] flex items-center justify-center text-xs font-medium text-muted hover:text-nonveg focus-visible:ring-2 rounded active:scale-95 transition"
                         onClick={() => removeItem(item.itemId)}
                       >
                         Remove
@@ -365,10 +366,10 @@ export function TableOrderClient({
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-line px-4 py-4">
-                  <div className="mb-3 flex justify-between text-sm">
+                <div className="border-t border-line px-5 py-4 pb-safe bg-bg-elevated/90">
+                  <div className="mb-3.5 flex justify-between text-sm">
                     <span className="text-muted">Subtotal</span>
-                    <span>{formatINR(total)}</span>
+                    <span className="font-bold text-ink text-base">{formatINR(total)}</span>
                   </div>
                   <button
                     type="button"
@@ -376,9 +377,9 @@ export function TableOrderClient({
                       setCartOpen(false);
                       setCheckoutOpen(true);
                     }}
-                    className="flame-bg w-full rounded-xl py-3 font-semibold text-white"
+                    className="flame-bg flex min-h-[52px] w-full items-center justify-center rounded-2xl py-3.5 text-base font-bold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]"
                   >
-                    Proceed to pay
+                    Proceed to Pay →
                   </button>
                 </div>
               </>
@@ -413,9 +414,9 @@ function CategoryChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+      className={`shrink-0 min-h-[34px] rounded-full px-3.5 py-1.5 text-xs font-medium transition active:scale-95 ${
         active
-          ? "bg-gold text-bg font-semibold"
+          ? "bg-gold text-bg font-bold shadow-sm"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"
       }`}
     >
@@ -438,58 +439,60 @@ const MenuItemRow = memo(function MenuItemRow({
   addItem: (item: MenuItem) => void;
 }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elevated/80 p-3">
+    <li className={`flex items-center gap-3 rounded-2xl border p-3.5 transition ${
+      inCart ? "border-gold/50 bg-gold/5 shadow-sm" : "border-line bg-bg-elevated/80"
+    }`}>
       <div className="min-w-0 flex-1">
         <div className="flex items-start gap-2">
           <VegBadge veg={item.veg} />
           <div className="min-w-0">
-            <p className="truncate font-medium text-ink">
+            <p className="truncate font-semibold text-ink text-sm sm:text-base">
               {item.name}
               {item.popular && (
-                <span className="ml-2 text-[10px] uppercase tracking-wider text-flame-from">
+                <span className="ml-2 rounded-full border border-flame-from/30 bg-flame-from/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-flame-from">
                   Popular
                 </span>
               )}
             </p>
             {item.subcategory && (
-              <p className="text-xs text-muted">{item.subcategory}</p>
+              <p className="text-xs text-muted mt-0.5">{item.subcategory}</p>
             )}
           </div>
         </div>
-        <p className="mt-1 pl-5 text-sm font-semibold text-gold">
+        <p className="mt-1 pl-5 text-sm font-bold text-gold">
           {formatINR(item.price)}
         </p>
       </div>
 
       {inCart ? (
-        <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
+        <div className="flex items-center gap-1 rounded-full border border-gold/40 bg-bg-soft px-1.5 py-1">
           <button
             type="button"
             aria-label="Decrease"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition"
             onClick={() => setQuantity(item.id, inCart.quantity - 1)}
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4" />
           </button>
-          <span className="w-5 text-center text-sm font-semibold">
+          <span className="w-5 text-center text-sm font-bold text-ink">
             {inCart.quantity}
           </span>
           <button
             type="button"
             aria-label="Increase"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition"
             onClick={() => setQuantity(item.id, inCart.quantity + 1)}
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       ) : (
         <button
           type="button"
           onClick={() => addItem(item)}
-          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+          className="shrink-0 min-h-[38px] rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
         >
-          Add
+          + ADD
         </button>
       )}
     </li>

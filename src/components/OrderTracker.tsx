@@ -198,32 +198,38 @@ export function OrderTracker({ orderId }: { orderId: string }) {
   const labels = order.tableNumber === 0 ? PICKUP_STATUS_LABEL : STATUS_LABEL;
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-lg px-4 py-6">
+    <div className="mx-auto min-h-dvh w-full max-w-lg px-4 py-6 pt-safe pb-safe">
       <BrandMark size="md" href="/" />
 
-      <div className="mt-8 rounded-3xl border border-line bg-bg-elevated p-5 animate-fade-up">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted">
-          {order.tableNumber === 0 ? "Pickup Order" : `Table ${order.tableNumber}`}
+      <div className="mt-8 rounded-3xl border border-line bg-bg-elevated p-6 animate-fade-up shadow-xl">
+        <p className="text-xs uppercase tracking-[0.2em] font-bold text-gold">
+          {order.tableNumber === 0 ? "🛍️ Pickup Order" : `🪑 Table ${order.tableNumber}`}
         </p>
-        <h1 className="font-display mt-1 text-3xl text-gold">
+        <h1 className="font-display mt-1 text-3xl font-bold text-gold">
           {labels[order.status]}
         </h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-xs text-muted">
           Order #{order.id.slice(0, 8).toUpperCase()}
         </p>
 
         {order.status !== "cancelled" && (
-          <div className="mt-6 flex justify-between gap-1">
-            {STATUS_STEP.map((s, i) => (
-              <div key={s} className="flex flex-1 flex-col items-center gap-2">
-                <div
-                  className={`h-2 w-full rounded-full ${
-                    i <= stepIndex ? "flame-bg" : "bg-bg-soft"
-                  }`}
-                />
-                <span className="text-[10px] text-muted">{labels[s]}</span>
-              </div>
-            ))}
+          <div className="mt-6">
+            <div className="flex justify-between gap-1.5 mb-2">
+              {STATUS_STEP.map((s, i) => (
+                <div key={s} className="flex flex-1 flex-col items-center gap-1.5">
+                  <div
+                    className={`h-2.5 w-full rounded-full transition-all duration-500 ${
+                      i <= stepIndex ? "flame-bg shadow-sm" : "bg-bg-soft"
+                    } ${i === stepIndex && order.status !== "served" ? "animate-pulse-soft" : ""}`}
+                  />
+                  <span className={`text-[10px] text-center font-medium ${
+                    i === stepIndex ? "text-gold font-bold" : "text-muted"
+                  }`}>
+                    {labels[s]}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -231,18 +237,18 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       {order.tableNumber !== 0 && (
         <Link
           href={`/table/${order.tableNumber}?parentOrderId=${order.id}&token=${RESTAURANT.tableTokens[order.tableNumber]}`}
-          className="flame-bg mt-4 block w-full rounded-xl py-3.5 text-center font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+          className="flame-bg mt-4 flex min-h-[50px] w-full items-center justify-center rounded-2xl py-3.5 text-center font-bold text-white transition hover:brightness-110 active:scale-[0.98] shadow-md"
         >
-          Order more from this table
+          + Order More from Table {order.tableNumber}
         </Link>
       )}
 
-      <div className="mt-4 rounded-3xl border border-line bg-bg-elevated/50 overflow-hidden">
+      <div className="mt-4 rounded-3xl border border-line bg-bg-elevated/50 overflow-hidden shadow-sm">
         <button
           type="button"
           onClick={() => setItemsExpanded(!itemsExpanded)}
           aria-expanded={itemsExpanded}
-          className="flex w-full items-center justify-between px-5 py-4 text-sm font-semibold text-gold hover:bg-bg-soft/20 transition active:scale-[0.99]"
+          className="flex min-h-[52px] w-full items-center justify-between px-5 py-4 text-sm font-bold text-gold hover:bg-bg-soft/20 transition active:scale-[0.99]"
         >
           <span>Items Ordered ({order.items.reduce((sum, item) => sum + item.quantity, 0)})</span>
           <span className="text-xs text-muted flex items-center gap-1">
@@ -266,15 +272,15 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         </button>
 
         {itemsExpanded && (
-          <ul className="border-t border-line divide-y divide-line/30 bg-bg-soft/10">
+          <ul className="border-t border-line divide-y divide-line/30 bg-bg-soft/10 animate-fade-up">
             {order.items.map((item) => (
               <li
                 key={`${item.itemId}-${item.notes || ""}`}
-                className="flex items-center gap-3 px-5 py-3 text-sm animate-fade-in"
+                className="flex items-center gap-3 px-5 py-3.5 text-sm"
               >
                 <VegBadge veg={item.veg} />
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">
+                  <p className="font-semibold text-ink">
                     {item.quantity}× {item.name}
                   </p>
                   {item.notes && (
@@ -283,7 +289,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
                     </p>
                   )}
                 </div>
-                <span className="font-semibold text-gold">
+                <span className="font-bold text-gold">
                   {formatINR(item.price * item.quantity)}
                 </span>
               </li>
@@ -292,41 +298,43 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         )}
       </div>
 
-      <div className="mt-4 rounded-2xl border border-line bg-bg-soft p-4 text-sm">
+      <div className="mt-4 rounded-3xl border border-line bg-bg-soft/80 p-5 text-sm space-y-2 shadow-sm">
         <div className="flex justify-between text-muted">
           <span>Subtotal</span>
-          <span>{formatINR(order.subtotal)}</span>
+          <span className="font-medium text-ink">{formatINR(order.subtotal)}</span>
         </div>
         {order.discountAmount ? (
-          <div className="mt-1 flex justify-between text-veg">
+          <div className="flex justify-between text-veg">
             <span>Discount ({order.discountPercent}%)</span>
-            <span>-{formatINR(order.discountAmount)}</span>
+            <span className="font-medium">-{formatINR(order.discountAmount)}</span>
           </div>
         ) : null}
         {(RESTAURANT.gstPercent > 0 || order.gst > 0) && (
-          <div className="mt-1 flex justify-between text-muted">
+          <div className="flex justify-between text-muted">
             <span>GST</span>
-            <span>{formatINR(order.gst)}</span>
+            <span className="font-medium text-ink">{formatINR(order.gst)}</span>
           </div>
         )}
-        <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold text-gold">
+        <div className="flex justify-between border-t border-line/50 pt-2.5 font-bold text-gold text-base">
           <span>Total</span>
           <span>{formatINR(order.total)}</span>
         </div>
-        <p className="mt-3 text-xs text-muted">
+        <p className="mt-2 text-xs text-muted pt-1 border-t border-line/30">
           Payment:{" "}
-          {order.paymentMethod === "upi"
-            ? order.paymentStatus === "paid"
-              ? "UPI · Paid"
-              : "UPI · Waiting for staff to confirm payment"
-            : "Cash · Pay at table"}
+          <strong className="text-ink font-semibold">
+            {order.paymentMethod === "upi"
+              ? order.paymentStatus === "paid"
+                ? "UPI · Paid ✓"
+                : "UPI · Waiting for staff to confirm payment"
+              : "Cash · Pay at table"}
+          </strong>
         </p>
       </div>
 
       {/* Google Review Prompt */}
       {(order.status === "ready" || order.status === "served") && (
-        <div className="mt-4 rounded-2xl border border-gold/30 bg-gold/5 p-5 text-center animate-fade-up">
-          <h3 className="font-display text-lg text-gold">Enjoyed your food?</h3>
+        <div className="mt-4 rounded-3xl border border-gold/30 bg-gold/5 p-5 text-center animate-fade-up shadow-sm">
+          <h3 className="font-display text-lg font-bold text-gold">Enjoyed your food?</h3>
           <p className="mt-2 text-xs text-muted leading-relaxed">
             Please take a moment to leave us a review on Google. It helps us grow and keep bringing you the best flavours of India!
           </p>
@@ -334,9 +342,9 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             href={RESTAURANT.location.mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flame-bg mt-3.5 inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+            className="flame-bg mt-3.5 inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-bold text-white transition hover:brightness-110 active:scale-[0.98] shadow-md"
           >
-            Leave a Google Review
+            Leave a Google Review ★★★★★
           </a>
         </div>
       )}
@@ -344,7 +352,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       <button
         type="button"
         onClick={() => shareReceiptOnWhatsApp(order)}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-green-600/30 bg-green-500/10 py-3 text-center text-sm font-semibold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98]"
+        className="mt-4 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-green-600/40 bg-green-500/10 py-3 text-center text-sm font-bold text-green-400 transition hover:border-green-500 hover:bg-green-500/20 active:scale-[0.98] shadow-sm"
       >
         <svg
           className="h-4 w-4 fill-current"
