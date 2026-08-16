@@ -194,14 +194,14 @@ export function WaiterOrderClient() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-28">
+    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-safe-dock">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-md pt-safe">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Link
               href="/admin/waiter"
-              className="rounded-full border border-line p-2 text-muted hover:border-gold hover:text-gold"
+              className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border border-line p-2 text-muted hover:border-gold hover:text-gold active:scale-95 transition"
               aria-label="Back to today’s orders"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -213,7 +213,7 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setTableModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold/20 active:scale-95"
+            className="flex min-h-[38px] items-center gap-1.5 rounded-full border border-gold/50 bg-gold/15 px-3.5 py-1.5 text-xs font-bold text-gold transition hover:bg-gold/25 active:scale-95 shadow-sm"
           >
             <MapPin className="h-3.5 w-3.5" />
             <span>
@@ -225,20 +225,20 @@ export function WaiterOrderClient() {
 
         {/* Search Bar */}
         <div className="relative mt-3">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             aria-label="Search dishes"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes (e.g. Paneer, Naan, Biryani)…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+            className="w-full rounded-2xl border border-line bg-bg-elevated py-3 pl-10 pr-12 text-base text-ink outline-none placeholder:text-muted focus:border-gold transition-colors"
           />
           {query && (
             <button
               type="button"
               aria-label="Clear search"
               onClick={() => setQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted hover:bg-bg-soft hover:text-ink"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted hover:bg-bg-soft hover:text-ink active:scale-90 transition"
             >
               <X className="h-4 w-4" />
             </button>
@@ -253,9 +253,9 @@ export function WaiterOrderClient() {
               type="button"
               aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition ${
+              className={`shrink-0 min-h-[32px] rounded-full px-3.5 py-1.5 text-xs font-bold transition active:scale-95 ${
                 filter === f
-                  ? "flame-bg text-white"
+                  ? "flame-bg text-white shadow-sm"
                   : "border border-line bg-bg-soft text-muted hover:text-ink"
               }`}
             >
@@ -290,11 +290,11 @@ export function WaiterOrderClient() {
       {/* Main Content */}
       <main className="flex-1 px-4 py-4">
         {/* Collapsible Off-Menu Custom Item Box */}
-        <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
+        <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all shadow-sm">
           <button
             type="button"
             onClick={() => setCustomOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
+            className="flex min-h-[48px] w-full items-center justify-between p-3.5 text-left text-sm font-bold text-gold active:bg-gold/10 transition"
           >
             <span className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
@@ -306,46 +306,49 @@ export function WaiterOrderClient() {
           </button>
 
           {customOpen && (
-            <div className="border-t border-gold/20 p-3.5 pt-2">
-              <p className="mb-2 text-xs text-muted">
+            <div className="border-t border-gold/20 p-4 pt-3 space-y-2.5 animate-fade-up">
+              <p className="text-xs text-muted">
                 Need to add a dish not in the main menu? Enter dish name and custom price:
               </p>
-              <div className="grid gap-2">
+              <div className="grid gap-2.5">
                 <input
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  placeholder="Dish name (e.g. Special Chai)"
-                  className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+                  placeholder="Dish name (e.g. Special Chai, Extra Raita)"
+                  className="w-full rounded-xl border border-line bg-bg-elevated px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                 />
                 <div className="flex gap-2">
-                  <input
-                    inputMode="numeric"
-                    value={customPrice}
-                    onChange={(e) =>
-                      setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
-                    }
-                    placeholder="Price ₹"
-                    className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
-                  />
+                  <div className="relative w-32">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gold">₹</span>
+                    <input
+                      inputMode="numeric"
+                      value={customPrice}
+                      onChange={(e) =>
+                        setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
+                      }
+                      placeholder="Price"
+                      className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-7 pr-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+                    />
+                  </div>
                   <select
                     value={customVeg}
                     onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
-                    className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none focus:border-gold"
+                    className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2.5 text-base text-ink outline-none focus:border-gold"
                   >
-                    <option value="veg">Veg</option>
-                    <option value="nonveg">Non-veg</option>
-                    <option value="egg">Egg</option>
+                    <option value="veg">Veg 🟢</option>
+                    <option value="nonveg">Non-veg 🔴</option>
+                    <option value="egg">Egg 🟡</option>
                   </select>
                   <button
                     type="button"
                     onClick={addCustomItem}
-                    className="shrink-0 flame-bg rounded-xl px-4 py-2 text-xs font-semibold text-white hover:brightness-110"
+                    className="shrink-0 min-h-[44px] flame-bg rounded-xl px-4 py-2.5 text-xs font-bold text-white hover:brightness-110 active:scale-95 transition"
                   >
-                    Add
+                    + Add
                   </button>
                 </div>
                 {customError && (
-                  <p className="text-xs text-nonveg mt-1">{customError}</p>
+                  <p className="text-xs font-semibold text-nonveg mt-1">{customError}</p>
                 )}
               </div>
             </div>
@@ -380,7 +383,7 @@ export function WaiterOrderClient() {
                             {item.name}
                           </p>
                           {item.subcategory && (
-                            <p className="text-xs text-muted">
+                            <p className="text-xs text-muted mt-0.5">
                               {item.subcategory}
                             </p>
                           )}
@@ -392,11 +395,11 @@ export function WaiterOrderClient() {
                     </div>
 
                     {inCart ? (
-                      <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-bg-soft px-2 py-1.5">
+                      <div className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-bg-soft px-2 py-1.5">
                         <button
                           type="button"
                           aria-label="Decrease"
-                          className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold transition active:scale-90"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/20 text-gold transition active:scale-90"
                           onClick={() =>
                             setQuantity(item.id, inCart.quantity - 1)
                           }
@@ -409,7 +412,7 @@ export function WaiterOrderClient() {
                         <button
                           type="button"
                           aria-label="Increase"
-                          className="flex h-7 w-7 items-center justify-center rounded-full flame-bg text-white transition active:scale-90"
+                          className="flex h-8 w-8 items-center justify-center rounded-full flame-bg text-white transition active:scale-90"
                           onClick={() =>
                             setQuantity(item.id, inCart.quantity + 1)
                           }
@@ -421,7 +424,7 @@ export function WaiterOrderClient() {
                       <button
                         type="button"
                         onClick={() => addMenuItem(item)}
-                        className="shrink-0 rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
+                        className="shrink-0 min-h-[38px] rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
                       >
                         + ADD
                       </button>
@@ -434,7 +437,7 @@ export function WaiterOrderClient() {
         ))}
 
         {filtered.length === 0 && (
-          <div className="py-12 text-center text-muted">
+          <div className="py-12 text-center text-muted animate-fade-up">
             <UtensilsCrossed className="mx-auto h-8 w-8 text-muted/50 mb-2" />
             <p className="text-sm font-medium">No dishes match your search.</p>
             <p className="text-xs mt-1">Try another dish name or use “Add Off-Menu Custom Item” above.</p>
@@ -444,11 +447,11 @@ export function WaiterOrderClient() {
 
       {/* Sticky Bottom Review Cart Bar */}
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-safe pointer-events-none">
           <button
             type="button"
             onClick={() => setCartOpen(true)}
-            className="flame-bg flex w-full items-center justify-between rounded-2xl px-5 py-4 text-white shadow-xl shadow-black/50 transition hover:brightness-110 active:scale-[0.99]"
+            className="pointer-events-auto flame-bg flex min-h-[56px] w-full items-center justify-between rounded-2xl px-5 py-4 text-white shadow-xl shadow-black/60 transition hover:brightness-110 active:scale-[0.98] animate-fade-up"
           >
             <span className="flex items-center gap-2 font-bold text-base">
               <ShoppingBag className="h-5 w-5" />
@@ -464,13 +467,14 @@ export function WaiterOrderClient() {
       {/* STEP 1: Select Table Modal */}
       {tableModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center">
-          <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
+          <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up pb-safe flex flex-col">
+            <div className="drag-handle sm:hidden" />
             <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-gold">
                   Step 1 of 3
                 </span>
-                <h3 className="font-display text-2xl text-gold">Select Table</h3>
+                <h3 className="font-display text-2xl font-bold text-gold">Select Table</h3>
                 <p className="text-xs text-muted mt-0.5">
                   Which table is ordering right now?
                 </p>
@@ -479,7 +483,7 @@ export function WaiterOrderClient() {
                 type="button"
                 aria-label="Close table selector"
                 onClick={() => setTableModalOpen(false)}
-                className="rounded-full p-2 text-muted hover:bg-bg-soft"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted hover:bg-bg-soft active:scale-90 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -492,9 +496,9 @@ export function WaiterOrderClient() {
                 setTableNumber(0);
                 setTableModalOpen(false);
               }}
-              className={`mb-4 flex w-full items-center justify-between rounded-2xl border p-4 text-left transition ${
+              className={`mb-4 flex min-h-[64px] w-full items-center justify-between rounded-2xl border p-4 text-left transition active:scale-[0.98] ${
                 tableNumber === 0
-                  ? "border-gold bg-gold/15 shadow-md"
+                  ? "border-gold bg-gold/20 shadow-md ring-2 ring-gold/40"
                   : "border-line bg-bg-soft hover:border-gold/50"
               }`}
             >
@@ -502,13 +506,13 @@ export function WaiterOrderClient() {
                 <p className="font-display text-lg font-bold text-gold">🛍️ Pickup / Takeaway</p>
                 <p className="text-xs text-muted">Customer collecting at counter</p>
               </div>
-              <span className="rounded-full bg-gold/20 px-3 py-1 text-xs font-bold text-gold">
+              <span className="rounded-full bg-gold/20 px-3.5 py-1.5 text-xs font-bold text-gold">
                 Select
               </span>
             </button>
 
             {/* Table Cards Grid */}
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+            <p className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-muted">
               Dine-In Tables:
             </p>
             <div className="grid grid-cols-3 gap-2.5">
@@ -521,9 +525,9 @@ export function WaiterOrderClient() {
                       setTableNumber(n);
                       setTableModalOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center rounded-2xl border p-4 transition ${
+                    className={`flex min-h-[76px] flex-col items-center justify-center rounded-2xl border p-3.5 transition active:scale-95 ${
                       tableNumber === n
-                        ? "border-gold bg-gold/20 shadow-md ring-2 ring-gold/40"
+                        ? "border-gold bg-gold/25 shadow-md ring-2 ring-gold/50 text-gold"
                         : "border-line bg-bg-soft hover:border-gold/50"
                     }`}
                   >
@@ -541,14 +545,15 @@ export function WaiterOrderClient() {
 
       {/* STEP 2: Cart Review Modal */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
-          <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up">
-            <div className="flex items-center justify-between border-b border-line px-5 py-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-sm">
+          <div className="max-h-[88dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up pb-safe flex flex-col">
+            <div className="drag-handle sm:hidden" />
+            <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-gold block">
                   Step 2 of 3
                 </span>
-                <h3 className="font-display text-xl text-gold">
+                <h3 className="font-display text-xl font-bold text-gold">
                   Review Order · {tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`}
                 </h3>
               </div>
@@ -556,21 +561,21 @@ export function WaiterOrderClient() {
                 type="button"
                 aria-label="Close cart"
                 onClick={() => setCartOpen(false)}
-                className="rounded-full p-2 text-muted hover:bg-bg-soft"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 text-muted hover:bg-bg-soft active:scale-90 transition"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="max-h-[45dvh] overflow-y-auto px-5 py-3 scrollbar-thin">
+            <div className="max-h-[48dvh] overflow-y-auto px-5 py-3 scrollbar-thin divide-y divide-line/40">
               {items.map((item) => (
                 <div
                   key={item.itemId}
-                  className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+                  className="flex items-center gap-3 py-3.5"
                 >
                   <VegBadge veg={item.veg} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-ink">{item.name}</p>
-                    <p className="text-sm font-bold text-gold">
+                    <p className="truncate font-semibold text-ink text-sm">{item.name}</p>
+                    <p className="text-xs font-bold text-gold mt-0.5">
                       {formatINR(item.price * item.quantity)}
                       {item.itemId.startsWith("custom:") && (
                         <span className="ml-2 text-[10px] uppercase text-muted">
@@ -579,22 +584,24 @@ export function WaiterOrderClient() {
                       )}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
+                  <div className="flex items-center gap-1.5 rounded-full border border-line bg-bg-soft px-2 py-1">
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Decrease quantity"
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
                       }
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-5 text-center font-bold text-sm">
+                    <span className="w-6 text-center font-bold text-sm">
                       {item.quantity}
                     </span>
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Increase quantity"
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-gold hover:bg-gold-dim active:scale-90 transition"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
                       }
@@ -605,18 +612,18 @@ export function WaiterOrderClient() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-line px-5 py-4">
-              <div className="mb-1.5 flex justify-between text-sm text-muted">
+            <div className="border-t border-line px-5 py-4 bg-bg-elevated/90 space-y-2">
+              <div className="flex justify-between text-sm text-muted">
                 <span>Subtotal</span>
-                <span className="font-semibold">{formatINR(subtotal)}</span>
+                <span className="font-semibold text-ink">{formatINR(subtotal)}</span>
               </div>
               {RESTAURANT.gstPercent > 0 && (
-                <div className="mb-1.5 flex justify-between text-sm text-muted">
-                  <span>GST</span>
-                  <span className="font-semibold">{formatINR(gst)}</span>
+                <div className="flex justify-between text-sm text-muted">
+                  <span>GST ({RESTAURANT.gstPercent}%)</span>
+                  <span className="font-semibold text-ink">{formatINR(gst)}</span>
                 </div>
               )}
-              <div className="mb-4 flex justify-between text-lg font-bold text-gold">
+              <div className="flex justify-between text-lg font-bold text-gold border-t border-line/60 pt-2">
                 <span>Total Amount</span>
                 <span>{formatINR(total)}</span>
               </div>
@@ -626,7 +633,7 @@ export function WaiterOrderClient() {
                   setCartOpen(false);
                   setCheckoutOpen(true);
                 }}
-                className="flame-bg w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg"
+                className="flame-bg flex min-h-[52px] w-full items-center justify-center rounded-2xl py-3.5 text-base font-bold text-white shadow-lg active:scale-[0.98] transition hover:brightness-110 mt-2"
               >
                 Proceed to Payment →
               </button>
@@ -637,24 +644,25 @@ export function WaiterOrderClient() {
 
       {/* STEP 3: Confirm & Send to Kitchen Modal */}
       {checkoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-          <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center">
+          <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up pb-safe flex flex-col">
+            <div className="drag-handle sm:hidden" />
             <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-gold block">
                   Step 3 of 3
                 </span>
-                <h3 className="font-display text-2xl text-gold">Confirm & Place Order</h3>
-                <p className="text-sm text-muted">
+                <h3 className="font-display text-2xl font-bold text-gold">Confirm & Place Order</h3>
+                <p className="text-xs text-muted mt-0.5">
                   {tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`} ·{" "}
-                  <strong className="text-gold">{formatINR(total)}</strong>
+                  <strong className="text-gold font-semibold">{formatINR(total)}</strong>
                 </p>
               </div>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setCheckoutOpen(false)}
-                className="rounded-full p-2 hover:bg-bg-soft text-muted"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-2 hover:bg-bg-soft text-muted active:scale-90 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -667,10 +675,10 @@ export function WaiterOrderClient() {
               <button
                 type="button"
                 onClick={() => setMethod("cash")}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
+                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-4 transition active:scale-95 ${
                   method === "cash"
-                    ? "border-gold bg-gold/15 shadow-sm"
-                    : "border-line bg-bg-soft"
+                    ? "border-gold bg-gold/20 shadow-sm ring-1 ring-gold/40"
+                    : "border-line bg-bg-soft hover:border-gold/40"
                 }`}
               >
                 <Banknote className="h-7 w-7 text-gold" />
@@ -680,10 +688,10 @@ export function WaiterOrderClient() {
               <button
                 type="button"
                 onClick={() => setMethod("upi")}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
+                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-4 transition active:scale-95 ${
                   method === "upi"
-                    ? "border-gold bg-gold/15 shadow-sm"
-                    : "border-line bg-bg-soft"
+                    ? "border-gold bg-gold/20 shadow-sm ring-1 ring-gold/40"
+                    : "border-line bg-bg-soft hover:border-gold/40"
                 }`}
               >
                 <Smartphone className="h-7 w-7 text-gold" />
@@ -697,9 +705,10 @@ export function WaiterOrderClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+                className="w-full rounded-2xl border border-line bg-bg-soft px-4 py-3 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
+                type="tel"
                 inputMode="numeric"
                 maxLength={10}
                 value={phone}
@@ -707,24 +716,24 @@ export function WaiterOrderClient() {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
                 placeholder="Customer Phone (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+                className="w-full rounded-2xl border border-line bg-bg-soft px-4 py-3 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
                 rows={2}
-                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+                className="w-full resize-none rounded-2xl border border-line bg-bg-soft px-4 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
             </div>
 
-            {error && <p className="mb-3 text-sm text-nonveg font-medium">{error}</p>}
+            {error && <p className="mb-3 text-sm text-nonveg font-semibold">{error}</p>}
 
             <button
               type="button"
               disabled={loading || items.length === 0}
               onClick={placeOrder}
-              className="flame-bg w-full rounded-xl py-4 text-base font-bold text-white shadow-lg disabled:opacity-50 transition hover:brightness-110"
+              className="flame-bg flex min-h-[54px] w-full items-center justify-center rounded-2xl py-4 text-base font-bold text-white shadow-lg disabled:opacity-50 transition hover:brightness-110 active:scale-[0.98]"
             >
               {loading
                 ? "Submitting order…"
@@ -752,7 +761,7 @@ function CategoryChip({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs transition ${
+      className={`shrink-0 min-h-[34px] rounded-full px-3.5 py-1.5 text-xs font-bold transition active:scale-95 ${
         active
           ? "bg-gold text-bg font-bold shadow-sm"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"

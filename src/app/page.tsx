@@ -95,7 +95,7 @@ export default function HomePage() {
           />
         </div>
 
-        <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10">
+        <nav className="relative z-10 flex items-center justify-between px-5 py-4 md:px-10 pt-safe">
           <p className="font-betania text-lg tracking-wide text-gold-soft/90 md:text-xl">
             a La Gardenia concept
           </p>
@@ -105,7 +105,7 @@ export default function HomePage() {
             rel="noopener noreferrer"
             aria-label="Contact on WhatsApp"
             title="Contact on WhatsApp"
-            className="flex items-center gap-1.5 rounded-full border border-green-600/40 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400 backdrop-blur-sm transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
+            className="flex min-h-[38px] items-center gap-1.5 rounded-full border border-green-600/40 bg-green-500/10 px-3.5 py-2 text-xs font-semibold text-green-400 backdrop-blur-sm transition hover:border-green-500 hover:bg-green-500/20 active:scale-95"
           >
             <WhatsAppIcon className="h-3.5 w-3.5" />
             <span>WhatsApp</span>
@@ -143,14 +143,14 @@ export default function HomePage() {
           >
             <Link
               href="/pickup"
-              className="flame-bg flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 font-semibold text-white shadow-lg shadow-flame-from/30 transition hover:brightness-110 active:scale-[0.98]"
+              className="flame-bg flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl py-3.5 font-semibold text-white shadow-lg shadow-flame-from/30 transition hover:brightness-110 active:scale-[0.98]"
             >
               <ShoppingBag className="h-5 w-5" />
               Order Online Pickup
             </Link>
             <Link
               href="/pickup"
-              className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/50 bg-black/50 py-3.5 text-sm font-semibold text-gold backdrop-blur-sm transition hover:border-gold hover:bg-gold/10 active:scale-[0.98]"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-2xl border border-gold/50 bg-black/50 py-3 text-sm font-semibold text-gold backdrop-blur-sm transition hover:border-gold hover:bg-gold/10 active:scale-[0.98]"
             >
               <Utensils className="h-4 w-4" />
               View Menu &amp; Prices
@@ -160,7 +160,7 @@ export default function HomePage() {
       </section>
 
       {/* Story + place — below the fold */}
-      <section className="relative z-10 mx-auto w-full max-w-md px-6 py-14">
+      <section className="relative z-10 mx-auto w-full max-w-md px-5 py-12">
         <div className="text-center animate-fade-up">
           <h2 className="font-display text-3xl text-gold">Flavours of India</h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
@@ -169,8 +169,8 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-10 space-y-4">
-          <div className="relative h-52 w-full overflow-hidden animate-fade-up">
+        <div className="mt-8 space-y-3.5">
+          <div className="relative h-56 w-full overflow-hidden rounded-2xl border border-line/40 shadow-md animate-fade-up">
             <Image
               src="/photo-facade.jpg"
               alt="ChatKara Flavors of India storefront"
@@ -207,7 +207,7 @@ export default function HomePage() {
             ).map((photo, i) => (
               <div
                 key={photo.src}
-                className="relative h-36 overflow-hidden animate-fade-up"
+                className="relative h-36 overflow-hidden rounded-2xl border border-line/40 shadow-sm animate-fade-up"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <Image
@@ -222,10 +222,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-line/50 pt-8 text-center">
-          <div className="flex items-center justify-center gap-3 text-gold-soft">
-            <Clock className="h-5 w-5" />
-            <h3 className="font-display text-lg">Hours of Operation</h3>
+        <div className="mt-10 rounded-3xl border border-line/50 bg-bg-elevated/50 p-6 backdrop-blur-sm text-center shadow-sm">
+          <div className="flex items-center justify-center gap-2.5 text-gold-soft">
+            <Clock className="h-5 w-5 text-gold" />
+            <h3 className="font-display text-lg font-bold text-gold">Hours of Operation</h3>
           </div>
           <p className="mt-2 text-sm text-muted">
             Open Daily:{" "}
@@ -233,55 +233,55 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-10 border-t border-line/50 pt-8">
+        <div className="mt-6 rounded-3xl border border-line/50 bg-bg-elevated/50 p-6 backdrop-blur-sm shadow-sm">
           <div className="mb-4 flex items-center justify-center gap-2 text-gold-soft">
-            <MapPin className="h-5 w-5" />
-            <h3 className="font-display text-lg">Find Us</h3>
+            <MapPin className="h-5 w-5 text-gold" />
+            <h3 className="font-display text-lg font-bold text-gold">Find Us</h3>
           </div>
-          <div className="overflow-hidden border border-line bg-bg-soft">
+          <div className="overflow-hidden rounded-2xl border border-line bg-bg-soft">
             <iframe
               src={
                 RESTAURANT.location.mapsEmbedUrl ||
                 `https://maps.google.com/maps?q=${RESTAURANT.location.lat},${RESTAURANT.location.lng}&z=16&output=embed`
               }
               title="ChatKara location on Google Maps"
-              className="h-44 w-full opacity-80"
+              className="h-44 w-full opacity-85"
               style={{ border: 0 }}
               allowFullScreen={false}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
-          <div className="mt-3 text-center">
+          <div className="mt-3.5 text-center">
             <a
               href={RESTAURANT.location.mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-muted underline underline-offset-4 transition hover:text-gold"
+              className="inline-flex min-h-[36px] items-center text-xs font-medium text-gold underline underline-offset-4 transition hover:text-gold-soft"
             >
-              Open in Google Maps
+              Open in Google Maps →
             </a>
           </div>
         </div>
       </section>
 
-      <footer className="relative z-10 mx-auto w-full max-w-md py-6 text-center space-y-2">
-        <p className="text-xs text-muted/60">
+      <footer className="relative z-10 mx-auto w-full max-w-md py-8 text-center space-y-3 pb-safe">
+        <p className="text-xs text-muted/70">
           Website built by {RESTAURANT.developer}
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-6">
           <Link
             href="/admin/waiter"
-            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+            className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted/60 transition hover:text-gold"
           >
-            <ClipboardList className="h-3 w-3" />
-            Waiter
+            <ClipboardList className="h-3.5 w-3.5" />
+            Waiter POS
           </Link>
           <Link
             href="/kitchen"
-            className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted/40 transition hover:text-gold-soft"
+            className="inline-flex min-h-[44px] items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted/60 transition hover:text-gold"
           >
-            <Monitor className="h-3 w-3" />
+            <Monitor className="h-3.5 w-3.5" />
             Kitchen POS
           </Link>
         </div>

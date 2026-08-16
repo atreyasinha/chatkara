@@ -10,7 +10,7 @@
   --flame-from: #f97316;
   --flame-to: #b91c1c;
   --text: #f5f0e8;
-  --text-muted: #a89f91;
+  --text-muted: #b8afa3;
   --border: rgba(212, 175, 55, 0.28);
   --veg: #22c55e;
   --nonveg: #ef4444;
@@ -38,6 +38,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -54,6 +55,12 @@ body {
 ::selection {
   background: rgba(212, 175, 55, 0.35);
   color: #fff;
+}
+
+/* Accessibility focus rings */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .font-display {
@@ -126,7 +133,7 @@ body {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-pulse-soft {
@@ -166,6 +173,27 @@ body {
 
 .font-betania {
   font-family: var(--font-betania), cursive;
+}
+
+/* Mobile viewport safe-area helpers */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+}
+
+.pb-safe-dock {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top, 1rem));
+}
+
+.drag-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(212, 175, 55, 0.35);
+  margin: 8px auto 12px auto;
 }
 
 /* Prevent iOS Safari from auto-zooming viewport when focusing inputs < 16px */
