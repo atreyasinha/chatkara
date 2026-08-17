@@ -582,7 +582,8 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Decrease quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
                       }
@@ -594,7 +595,8 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Increase quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
                       }
