@@ -1,4 +1,4 @@
-## $(date +%Y-%m-%d) - Added helpful CTA to empty search state
+## 2026-08-21 - Added helpful CTA to empty search state
 **Learning:** Empty states caused by restrictive filters/searches are a common UX dead end. Providing a single "Clear search & filters" button drastically improves the user's ability to recover from overly specific queries.
 **Action:** Always include a way to easily reset applied filters when presenting a "no results" state to the user.
 ## 2024-07-25 - Cart Empty State Message and Call to Action
@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-08-21 - Collapsible Sections Need Explicit ARIA Expanded Attributes
+**Learning:** Collapsible accordion or drawer buttons (like the custom item addition section) inherently rely on visual toggling. Without `aria-expanded` attributes explicitly tied to state, screen reader users cannot tell whether activating the button will reveal or hide content, and without `aria-controls`, they won't know which content section is manipulated.
+**Action:** When implementing custom toggle/collapsible buttons, always pair the state with `aria-expanded={isOpen}` on the trigger element, and optionally link the trigger to the revealed container using `aria-controls` with a matching `id`.

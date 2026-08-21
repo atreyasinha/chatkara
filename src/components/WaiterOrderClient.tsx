@@ -293,6 +293,8 @@ export function WaiterOrderClient() {
         <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
           <button
             type="button"
+            aria-expanded={customOpen}
+            aria-controls="custom-item-panel"
             onClick={() => setCustomOpen((prev) => !prev)}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
@@ -306,7 +308,7 @@ export function WaiterOrderClient() {
           </button>
 
           {customOpen && (
-            <div className="border-t border-gold/20 p-3.5 pt-2">
+            <div id="custom-item-panel" className="border-t border-gold/20 p-3.5 pt-2">
               <p className="mb-2 text-xs text-muted">
                 Need to add a dish not in the main menu? Enter dish name and custom price:
               </p>
