@@ -74,7 +74,18 @@ export async function PATCH(
     }
 
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
-  } catch {
-    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to update order";
+    console.error("PATCH /api/orders/[id] failed:", message);
+    const isFirestore =
+      /firestore/i.test(message) || /NOT_FOUND/i.test(message) || /timed out/i.test(message);
+    return NextResponse.json(
+      {
+        error: isFirestore
+          ? "Database unavailable — Firestore may not be set up for this environment"
+          : "Failed to update",
+      },
+      { status: 503 },
+    );
   }
 }
