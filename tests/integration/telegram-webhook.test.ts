@@ -39,7 +39,7 @@ function callbackUpdate(orderId: string, action: "n" | "p" | "k" | "x") {
   return {
     callback_query: {
       id: `cb-${action}-${orderId.slice(0, 8)}`,
-      data: buildKitchenCallbackData(action, orderId),
+      data: `kitchen|${action}|${orderId}`,
       from: { id: CHAT_ID, username: "ci_chef" },
       message: {
         message_id: 1,
