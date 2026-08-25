@@ -293,6 +293,7 @@ export function WaiterOrderClient() {
         <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
           <button
             type="button"
+            aria-expanded={customOpen}
             onClick={() => setCustomOpen((prev) => !prev)}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
@@ -313,6 +314,7 @@ export function WaiterOrderClient() {
               <div className="grid gap-2">
                 <input
                   value={customName}
+                  aria-label="Custom dish name"
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
                   className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
@@ -320,6 +322,7 @@ export function WaiterOrderClient() {
                 <div className="flex gap-2">
                   <input
                     inputMode="numeric"
+                    aria-label="Custom dish price"
                     value={customPrice}
                     onChange={(e) =>
                       setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
@@ -329,6 +332,7 @@ export function WaiterOrderClient() {
                   />
                   <select
                     value={customVeg}
+                    aria-label="Custom dish dietary preference"
                     onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
                     className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none focus:border-gold"
                   >
@@ -582,6 +586,7 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
+                      aria-label="Decrease quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
@@ -594,6 +599,7 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
+                      aria-label="Increase quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
@@ -695,12 +701,14 @@ export function WaiterOrderClient() {
             <div className="mb-4 space-y-2.5">
               <input
                 value={name}
+                aria-label="Customer name (optional)"
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
                 inputMode="numeric"
+                aria-label="Customer Phone (optional)"
                 maxLength={10}
                 value={phone}
                 onChange={(e) =>
@@ -711,6 +719,7 @@ export function WaiterOrderClient() {
               />
               <textarea
                 value={notes}
+                aria-label="Special order notes (optional)"
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
                 rows={2}
