@@ -36,6 +36,7 @@ export function testHeaders(): Record<string, string> {
   };
   const key = process.env.E2E_TEST_SECRET;
   if (key) headers["x-chatkara-test-key"] = key;
+  headers["x-forwarded-for"] = "127.0.0.1";
   return headers;
 }
 

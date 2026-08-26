@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getClientIp } from "@/lib/get-ip";
 import { timingSafeEqual, createHash } from "crypto";
 import {
   ADMIN_SESSION_COOKIE,
@@ -15,8 +16,7 @@ export async function POST(request: Request) {
   try {
     // Throttle brute-force attempts — 5 tries/min per IP.
     const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+      getClientIp(request);
     const now = Date.now();
     const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
     if (hits.length >= 5) {
