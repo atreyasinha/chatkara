@@ -6,3 +6,8 @@
 **Vulnerability:** Direct array indexing of `x-forwarded-for` for client IP limits.
 **Learning:** Hardcoded split logic in multiple routes creates inconsistency and spoofing risk.
 **Prevention:** Abstracted secure client IP logic into `getClientIp` in `src/lib/get-ip.ts`.
+
+## 2026-08-26 - [MEDIUM] Centralize Client IP Extraction (Part 2)
+**Vulnerability:** E2E Tests failing due to `x-forwarded-for` being stripped or modified by `getClientIp` refactoring logic.
+**Learning:** When abstracting headers such as IP headers, integration test mocks (e.g. `tests/helpers/fixtures.ts`) should inject the mocked IP explicitly.
+**Prevention:** Updated `testHeaders` to hardcode `x-forwarded-for` for passing e2e and integration tests mimicking proxy forwarding.
