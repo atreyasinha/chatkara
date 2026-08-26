@@ -43,7 +43,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --with-deps chromium
 
       - name: E2E against Production URL
         run: npx playwright test --project=chromium
@@ -133,7 +133,7 @@ jobs:
         run: npm run test:integration
 
       - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --with-deps chromium
 
       - name: E2E against local Dev server
         run: npx playwright test --project=chromium
