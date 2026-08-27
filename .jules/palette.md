@@ -7,3 +7,7 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+
+## 2024-05-14 - POS Rapid-Entry Accessibility
+**Learning:** Rapid-entry interfaces like Point-of-Sale (POS) waitstaff UI components often intentionally omit semantic `<label>` elements to save vertical screen space and rely heavily on placeholder text. This poses significant issues for screen readers. Toggleable off-menu custom item sections also commonly lack explicit state disclosure.
+**Action:** Always verify that input fields in constrained space designs have explicit `aria-label` properties if visual `<label>` elements are omitted. Also, always ensure collapsible sections explicitly announce their state with `aria-expanded`.
