@@ -7,6 +7,7 @@ import {
   adminPasswordConfigured,
   createAdminSessionToken,
 } from "@/lib/admin-auth";
+import { getClientIp } from "@/lib/get-ip";
 
 /** In-memory per-IP login throttle. */
 const loginAttempts = new Map<string, number[]>();
@@ -14,9 +15,7 @@ const loginAttempts = new Map<string, number[]>();
 export async function POST(request: Request) {
   try {
     // Throttle brute-force attempts — 5 tries/min per IP.
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
+    const ip = getClientIp(request);
     const now = Date.now();
     const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
     if (hits.length >= 5) {
