@@ -19,3 +19,7 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+
+## 2024-05-16 - [Unbounded Database Reads for Count Checks]
+**Learning:** Checking for the existence of a few records (like verifying if a user is a first-time customer by counting prior orders) without applying a `limit()` can cause unbounded O(N) database reads. Over time, as test data or customer history grows, this results in memory exhaustion and query timeouts.
+**Action:** When a business rule only requires knowing if a count reaches a small threshold (e.g., `count === 1`), always apply a `limit()` (e.g., `limit(10)`) to the query to cap the data retrieved.
