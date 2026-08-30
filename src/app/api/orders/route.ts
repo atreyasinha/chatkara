@@ -187,7 +187,7 @@ export async function POST(request: Request) {
     const message = err instanceof Error ? err.message : "Failed to create order";
     console.error("POST /api/orders failed:", message);
     const isFirestore =
-      /firestore/i.test(message) || /NOT_FOUND/i.test(message) || /timed out/i.test(message);
+      /firestore/i.test(message) || /NOT_FOUND/i.test(message) || /timed out/i.test(message) || /permission-denied/i.test(message);
     return NextResponse.json(
       {
         error: isFirestore
