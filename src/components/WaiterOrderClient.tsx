@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useDeferredValue } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -34,9 +34,6 @@ export function WaiterOrderClient() {
   const [tableNumber, setTableNumber] = useState<number>(0);
   const [tableModalOpen, setTableModalOpen] = useState<boolean>(true);
   const [query, setQuery] = useState("");
-  // ⚡ Bolt: Defer search query updates to keep typing instantly responsive
-  // while the large list filters in the background
-  const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState("All");
   const [filter, setFilter] = useState<"all" | VegFlag>("all");
   const [items, setItems] = useState<CartItem[]>([]);
@@ -59,11 +56,11 @@ export function WaiterOrderClient() {
   const [requestId] = useState(() => crypto.randomUUID());
 
   const filtered = useMemo(() => {
-    let list = deferredQuery ? searchMenu(deferredQuery) : MENU;
+    let list = query ? searchMenu(query) : MENU;
     if (category !== "All") list = list.filter((m) => m.category === category);
     if (filter !== "all") list = list.filter((m) => m.veg === filter);
     return list;
-  }, [deferredQuery, category, filter]);
+  }, [query, category, filter]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();

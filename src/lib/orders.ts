@@ -120,12 +120,9 @@ function cleanUndefined(obj: any): any {
 export async function getPriorOrderCount(phone: string): Promise<number> {
   if (!phone || phone.trim().length !== 10) return 0;
   try {
-    // ⚡ Bolt: Cap the query to prevent unbounded O(N) database reads and memory exhaustion.
-    // We only need to know if count === 1 for the first-returning-customer discount.
     const q = query(
       collection(db, ORDERS_COLLECTION),
       where("customerPhone", "==", phone.trim()),
-      limit(10)
     );
     const snap = await getDocs(q);
     let count = 0;
