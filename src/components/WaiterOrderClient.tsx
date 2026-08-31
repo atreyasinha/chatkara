@@ -293,6 +293,7 @@ export function WaiterOrderClient() {
         <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
           <button
             type="button"
+            aria-expanded={customOpen}
             onClick={() => setCustomOpen((prev) => !prev)}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
@@ -312,6 +313,7 @@ export function WaiterOrderClient() {
               </p>
               <div className="grid gap-2">
                 <input
+                  aria-label="Custom dish name"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
@@ -319,6 +321,7 @@ export function WaiterOrderClient() {
                 />
                 <div className="flex gap-2">
                   <input
+                    aria-label="Custom dish price"
                     inputMode="numeric"
                     value={customPrice}
                     onChange={(e) =>
