@@ -14,7 +14,7 @@ import {
 } from "../helpers/fixtures.ts";
 import { buildKitchenCallbackData } from "../../src/lib/telegram.ts";
 
-const enabled = firebaseConfigured();
+let enabled = firebaseConfigured();
 
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
 const CHAT_ID = Number(process.env.TELEGRAM_CHAT_ID || "0");
@@ -69,6 +69,14 @@ describe(
         return;
       }
       await waitForServer();
+      const checkDb = await fetch(`${baseUrl()}/api/orders?since=1`, {
+        headers: { Cookie: `chatkara_admin_session=temp` }
+      });
+      if (checkDb.status === 503) {
+        console.log("Skipping telegram webhook suite: Database unavailable (503)");
+        enabled = false;
+        return;
+      }
       const ok = await adminLogin(process.env.ADMIN_PASSWORD || "");
       assert.equal(ok, true, "admin login required to read back orders");
     });

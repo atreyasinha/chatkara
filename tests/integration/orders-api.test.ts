@@ -18,7 +18,7 @@ import {
   underpricedPayload,
 } from "../helpers/fixtures.ts";
 
-const enabled = firebaseConfigured();
+let enabled = firebaseConfigured();
 
 describe(
   "API integration — auth, pricing, kitchen life",
@@ -27,6 +27,12 @@ describe(
   before(async () => {
     if (!enabled) {
       console.log("Skipping integration suite: Firebase env not configured");
+      return;
+    }
+    const checkDb = await apiJson<{ error?: string }>("/api/orders", { admin: true });
+    if (checkDb.status === 503) {
+      console.log("Skipping integration suite: Database unavailable (503)");
+      enabled = false;
       return;
     }
     if (!process.env.E2E_TEST_SECRET) {
