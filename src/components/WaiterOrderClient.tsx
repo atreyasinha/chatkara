@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -55,12 +55,14 @@ export function WaiterOrderClient() {
   // Idempotency key: a retry after a client-side timeout returns the same order.
   const [requestId] = useState(() => crypto.randomUUID());
 
+  const deferredQuery = useDeferredValue(query);
+
   const filtered = useMemo(() => {
-    let list = query ? searchMenu(query) : MENU;
+    let list = deferredQuery ? searchMenu(deferredQuery) : MENU;
     if (category !== "All") list = list.filter((m) => m.category === category);
     if (filter !== "all") list = list.filter((m) => m.veg === filter);
     return list;
-  }, [query, category, filter]);
+  }, [deferredQuery, category, filter]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
@@ -73,6 +75,14 @@ export function WaiterOrderClient() {
 
   const { subtotal, gst, total } = computeOrderTotals(items);
   const count = items.reduce((n, i) => n + i.quantity, 0);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, CartItem>();
+    for (const item of items) {
+      map.set(item.itemId, item);
+    }
+    return map;
+  }, [items]);
 
   function addMenuItem(item: MenuItem) {
     setItems((prev) => {
@@ -362,7 +372,7 @@ export function WaiterOrderClient() {
             <h2 className="font-display mb-3 text-lg font-bold text-gold">{cat}</h2>
             <ul className="space-y-2.5">
               {list.map((item) => {
-                const inCart = items.find((i) => i.itemId === item.id);
+                const inCart = itemsMap.get(item.id);
                 return (
                   <li
                     key={item.id}
