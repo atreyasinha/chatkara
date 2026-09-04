@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-09-04 - Accessibility labels on dynamic inputs and collapsible buttons
+**Learning:** When adding collapsible sections or dynamically grouped input fields (like custom rapid entry forms) that lack visual `<label>` tags, ensure you add `aria-expanded` and explicit `aria-label` attributes to support screen readers.
+**Action:** Audit all interactive states (collapsible headers) and unlabelled inputs in form sections to explicitly provide screen-reader-friendly attributes.
