@@ -55,7 +55,7 @@ function callbackUpdate(orderId: string, action: "n" | "p" | "k" | "x") {
  */
 describe(
   "Telegram kitchen webhook (simulated button taps)",
-  { concurrency: false },
+  { concurrency: 1 },
   () => {
     before(async () => {
       if (!enabled) {
