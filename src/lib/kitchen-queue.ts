@@ -59,7 +59,7 @@ export async function kitchenPatch(
   if (typeof navigator !== "undefined" && !navigator.onLine) {
     const queue = readQueue();
     queue.push({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: crypto.randomUUID(),
       url,
       body,
       createdAt: new Date().toISOString(),
@@ -85,7 +85,7 @@ export async function kitchenPatch(
   } catch {
     const queue = readQueue();
     queue.push({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: crypto.randomUUID(),
       url,
       body,
       createdAt: new Date().toISOString(),
