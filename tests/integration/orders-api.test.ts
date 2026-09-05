@@ -22,7 +22,7 @@ const enabled = firebaseConfigured();
 
 describe(
   "API integration — auth, pricing, kitchen life",
-  { concurrency: false },
+  { concurrency: 1 },
   () => {
   before(async () => {
     if (!enabled) {
