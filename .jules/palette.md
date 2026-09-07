@@ -7,3 +7,7 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+
+## 2024-09-07 - Add explicit labels to Waiter Order forms
+**Learning:** Placeholder-only form elements (inputs, textareas, selects) and icon-only quantity buttons in the Waiter UI require explicit `aria-label` attributes for screen reader accessibility, as placeholders are not sufficient labels.
+**Action:** Always add explicit `<label>` or `aria-label` attributes to all form fields and descriptive `aria-label`s to icon-only buttons to ensure they are accessible.
