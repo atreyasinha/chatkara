@@ -19,3 +19,6 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+## 2024-09-07 - Waiter Order UI Optimization
+**Learning:** In highly interactive list views (like the Waiter Order UI) where users search through a large array of items and a map of cart items is required for O(1) lookups to prevent O(N*M) bottlenecks during rendering. Additionally, wrapping text input updates with `useDeferredValue` ensures the text input itself remains instantly responsive while deferring the expensive background filtering process.
+**Action:** Always prefer pre-computing Maps for O(1) lookups inside large map iterations instead of using inline `.find()` methods. Also, for large arrays (like menus) being filtered based on text input, use React's `useDeferredValue` for the search query to keep the text input responsive.
