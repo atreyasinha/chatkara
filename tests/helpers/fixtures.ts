@@ -44,7 +44,9 @@ export function firebaseConfigured(): boolean {
     process.env.FIREBASE_PROJECT_ID &&
       process.env.FIREBASE_API_KEY &&
       process.env.FIREBASE_PROJECT_ID !== "***" &&
-      process.env.FIREBASE_API_KEY !== "***",
+      process.env.FIREBASE_API_KEY !== "***" &&
+      !process.env.FIREBASE_PROJECT_ID.includes("***") &&
+      !process.env.FIREBASE_API_KEY.includes("***"),
   );
 }
 
