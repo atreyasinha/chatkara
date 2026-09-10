@@ -701,7 +701,7 @@ const MenuItemRow = memo(function MenuItemRow({
   addMenuItem,
 }: {
   item: MenuItem;
-  inCart: { quantity: number } | undefined;
+  inCart: CartItem | undefined;
   setQuantity: (itemId: string, quantity: number) => void;
   addMenuItem: (item: MenuItem) => void;
 }) {
