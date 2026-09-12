@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
-import { AdminGuard, LogoutButton } from "@/components/AdminGuard";
+import { LogoutButton } from "@/components/AdminGuard";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import { isOrderFromTodayIST, todayLabelIST } from "@/lib/waiter-day";
