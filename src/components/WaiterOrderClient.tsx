@@ -74,6 +74,16 @@ export function WaiterOrderClient() {
   const { subtotal, gst, total } = computeOrderTotals(items);
   const count = items.reduce((n, i) => n + i.quantity, 0);
 
+  // ⚡ Bolt Optimization: O(1) Map Lookup
+  // Creating a Map for cart items prevents O(N*M) bottlenecks during the rendering of the large menu list.
+  const cartMap = useMemo(() => {
+    const map = new Map<string, CartItem>();
+    for (const item of items) {
+      map.set(item.itemId, item);
+    }
+    return map;
+  }, [items]);
+
   function addMenuItem(item: MenuItem) {
     setItems((prev) => {
       const existing = prev.find((i) => i.itemId === item.id);
@@ -362,7 +372,7 @@ export function WaiterOrderClient() {
             <h2 className="font-display mb-3 text-lg font-bold text-gold">{cat}</h2>
             <ul className="space-y-2.5">
               {list.map((item) => {
-                const inCart = items.find((i) => i.itemId === item.id);
+                const inCart = cartMap.get(item.id);
                 return (
                   <li
                     key={item.id}
