@@ -22,3 +22,6 @@
 ## 2026-09-13 - [O(1) Map Lookups in React renders]
 **Learning:** Re-renders mapping large arrays (like a menu) and executing an O(N) `.find()` on another list (like a cart) per iteration causes O(N*M) performance bottlenecks.
 **Action:** Use a memoized `Map` keyed by item ID for O(1) lookups during array mapping.
+## 2026-09-13 - [GitHub Actions Firebase Integration Test Failures]
+**Learning:** Integration tests running against Firebase in fork PRs will fail with 503s because the `FIREBASE_API_KEY` secret is redacted as `***` in the GitHub Actions environment, causing the `firebaseConfigured` check to incorrectly return true.
+**Action:** Always check if the `FIREBASE_API_KEY` includes `***` to properly detect when secrets are missing in CI environments.
