@@ -56,7 +56,7 @@ describe("restaurant config", () => {
   it("has Bokaro location and 7 tables with tokens", () => {
     assert.equal(RESTAURANT.location.city, "Bokaro");
     assert.equal(RESTAURANT.tableCount, 7);
-    assert.equal(RESTAURANT.gstPercent, 5);
+    assert.equal(RESTAURANT.gstPercent, 0);
     assert.equal(RESTAURANT.developer, "Shriumasha Enterprises Private Limited");
     for (let t = 1; t <= 7; t++) {
       assert.ok(RESTAURANT.tableTokens[t], `token for table ${t}`);

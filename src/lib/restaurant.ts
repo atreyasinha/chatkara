@@ -16,7 +16,8 @@ export const RESTAURANT = {
   /** Replace with your real UPI ID before going live */
   upiId: "gayatrisinha.ibz@icici",
   upiPayeeName: "ChatKara",
-  gstPercent: 5,
+  /** Set to 0 while GST registration is pending; totals = subtotal − discount. */
+  gstPercent: 0,
   tableCount: 7,
   currency: "INR" as const,
   currencySymbol: "₹",

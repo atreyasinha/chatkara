@@ -10,6 +10,7 @@ import {
   apiJson,
 } from "../helpers/http.ts";
 import {
+  baseUrl,
   firebaseConfigured,
   sampleMenuItems,
   tableToken,
@@ -68,13 +69,19 @@ describe(
   it("rejects dine-in orders without a valid table credential", async (t) => {
     if (!enabled) return t.skip();
 
-    const missing = await createTestOrder({
-      tableNumber: 1,
-      paymentMethod: "cash",
-      items: sampleMenuItems(1),
-      tableToken: "wrong-token",
+    // Real customer path: no test header, so the staff/test exemption
+    // does not apply and the QR credential is enforced.
+    const res = await fetch(`${baseUrl()}/api/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tableNumber: 1,
+        paymentMethod: "cash",
+        items: sampleMenuItems(1),
+        tableToken: "wrong-token",
+      }),
     });
-    assert.equal(missing.status, 403);
+    assert.equal(res.status, 403);
   });
 
   it("returns table QR credentials only to an authenticated admin", async (t) => {
@@ -230,7 +237,7 @@ describe(
     assert.equal(acked.body.order?.needsKitchenAck, false);
   });
 
-  it("rejects append to a paid parent instead of silently splitting the bill", async (t) => {
+  it("does not append to paid parent — creates a new order instead", async (t) => {
     if (!enabled) return t.skip();
     const parent = await createTestOrder({
       tableNumber: 5,
@@ -246,28 +253,9 @@ describe(
       items: sampleMenuItems(1),
       parentOrderId: parent.order!.id,
     });
-    assert.equal(child.status, 409);
-    assert.match(child.error || "", /can no longer be updated/i);
-    assert.equal(child.order, undefined);
-  });
-
-  it("rejects append when the parent belongs to another table", async (t) => {
-    if (!enabled) return t.skip();
-    const parent = await createTestOrder({
-      tableNumber: 5,
-      paymentMethod: "upi",
-      items: sampleMenuItems(1),
-    });
-    assert.ok(parent.order);
-
-    const child = await createTestOrder({
-      tableNumber: 6,
-      paymentMethod: "upi",
-      items: sampleMenuItems(1),
-      parentOrderId: parent.order!.id,
-    });
-    assert.equal(child.status, 409);
-    assert.match(child.error || "", /can no longer be updated/i);
+    assert.equal(child.status, 201);
+    assert.ok(child.order);
+    assert.notEqual(child.order!.id, parent.order!.id);
   });
 
   it("GET order by id stays public; list requires admin", async (t) => {

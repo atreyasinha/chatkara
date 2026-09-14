@@ -1,26 +1,22 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
-import {
-  createOrder,
-  InvalidParentOrderError,
-  listOrders,
-  normalizePhone,
-} from "@/lib/orders";
+import { createOrder, listOrders } from "@/lib/orders";
 import { sanitizeOrderItems } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import { notifyKitchenTelegram } from "@/lib/telegram";
+import { isProductionEnv } from "@/lib/env";
 import { RESTAURANT } from "@/lib/restaurant";
 import { tableTokenValid } from "@/lib/table-tokens";
-import type { CartItem, PaymentMethod } from "@/lib/types";
+import type { CartItem, Order, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 // Telegram Bot API often times out from US regions on Vercel.
 export const preferredRegion = ["fra1"];
 export const maxDuration = 60;
 
-/** Simple in-memory sliding-window rate limiter — 30 req/min per IP. */
+/** In-memory per-IP throttle — best effort on serverless, still stops casual spam. */
 const orderRateMap = new Map<string, number[]>();
-const ORDER_RATE_LIMIT = 30;
+const ORDER_RATE_LIMIT = 12;
 const ORDER_RATE_WINDOW_MS = 60_000;
 
 function isOrderRateLimited(ip: string): boolean {
@@ -40,6 +36,8 @@ function isOrderRateLimited(ip: string): boolean {
 }
 
 function isAuthorizedTestRequest(request: Request): boolean {
+  // Never honor the test channel in Production, even if the secret leaks.
+  if (isProductionEnv()) return false;
   const secret = process.env.E2E_TEST_SECRET;
   if (!secret) return false;
   const key = request.headers.get("x-chatkara-test-key");
@@ -52,50 +50,75 @@ function isAuthorizedTestRequest(request: Request): boolean {
   return timingSafeEqual(a, b);
 }
 
+/** Never return PII to non-admin callers — even the customer who just ordered. */
+function scrubOrder(order: Order): Omit<Order, "customerPhone"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { customerPhone: _stripped, ...pub } = order;
+  return pub;
+}
+
 export async function GET(request: Request) {
-  if (!isAdminRequest(request)) return unauthorizedJson();
-  return NextResponse.json({ orders: await listOrders() });
+  if (!isAdminRequest(request, "waiter")) return unauthorizedJson();
+  try {
+    const { searchParams } = new URL(request.url);
+    const since = searchParams.get("since") || undefined;
+    return NextResponse.json({ orders: await listOrders(since) });
+  } catch (err) {
+    console.error("GET /api/orders failed:", err);
+    return NextResponse.json(
+      { error: "Database unavailable" },
+      { status: 503 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
   try {
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      "unknown";
-    if (isOrderRateLimited(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests — please slow down" },
-        { status: 429 },
-      );
+    const isTest = isAuthorizedTestRequest(request);
+    const isAdmin = isAdminRequest(request, "waiter");
+
+    // Staff and the test harness are exempt — the limiter guards the public path.
+    if (!isAdmin && !isTest) {
+      const ip =
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        "unknown";
+      if (isOrderRateLimited(ip)) {
+        return NextResponse.json(
+          { error: "Too many orders — please wait a moment" },
+          { status: 429 },
+        );
+      }
     }
 
     const body = await request.json();
     const tableNumber = Number(body.tableNumber);
     const items = body.items as CartItem[];
     const paymentMethod = body.paymentMethod as PaymentMethod;
-    const isTest = isAuthorizedTestRequest(request);
 
     if (
-      !Number.isInteger(tableNumber) ||
+      !Number.isFinite(tableNumber) ||
       tableNumber < 0 ||
       tableNumber > RESTAURANT.tableCount ||
       !Array.isArray(items) ||
       items.length === 0 ||
       (paymentMethod !== "upi" && paymentMethod !== "cash") ||
-      (tableNumber === 0 && paymentMethod !== "upi")
+      // Pickup is UPI-only for customers; waiters/staff may take cash at the counter
+      (tableNumber === 0 && paymentMethod !== "upi" && !isAdmin)
     ) {
       return NextResponse.json({ error: "Invalid order" }, { status: 400 });
     }
 
-    // Dine-in orders must present the table QR credential. Pickup (0) is open.
-    if (tableNumber !== 0 && !tableTokenValid(tableNumber, body.tableToken)) {
-      return NextResponse.json(
-        { error: "Invalid or missing table credential — scan the table QR again" },
-        { status: 403 },
-      );
+    // Dine-in orders from customers must carry the table's QR token.
+    if (
+      tableNumber > 0 &&
+      !isAdmin &&
+      !isTest &&
+      !tableTokenValid(tableNumber, body.tableToken)
+    ) {
+      return NextResponse.json({ error: "Invalid table" }, { status: 403 });
     }
 
-    const sanitized = sanitizeOrderItems(items);
+    const sanitized = sanitizeOrderItems(items, { allowCustom: isAdmin });
     if (!sanitized.ok) {
       return NextResponse.json({ error: sanitized.error }, { status: 400 });
     }
@@ -110,25 +133,20 @@ export async function POST(request: Request) {
     const customerName = body.customerName
       ? String(body.customerName).slice(0, 80).trim() || undefined
       : undefined;
-    const rawPhone =
-      body.customerPhone != null ? String(body.customerPhone) : "";
-    let customerPhone: string | undefined;
-    if (rawPhone) {
-      const normalized = normalizePhone(rawPhone);
-      if (!normalized) {
-        return NextResponse.json(
-          { error: "Enter a valid 10-digit mobile number" },
-          { status: 400 },
-        );
-      }
-      customerPhone = normalized;
-    }
+    const rawPhone = body.customerPhone
+      ? String(body.customerPhone).replace(/\D/g, "")
+      : "";
+    const customerPhone = /^\d{10}$/.test(rawPhone) ? rawPhone : undefined;
     const notes = body.notes
       ? String(body.notes).slice(0, 500).trim() || undefined
       : undefined;
     const parentOrderId = body.parentOrderId
       ? String(body.parentOrderId).slice(0, 36)
       : undefined;
+    const requestId =
+      typeof body.requestId === "string" && /^[\w-]{8,64}$/.test(body.requestId)
+        ? body.requestId
+        : undefined;
 
     const order = await createOrder({
       tableNumber,
@@ -139,29 +157,27 @@ export async function POST(request: Request) {
       notes,
       parentOrderId,
       isTest: isTest || undefined,
+      requestId,
+      skipDiscount: isAdmin,
+      allowAnyParent: isAdmin,
     });
 
     // Await notify so Production doesn't lose the Telegram call if `after()` is cut short.
     // Failures are swallowed inside notifyKitchenTelegram / telegramApi.
+    // Safe against client-timeout retries: requestId dedupes above.
     try {
       await notifyKitchenTelegram(order);
     } catch (err) {
       console.error("Telegram notify threw:", err);
     }
 
-    return NextResponse.json({ order }, { status: 201 });
+    return NextResponse.json(
+      { order: isAdmin ? order : scrubOrder(order) },
+      { status: 201 },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to create order";
     console.error("POST /api/orders failed:", message);
-    if (err instanceof InvalidParentOrderError) {
-      return NextResponse.json(
-        {
-          error:
-            "This order can no longer be updated. Return to your table menu and start a new order.",
-        },
-        { status: 409 },
-      );
-    }
     const isFirestore =
       /firestore/i.test(message) || /NOT_FOUND/i.test(message) || /timed out/i.test(message);
     return NextResponse.json(

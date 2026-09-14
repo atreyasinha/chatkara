@@ -17,4 +17,17 @@ describe("admin session tokens", () => {
     assert.equal(verifyAdminSessionToken("admin.1.deadbeef"), false);
     assert.equal(verifyAdminSessionToken(""), false);
   });
+
+  it("round-trips a valid token when WAITER_PASSWORD is set", () => {
+    const origAdmin = process.env.ADMIN_PASSWORD;
+    delete process.env.ADMIN_PASSWORD;
+    process.env.WAITER_PASSWORD = "unit-test-waiter-password";
+    try {
+      const token = createAdminSessionToken();
+      assert.ok(token);
+      assert.equal(verifyAdminSessionToken(token), true);
+    } finally {
+      process.env.ADMIN_PASSWORD = origAdmin;
+    }
+  });
 });

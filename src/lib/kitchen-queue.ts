@@ -20,16 +20,29 @@ function readQueue(): QueuedMutation[] {
     if (!Array.isArray(parsed)) return [];
     const now = Date.now();
     // Prune stale mutations so they never retry indefinitely
-    return parsed.filter(
+    const pruned = parsed.filter(
       (m) => now - new Date(m.createdAt).getTime() < MAX_QUEUE_AGE_MS,
     );
+    if (pruned.length !== parsed.length) {
+      try {
+        localStorage.setItem(QUEUE_KEY, JSON.stringify(pruned));
+      } catch {
+        // ignore — read-only contexts
+      }
+    }
+    return pruned;
   } catch {
     return [];
   }
 }
 
 function writeQueue(queue: QueuedMutation[]) {
-  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    // Private browsing / quota exceeded — the caller treats this as "error".
+    throw new Error("Could not persist offline queue");
+  }
 }
 
 export function queueLength(): number {
@@ -51,8 +64,12 @@ export async function kitchenPatch(
       body,
       createdAt: new Date().toISOString(),
     });
-    writeQueue(queue);
-    return "queued";
+    try {
+      writeQueue(queue);
+      return "queued";
+    } catch {
+      return "error";
+    }
   }
 
   try {
@@ -73,8 +90,12 @@ export async function kitchenPatch(
       body,
       createdAt: new Date().toISOString(),
     });
-    writeQueue(queue);
-    return "queued";
+    try {
+      writeQueue(queue);
+      return "queued";
+    } catch {
+      return "error";
+    }
   }
 }
 

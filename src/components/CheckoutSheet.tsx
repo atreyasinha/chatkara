@@ -46,8 +46,9 @@ export function CheckoutSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
-
-  const phoneValid = /^\d{10}$/.test(phone);
+  // Idempotency key: a retry after a client-side timeout returns the same order
+  // instead of creating a duplicate on the kitchen board.
+  const [requestId] = useState(() => crypto.randomUUID());
 
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountMessage, setDiscountMessage] = useState("");
@@ -102,9 +103,18 @@ export function CheckoutSheet({
 
   const upiLinks = useMemo(() => {
     if (!order) return { generic: "", gpay: "", phonepe: "", paytm: "", bhim: "" };
+    const isIOS =
+      typeof navigator !== "undefined" &&
+      /iPad|iPhone|iPod/.test(navigator.userAgent);
     return {
       generic: buildUpiLink(order.total, order.id, "generic"),
-      gpay: buildUpiLink(order.total, order.id, "gpay"),
+      // gpay:// is Android-only; Google Pay on iOS registers tez://
+      gpay: isIOS
+        ? buildUpiLink(order.total, order.id, "generic").replace(
+            "upi://pay",
+            "tez://upi/pay",
+          )
+        : buildUpiLink(order.total, order.id, "gpay"),
       phonepe: buildUpiLink(order.total, order.id, "phonepe"),
       paytm: buildUpiLink(order.total, order.id, "paytm"),
       bhim: buildUpiLink(order.total, order.id, "bhim"),
@@ -115,21 +125,30 @@ export function CheckoutSheet({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tableNumber,
-          tableToken: tableNumber === 0 ? undefined : tableToken,
-          items,
-          paymentMethod: method,
-          customerName: tableNumber === 0 ? name || undefined : undefined,
-          customerPhone: phone || undefined,
-          notes: notes || undefined,
-          parentOrderId: parentOrderId || undefined,
-        }),
-        signal: AbortSignal.timeout(25_000),
-      });
+      // AbortSignal.timeout is missing on iOS < 16 / Chrome < 103 — hand-roll it.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25_000);
+      let res: Response;
+      try {
+        res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tableNumber,
+            tableToken,
+            items,
+            paymentMethod: method,
+            customerName: tableNumber === 0 ? name || undefined : undefined,
+            customerPhone: phone || undefined,
+            notes: notes || undefined,
+            parentOrderId: parentOrderId || undefined,
+            requestId,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const data = (await res.json().catch(() => ({}))) as {
         order?: Order;
         error?: string;
@@ -153,7 +172,8 @@ export function CheckoutSheet({
       }
     } catch (e) {
       const message =
-        e instanceof DOMException && e.name === "TimeoutError"
+        e instanceof DOMException &&
+        (e.name === "TimeoutError" || e.name === "AbortError")
           ? "Order timed out — check kitchen board or try again"
           : e instanceof Error
             ? e.message
@@ -204,6 +224,12 @@ export function CheckoutSheet({
             After you pay, staff will confirm it on the kitchen board. Your order
             is already with the kitchen.
           </p>
+          {parentOrderId && (
+            <p className="mb-4 -mt-2 text-center text-xs text-muted">
+              This is your combined bill — it includes your earlier order at this
+              table.
+            </p>
+          )}
 
           <div className="mb-3 space-y-2">
             <p className="text-center text-xs font-semibold text-gold">
@@ -259,6 +285,8 @@ export function CheckoutSheet({
   if (order && method === "cash") {
     return null;
   }
+
+  const phoneValid = /^[6-9]\d{9}$/.test(phone);
 
   return (
     <ModalDialog
@@ -388,10 +416,12 @@ export function CheckoutSheet({
                 <span>-{formatINR(discountAmount)}</span>
               </div>
             )}
-            <div className="mt-1 flex justify-between text-muted">
-              <span>GST ({RESTAURANT.gstPercent}%)</span>
-              <span>{formatINR(gst)}</span>
-            </div>
+            {RESTAURANT.gstPercent > 0 && (
+              <div className="mt-1 flex justify-between text-muted">
+                <span>GST ({RESTAURANT.gstPercent}%)</span>
+                <span>{formatINR(gst)}</span>
+              </div>
+            )}
             <div className="mt-2 flex justify-between border-t border-line pt-2 font-semibold text-gold">
               <span>Total</span>
               <span>{formatINR(total)}</span>
@@ -412,9 +442,13 @@ export function CheckoutSheet({
                 ? "Enter 10-digit Phone"
                 : (tableNumber === 0 && name.trim().length === 0)
                   ? "Enter Your Name"
-                  : method === "upi"
-                    ? `Place order · Pay ${formatINR(total)}`
-                    : `Place order · Pay cash ${formatINR(total)}`}
+                  : parentOrderId
+                    ? method === "upi"
+                      ? `Add to order · Pay ${formatINR(total)}`
+                      : `Add to order · Cash ${formatINR(total)}`
+                    : method === "upi"
+                      ? `Place order · Pay ${formatINR(total)}`
+                      : `Place order · Pay cash ${formatINR(total)}`}
           </button>
         </div>
     </ModalDialog>

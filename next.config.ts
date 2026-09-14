@@ -22,6 +22,10 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
   },
   {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains",
+  },
+  {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",

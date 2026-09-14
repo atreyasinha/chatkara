@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { AdminGuard } from "@/components/AdminGuard";
-import { formatINR } from "@/lib/restaurant";
+import { formatINR, RESTAURANT } from "@/lib/restaurant";
 
 interface LedgerOrder {
   id: string;
@@ -34,6 +34,7 @@ interface AnalyticsData {
   upiRevenue: number;
   cashRevenue: number;
   totalOrders: number;
+  billableOrders?: number;
   activeOrders: number;
   completedOrders: number;
   cancelledOrders: number;
@@ -126,13 +127,17 @@ function AnalyticsDashboard() {
     );
   }
 
-  // Pre-tax calculations (5% GST inclusive pricing)
-  const gstPercent = 5;
+  // GST off until registration; when gstPercent > 0, treat revenue as tax-inclusive
+  const gstPercent = RESTAURANT.gstPercent;
   const grossSales = data?.totalRevenue || 0;
-  const netSales = grossSales / (1 + gstPercent / 100);
-  const estimatedGst = grossSales - netSales;
+  const netSales =
+    gstPercent > 0 ? grossSales / (1 + gstPercent / 100) : grossSales;
+  const estimatedGst = gstPercent > 0 ? grossSales - netSales : 0;
+  const billableOrders =
+    data?.billableOrders ??
+    (data ? data.totalOrders - data.cancelledOrders : 0);
   const avgTicket =
-    data && data.totalOrders > 0 ? grossSales / data.totalOrders : 0;
+    data && billableOrders > 0 ? grossSales / billableOrders : 0;
 
   // Formatted rounded numbers for clean legibility
   const grossSalesFormatted = formatINR(Math.round(grossSales));
@@ -261,13 +266,17 @@ function AnalyticsDashboard() {
               {/* Estimated GST */}
               <div className="rounded-3xl border border-line bg-bg-elevated/40 p-6 backdrop-blur-sm shadow-sm">
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted block">
-                  Tax Liability (5% GST)
+                  {gstPercent > 0
+                    ? `Tax Liability (${gstPercent}% GST)`
+                    : "GST (not charged)"}
                 </span>
                 <h3 className="font-sans mt-3 text-3xl font-semibold text-neutral-300">
                   {estimatedGstFormatted}
                 </h3>
                 <p className="mt-2 text-xs text-muted border-t border-line/35 pt-2">
-                  Estimated tax value to be parsed.
+                  {gstPercent > 0
+                    ? "Estimated tax value to be parsed."
+                    : "GST registration pending — prices are tax-free for now."}
                 </p>
               </div>
 
@@ -372,6 +381,7 @@ function AnalyticsDashboard() {
                 ) : (
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     {data.tableBreakdown
+                      .slice()
                       .sort((a, b) => a.tableNumber - b.tableNumber)
                       .map((tbl) => {
                         const isPickup = tbl.tableNumber === 0;
@@ -424,12 +434,12 @@ function AnalyticsDashboard() {
                     return (
                       <div key={m.month} className="flex flex-1 min-w-[45px] flex-col items-center justify-end h-full group relative">
                         {/* Hover Amount Tooltip */}
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-bg-soft/90 text-gold-soft text-[10px] font-sans font-semibold py-0.5 px-1.5 rounded border border-line/30 mb-2 pointer-events-none whitespace-nowrap absolute bottom-[calc(100%-8px)] z-10">
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-bg-soft/90 text-gold-soft text-[10px] font-sans font-semibold py-0.5 px-1.5 rounded border border-line/30 mb-2 pointer-events-none whitespace-nowrap absolute bottom-[calc(100%-8px)] z-10">
                           {formatINR(Math.round(m.revenue))}
                         </span>
                         {/* Bar Segment */}
                         <div
-                          style={{ height: `${Math.max(4, heightPercent)}%` }}
+                          style={{ height: m.revenue > 0 ? `${Math.max(4, heightPercent)}%` : '0%' }}
                           className="w-full rounded-t-md bg-gradient-to-t from-flame-to to-gold shadow-md group-hover:brightness-110 transition-all duration-300"
                         />
                         {/* Month Indicator Label */}
@@ -530,6 +540,7 @@ function AnalyticsDashboard() {
                     </thead>
                     <tbody className="divide-y divide-line/35">
                       {data.orders
+                        .slice()
                         .sort(
                           (a, b) =>
                             new Date(b.createdAt).getTime() -

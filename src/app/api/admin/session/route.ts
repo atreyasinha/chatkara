@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { isAdminFromCookies } from "@/lib/admin-auth";
+import { getRoleFromCookies } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const ok = await isAdminFromCookies();
-  if (!ok) {
+  const role = await getRoleFromCookies();
+  if (!role) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
-  return NextResponse.json({ authenticated: true });
+  return NextResponse.json({ authenticated: true, role });
 }

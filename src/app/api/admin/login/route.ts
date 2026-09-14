@@ -2,36 +2,32 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual, createHash } from "crypto";
 import {
   ADMIN_SESSION_COOKIE,
+  AdminRole,
   adminCookieOptions,
   adminPasswordConfigured,
   createAdminSessionToken,
 } from "@/lib/admin-auth";
 
-const loginRateMap = new Map<string, number[]>();
-const LOGIN_RATE_LIMIT = 10;
-const LOGIN_RATE_WINDOW_MS = 60_000;
-
-function isLoginRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const hits = (loginRateMap.get(ip) ?? []).filter(
-    (t) => now - t < LOGIN_RATE_WINDOW_MS,
-  );
-  hits.push(now);
-  loginRateMap.set(ip, hits);
-  return hits.length > LOGIN_RATE_LIMIT;
-}
+/** In-memory per-IP login throttle. */
+const loginAttempts = new Map<string, number[]>();
 
 export async function POST(request: Request) {
   try {
+    // Throttle brute-force attempts — 5 tries/min per IP.
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       "unknown";
-    if (isLoginRateLimited(ip)) {
+    const now = Date.now();
+    const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
+    if (hits.length >= 5) {
       return NextResponse.json(
-        { success: false, error: "Too many attempts — try again in a minute" },
+        { success: false, error: "Too many attempts — wait a minute" },
         { status: 429 },
       );
     }
+    hits.push(now);
+    loginAttempts.set(ip, hits);
+    if (loginAttempts.size > 5000) loginAttempts.clear();
 
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
@@ -44,23 +40,32 @@ export async function POST(request: Request) {
     }
 
     const { password } = await request.json();
-    const correctPassword = process.env.ADMIN_PASSWORD!;
+    const correctAdminPassword = process.env.ADMIN_PASSWORD;
+    const correctWaiterPassword = process.env.WAITER_PASSWORD;
 
-    let isPasswordValid = false;
+    let authenticatedRole: AdminRole | null = null;
+
     if (typeof password === "string") {
-      const a = createHash("sha256").update(password).digest();
-      const b = createHash("sha256").update(correctPassword).digest();
-      isPasswordValid = timingSafeEqual(a, b);
+      if (correctAdminPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctAdminPassword).digest();
+        if (timingSafeEqual(a, b)) authenticatedRole = "admin";
+      }
+      if (!authenticatedRole && correctWaiterPassword) {
+        const a = createHash("sha256").update(password).digest();
+        const b = createHash("sha256").update(correctWaiterPassword).digest();
+        if (timingSafeEqual(a, b)) authenticatedRole = "waiter";
+      }
     }
 
-    if (!isPasswordValid) {
+    if (!authenticatedRole) {
       return NextResponse.json(
         { success: false, error: "Invalid password" },
         { status: 401 },
       );
     }
 
-    const token = createAdminSessionToken();
+    const token = createAdminSessionToken(authenticatedRole);
     if (!token) {
       return NextResponse.json(
         { success: false, error: "Could not create session" },
@@ -68,7 +73,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const res = NextResponse.json({ success: true });
+    const res = NextResponse.json({ success: true, role: authenticatedRole });
     res.cookies.set(ADMIN_SESSION_COOKIE, token, adminCookieOptions());
     return res;
   } catch {

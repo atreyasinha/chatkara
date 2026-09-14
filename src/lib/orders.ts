@@ -5,11 +5,12 @@ import {
   getDocs,
   query,
   orderBy,
-  limit,
   setDoc,
   updateDoc,
   deleteDoc,
   where,
+  limit,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { randomUUID } from "crypto";
@@ -18,13 +19,6 @@ import type { CartItem, Order, OrderStatus, PaymentMethod } from "./types";
 
 const ORDERS_COLLECTION = "orders";
 const FIRESTORE_WRITE_TIMEOUT_MS = 12_000;
-
-export class InvalidParentOrderError extends Error {
-  constructor() {
-    super("Parent order is missing, closed, paid, or belongs to another table");
-    this.name = "InvalidParentOrderError";
-  }
-}
 
 /** Normalize to 10 digits; returns null when not a valid Indian mobile. */
 export function normalizePhone(phone: unknown): string | null {
@@ -59,33 +53,34 @@ async function withTimeout<T>(
 
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
+ * Throws on failure — callers must surface 503, never pretend there are zero orders.
  * Bounded to the 200 most recent to avoid O(N) reads on a growing collection.
  */
-export async function listOrders(): Promise<Order[]> {
-  try {
-    const q = query(
-      collection(db, ORDERS_COLLECTION),
-      orderBy("createdAt", "desc"),
-      limit(200),
-    );
-    const querySnapshot = await getDocs(q);
-    const results: Order[] = [];
-    querySnapshot.forEach((snap) => {
-      const data = snap.data() as Order;
-      results.push({
-        ...data,
-        id: data.id || snap.id,
-        subtotal: data.subtotal || data.total || 0,
-        gst: data.gst || 0,
-        paymentMethod: data.paymentMethod || "cash",
-        paymentStatus: data.paymentStatus || "pending",
-      });
-    });
-    return results;
-  } catch (error) {
-    console.error("Error listing orders from Firestore:", error);
-    return [];
+export async function listOrders(since?: string): Promise<Order[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const constraints: any[] = [orderBy("createdAt", "desc"), limit(200)];
+  if (since) {
+    constraints.push(where("createdAt", ">=", since));
   }
+
+  const q = query(
+    collection(db, ORDERS_COLLECTION),
+    ...constraints
+  );
+  const querySnapshot = await getDocs(q);
+  const results: Order[] = [];
+  querySnapshot.forEach((snap) => {
+    const data = snap.data() as Order;
+    results.push({
+      ...data,
+      id: data.id || snap.id,
+      subtotal: data.subtotal || data.total || 0,
+      gst: data.gst || 0,
+      paymentMethod: data.paymentMethod || "cash",
+      paymentStatus: data.paymentStatus || "pending",
+    });
+  });
+  return results;
 }
 
 /**
@@ -162,70 +157,165 @@ export async function createOrder(input: {
   notes?: string;
   parentOrderId?: string;
   isTest?: boolean;
+  /** Idempotency key from the client — a retry after timeout returns the same order. */
+  requestId?: string;
+  /** Staff-placed orders skip the loyalty discount so the till matches the quote. */
+  skipDiscount?: boolean;
+  /** Admins may append to any open order; customers must match the parent table. */
+  allowAnyParent?: boolean;
 }): Promise<Order> {
   const now = new Date().toISOString();
 
+  if (input.requestId) {
+    try {
+      const dupQuery = query(
+        collection(db, ORDERS_COLLECTION),
+        where("requestId", "==", input.requestId),
+        limit(1),
+      );
+      const dupSnap = await getDocs(dupQuery);
+      if (!dupSnap.empty) {
+        const data = dupSnap.docs[0].data() as Order;
+        return {
+          ...data,
+          id: data.id || dupSnap.docs[0].id,
+          subtotal: data.subtotal || data.total || 0,
+          gst: data.gst || 0,
+          paymentMethod: data.paymentMethod || "cash",
+          paymentStatus: data.paymentStatus || "pending",
+        };
+      }
+    } catch (err) {
+      console.error("Idempotency lookup failed (continuing):", err);
+    }
+  }
+
   if (input.parentOrderId) {
     try {
-      const parentOrder = await getOrder(input.parentOrderId);
-      if (
-        parentOrder &&
-        parentOrder.tableNumber === input.tableNumber &&
-        parentOrder.status !== "served" &&
-        parentOrder.status !== "cancelled" &&
-        parentOrder.paymentStatus !== "paid"
-      ) {
-        const mergedItems = mergeCartItems(parentOrder.items, input.items);
-        const discountPercent = parentOrder.discountPercent || 0;
-        const { subtotal, discountAmount, gst, total } = computeOrderTotals(
-          mergedItems,
-          discountPercent,
-        );
+      const docRef = doc(db, ORDERS_COLLECTION, input.parentOrderId);
+      const updatedOrder = await withTimeout(
+        runTransaction(db, async (tx) => {
+          const snap = await tx.get(docRef);
+          if (!snap.exists()) return null;
+          const parentOrder = {
+            ...(snap.data() as Order),
+            id: (snap.data() as Order).id || snap.id,
+          };
+          if (
+            parentOrder.status === "served" ||
+            parentOrder.status === "cancelled" ||
+            parentOrder.paymentStatus === "paid"
+          ) {
+            return null;
+          }
+          if (
+            !input.allowAnyParent &&
+            parentOrder.tableNumber !== input.tableNumber
+          ) {
+            return null;
+          }
 
-        // Keep kitchen progress; flag so staff sees new items were added.
-        const updatedOrder: Order = {
-          ...parentOrder,
-          items: mergedItems,
-          subtotal,
-          discountPercent: discountPercent || undefined,
-          discountAmount: discountAmount || undefined,
-          gst,
-          total,
-          status: parentOrder.status,
-          needsKitchenAck: true,
-          updatedAt: now,
-          isTest: parentOrder.isTest || input.isTest,
-        };
+          const mergedItems = mergeCartItems(parentOrder.items, input.items);
+          const discountPercent = parentOrder.discountPercent || 0;
+          const { subtotal, discountAmount, gst, total } = computeOrderTotals(
+            mergedItems,
+            discountPercent,
+          );
 
-        if (input.notes) {
-          updatedOrder.notes = parentOrder.notes
-            ? `${parentOrder.notes} | ${input.notes}`
-            : input.notes;
-        }
+          // Keep kitchen progress; flag so staff sees new items were added.
+          const merged: Order = {
+            ...parentOrder,
+            items: mergedItems,
+            subtotal,
+            discountPercent: discountPercent || undefined,
+            discountAmount: discountAmount || undefined,
+            gst,
+            total,
+            status: parentOrder.status,
+            needsKitchenAck: true,
+            updatedAt: now,
+            isTest: parentOrder.isTest || input.isTest,
+          };
 
-        const docRef = doc(db, ORDERS_COLLECTION, parentOrder.id);
-        await withTimeout(
-          setDoc(docRef, cleanUndefined(updatedOrder)),
-          FIRESTORE_WRITE_TIMEOUT_MS,
-          "Firestore write",
-        );
-        return updatedOrder;
-      }
-      throw new InvalidParentOrderError();
+          if (input.notes) {
+            merged.notes = parentOrder.notes
+              ? `${parentOrder.notes} | ${input.notes}`
+              : input.notes;
+          }
+
+          tx.set(docRef, cleanUndefined(merged));
+          return merged;
+        }),
+        FIRESTORE_WRITE_TIMEOUT_MS,
+        "Firestore transaction",
+      );
+      if (updatedOrder) return updatedOrder;
     } catch (err) {
-      if (err instanceof InvalidParentOrderError) throw err;
       console.error(
         "Transaction failed to append to parent order, trying direct update:",
         err,
       );
-      throw err;
+      try {
+        const docRef = doc(db, ORDERS_COLLECTION, input.parentOrderId);
+        const snap = await withTimeout(
+          getDoc(docRef),
+          FIRESTORE_WRITE_TIMEOUT_MS,
+          "Firestore getDoc",
+        );
+        if (snap.exists()) {
+          const parentOrder = {
+            ...(snap.data() as Order),
+            id: (snap.data() as Order).id || snap.id,
+          };
+          if (
+            parentOrder.status !== "served" &&
+            parentOrder.status !== "cancelled" &&
+            parentOrder.paymentStatus !== "paid" &&
+            (input.allowAnyParent ||
+              parentOrder.tableNumber === input.tableNumber)
+          ) {
+            const mergedItems = mergeCartItems(parentOrder.items, input.items);
+            const discountPercent = parentOrder.discountPercent || 0;
+            const { subtotal, discountAmount, gst, total } = computeOrderTotals(
+              mergedItems,
+              discountPercent,
+            );
+            const merged: Order = {
+              ...parentOrder,
+              items: mergedItems,
+              subtotal,
+              discountPercent: discountPercent || undefined,
+              discountAmount: discountAmount || undefined,
+              gst,
+              total,
+              status: parentOrder.status,
+              needsKitchenAck: true,
+              updatedAt: now,
+              isTest: parentOrder.isTest || input.isTest,
+            };
+            if (input.notes) {
+              merged.notes = parentOrder.notes
+                ? `${parentOrder.notes} | ${input.notes}`
+                : input.notes;
+            }
+            await withTimeout(
+              setDoc(docRef, cleanUndefined(merged)),
+              FIRESTORE_WRITE_TIMEOUT_MS,
+              "Firestore setDoc",
+            );
+            return merged;
+          }
+        }
+      } catch (fallbackErr) {
+        console.error("Direct fallback to append also failed:", fallbackErr);
+      }
     }
   }
 
   const id = randomUUID();
-  
+
   let discountPercent = 0;
-  if (input.customerPhone) {
+  if (input.customerPhone && !input.skipDiscount) {
     const count = await getPriorOrderCount(input.customerPhone);
     if (count === 1) {
       discountPercent = 10;
@@ -256,6 +346,7 @@ export async function createOrder(input: {
     createdAt: now,
     updatedAt: now,
     isTest: input.isTest || undefined,
+    requestId: input.requestId || undefined,
   };
 
   try {

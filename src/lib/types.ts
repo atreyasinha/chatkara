@@ -51,4 +51,6 @@ export interface Order {
   needsKitchenAck?: boolean;
   /** Set by automated tests (Dev DB) so test orders are easy to spot. */
   isTest?: boolean;
+  /** Client-generated idempotency key — retries after a timeout return this order. */
+  requestId?: string;
 }

@@ -39,12 +39,14 @@ function verifyTelegramSecret(request: Request): boolean {
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
   const got = request.headers.get("x-telegram-bot-api-secret-token");
 
+  // Fail closed: no configured secret, or a missing/mismatched header, is never authorized.
+  // Chat IDs are not secrets — any group member can see them — so they must never
+  // substitute for the webhook secret.
   if (!expected || !got) return false;
 
   const a = Buffer.from(got);
   const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 async function applyKitchenAction(
@@ -123,10 +125,7 @@ export async function POST(request: Request) {
   const chatId = cb.message?.chat.id;
   const messageId = cb.message?.message_id;
   if (chatId === undefined || !isAllowedTelegramChat(chatId)) {
-    console.warn("Telegram callback rejected: unauthorized chat", {
-      chatId,
-      configured: process.env.TELEGRAM_CHAT_ID,
-    });
+    console.warn("Telegram callback rejected: unauthorized chat", { chatId });
     await answerTelegramCallback(cb.id, "Unauthorized chat");
     return NextResponse.json({ ok: true, rejected: "unauthorized_chat" });
   }
