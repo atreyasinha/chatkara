@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// ChatKara Firestore rules.
+//
+// The Next.js server AND the kitchen/order browsers all talk to Firestore
+// with the Firebase *client* SDK (API key, no Firebase Auth), so these
+// rules cannot tell staff from strangers. All pricing, validation, and
+// auth lives in the Next.js API routes — never trust totals written here.
+//
+// This file must be deployed to BOTH projects (they do not share rules):
+//   firebase deploy --only firestore:rules --project chatkara-dev
+//   firebase deploy --only firestore:rules --project <prod-project-id>
+//
+// Without these rules every read/write fails with PERMISSION_DENIED and
+// the API returns 503 ("Database unavailable") — this is what a red CI
+// integration suite with `503 !== 201` means. Requires Firebase CLI
+// access (`npm i -g firebase-tools && firebase login`).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /orders/{orderId} {
+      // Kitchen board + order tracking read directly from browsers.
+      allow read: if true;
+      // The order API creates/appends/updates via the client SDK.
+      allow create, update: if true;
+      // Test cleanup (npm run test:cleanup) deletes isTest docs.
+      allow delete: if true;
+    }
+
+    // Everything else stays locked down.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
