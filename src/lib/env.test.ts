@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it, beforeEach, afterEach } from "node:test";
-import { getChatkaraEnv, isProductionEnv } from "./env.ts";
+import { getChatkaraEnv, isProductionEnv } from "./env";
 
 describe("getChatkaraEnv", () => {
   const keys = ["CHATKARA_ENV", "VERCEL_ENV"] as const;

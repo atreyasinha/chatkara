@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { isOrderFromTodayIST } from "./waiter-day.ts";
+import { isOrderFromTodayIST } from "./waiter-day";
 
 describe("isOrderFromTodayIST", () => {
   it("matches orders created on the same Kolkata calendar day", () => {

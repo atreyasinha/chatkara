@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { RESTAURANT } from "../../src/lib/restaurant";
+import { tableToken } from "../helpers/fixtures";
 
 test.describe("Customer-facing UI", () => {
   test("home page loads with brand and CTAs", async ({ page }) => {
@@ -18,8 +18,9 @@ test.describe("Customer-facing UI", () => {
   });
 
   test("valid table token shows menu and add buttons", async ({ page }) => {
-    const token = RESTAURANT.tableTokens[1];
+    const token = tableToken(1);
     await page.goto(`/table/1?token=${token}`);
+    await expect(page).toHaveURL(/\/table\/1$/);
     await expect(page.getByText(/table 1/i)).toBeVisible();
     await expect(page.getByPlaceholder(/search dishes/i)).toBeVisible();
     const addBtn = page.getByRole("button", { name: /^add$/i }).first();
@@ -35,14 +36,20 @@ test.describe("Customer-facing UI", () => {
   });
 
   test("customer can open checkout with cart item", async ({ page }) => {
-    const token = RESTAURANT.tableTokens[2];
+    const token = tableToken(2);
     await page.goto(`/table/2?token=${token}`);
     await page.getByRole("button", { name: /^add$/i }).first().click();
     await page.getByText(/view cart/i).click();
+    await expect(
+      page.getByRole("dialog", { name: /your order/i }),
+    ).toBeVisible();
     await page.getByRole("button", { name: /proceed to pay/i }).click();
-    await expect(page.getByText(/checkout/i)).toBeVisible();
+    const checkout = page.getByRole("dialog", { name: /checkout/i });
+    await expect(checkout).toBeVisible();
     await expect(page.getByText(/upi/i)).toBeVisible();
     await expect(page.getByText(/cash/i)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(checkout).toBeHidden();
   });
 });
 
@@ -57,7 +64,7 @@ test.describe("Admin UI gates", () => {
   });
 
   test("checkout UPI does not offer self-serve mark paid", async ({ page }) => {
-    const token = RESTAURANT.tableTokens[2];
+    const token = tableToken(2);
     await page.goto(`/table/2?token=${token}`);
     await page.getByRole("button", { name: /^add$/i }).first().click();
     await page.getByText(/view cart/i).click();

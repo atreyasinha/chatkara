@@ -105,6 +105,15 @@ flowchart TB
 
 1. Keep **La Gardenia** as production Firebase; use **chatkara-dev** for development.
 2. Enable **Cloud Firestore** on `chatkara-dev` (`(default)` database).
+3. Deploy the repo's Firestore rules to **both** projects (rules are per-project — without this every read/write fails with `PERMISSION_DENIED` and the API returns 503, which is also what a red CI integration suite with `503 !== 201` means):
+   
+   ```bash
+   npm i -g firebase-tools && firebase login
+   firebase deploy --only firestore:rules --project chatkara-dev
+   firebase deploy --only firestore:rules --project <prod-project-id>
+   ```
+   
+   Rules source: [`firestore.rules`](./firestore.rules) (wired via [`firebase.json`](./firebase.json)). The server and kitchen browsers use the client SDK (no Firebase Auth), so the `orders` collection must be readable/writable — all pricing and validation lives in the Next.js API, never trust totals written to Firestore directly.
 3. Local `.env.local` → `chatkara-dev` credentials + `CHATKARA_ENV=development`.
 4. **Vercel → Environment Variables**:
    - **Production** → La Gardenia `FIREBASE_*` + `CHATKARA_ENV=production`

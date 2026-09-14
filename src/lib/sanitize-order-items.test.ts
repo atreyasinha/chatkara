@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MENU } from "./menu.ts";
+import { MENU } from "./menu";
 import {
   isActiveOrderStatus,
   sanitizeOrderItems,
-} from "./sanitize-order-items.ts";
+} from "./sanitize-order-items";
 
 describe("sanitizeOrderItems (order → priced lines)", () => {
   it("reprices from MENU and ignores client price/name", () => {
@@ -82,6 +82,17 @@ describe("sanitizeOrderItems (order → priced lines)", () => {
     const tooLow = sanitizeOrderItems([{ itemId: sample.id, quantity: 0 }]);
     assert.equal(tooLow.ok, true);
     if (tooLow.ok) assert.equal(tooLow.items[0].quantity, 1);
+  });
+
+  it("rejects fractional and non-finite quantities", () => {
+    const sample = MENU[0];
+    assert.ok(sample);
+
+    for (const quantity of [1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const result = sanitizeOrderItems([{ itemId: sample.id, quantity }]);
+      assert.equal(result.ok, false);
+      if (!result.ok) assert.match(result.error, /whole number/i);
+    }
   });
 
   it("rejects empty cart", () => {

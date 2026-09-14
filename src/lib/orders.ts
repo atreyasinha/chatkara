@@ -20,6 +20,13 @@ import type { CartItem, Order, OrderStatus, PaymentMethod } from "./types";
 const ORDERS_COLLECTION = "orders";
 const FIRESTORE_WRITE_TIMEOUT_MS = 12_000;
 
+/** Normalize to 10 digits; returns null when not a valid Indian mobile. */
+export function normalizePhone(phone: unknown): string | null {
+  if (typeof phone !== "string") return null;
+  const digits = phone.replace(/\D/g, "").slice(-10);
+  return /^\d{10}$/.test(digits) ? digits : null;
+}
+
 async function withTimeout<T>(
   promise: Promise<T>,
   ms: number,
@@ -47,10 +54,11 @@ async function withTimeout<T>(
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
  * Throws on failure — callers must surface 503, never pretend there are zero orders.
+ * Bounded to the 200 most recent to avoid O(N) reads on a growing collection.
  */
 export async function listOrders(since?: string): Promise<Order[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const constraints: any[] = [orderBy("createdAt", "desc")];
+  const constraints: any[] = [orderBy("createdAt", "desc"), limit(200)];
   if (since) {
     constraints.push(where("createdAt", ">=", since));
   }
@@ -118,11 +126,12 @@ function cleanUndefined(obj: any): any {
  * Count prior non-cancelled orders for a given phone number.
  */
 export async function getPriorOrderCount(phone: string): Promise<number> {
-  if (!phone || phone.trim().length !== 10) return 0;
+  const normalized = normalizePhone(phone);
+  if (!normalized) return 0;
   try {
     const q = query(
       collection(db, ORDERS_COLLECTION),
-      where("customerPhone", "==", phone.trim()),
+      where("customerPhone", "==", normalized),
     );
     const snap = await getDocs(q);
     let count = 0;

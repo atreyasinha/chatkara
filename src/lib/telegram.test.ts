@@ -6,8 +6,8 @@ import {
   formatKitchenTelegramMessage,
   isAllowedTelegramChat,
   parseKitchenCallbackData,
-} from "./telegram.ts";
-import type { Order } from "./types.ts";
+} from "./telegram";
+import type { Order } from "./types";
 
 function sampleOrder(overrides: Partial<Order> = {}): Order {
   return {

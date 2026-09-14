@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
+import { ModalDialog } from "@/components/ModalDialog";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import { shareReceiptOnWhatsApp } from "@/lib/receipt";
@@ -201,7 +202,7 @@ export function KitchenDashboard() {
 
       try {
         const { getClientDb } = await import("@/lib/firebase-client");
-        const { collection, onSnapshot, query, orderBy, where } = await import(
+        const { collection, onSnapshot, query, orderBy, where, limit } = await import(
           "firebase/firestore"
         );
 
@@ -210,7 +211,8 @@ export function KitchenDashboard() {
         const q = query(
           collection(db, "orders"),
           orderBy("createdAt", "desc"),
-          where("createdAt", ">=", since)
+          where("createdAt", ">=", since),
+          limit(100),
         );
 
         unsubscribe = onSnapshot(
@@ -351,15 +353,19 @@ export function KitchenDashboard() {
     <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6">
       {/* WhatsApp phone modal */}
       {whatsappOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-line bg-bg-elevated p-5 shadow-xl">
+        <ModalDialog
+          titleId="whatsapp-bill-title"
+          onClose={() => setWhatsappOrder(null)}
+          overlayClassName="items-center justify-center px-4"
+          panelClassName="w-full max-w-sm rounded-2xl border border-line bg-bg-elevated p-5 shadow-xl"
+        >
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg text-gold">Send Bill via WhatsApp</h3>
+              <h2 id="whatsapp-bill-title" className="font-display text-lg text-gold">Send Bill via WhatsApp</h2>
               <button
                 type="button"
                 aria-label="Close"
                 onClick={() => setWhatsappOrder(null)}
-                className="rounded-full p-1.5 text-muted hover:bg-bg-soft"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted hover:bg-bg-soft"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -369,25 +375,25 @@ export function KitchenDashboard() {
             </label>
             <input
               id="whatsapp-phone"
-              type="text"
+              type="tel"
               inputMode="numeric"
+              autoComplete="tel"
               maxLength={10}
               value={whatsappPhone}
               onChange={(e) => setWhatsappPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               placeholder="10-digit mobile number"
-              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               autoFocus
             />
             <button
               type="button"
               disabled={whatsappPhone.replace(/\D/g, "").length < 10}
               onClick={submitWhatsApp}
-              className="mt-3 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40"
+              className="mt-3 min-h-11 w-full rounded-xl border border-green-600/30 bg-green-500/10 py-2.5 text-sm font-semibold text-green-400 hover:bg-green-500/20 disabled:opacity-40"
             >
               Send on WhatsApp
             </button>
-          </div>
-        </div>
+        </ModalDialog>
       )}
       {!online && (
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-flame-from/40 bg-flame-from/10 px-3 py-2 text-sm text-flame-from">
@@ -423,7 +429,7 @@ export function KitchenDashboard() {
       )}
 
       {toast && (
-        <div className="mb-4 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm text-muted">
+        <div role="status" aria-live="polite" className="mb-4 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-sm text-muted">
           {toast}
         </div>
       )}
@@ -476,7 +482,7 @@ export function KitchenDashboard() {
             type="button"
             aria-pressed={filter === f}
             onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-sm ${
+            className={`min-h-11 rounded-full px-4 py-2 text-sm ${
               filter === f
                 ? "bg-gold text-bg font-semibold"
                 : "border border-line text-muted"

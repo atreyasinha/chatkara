@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import {
   createAdminSessionToken,
   verifyAdminSessionToken,
-} from "./admin-auth.ts";
+} from "./admin-auth";
 
 describe("admin session tokens", () => {
   it("round-trips a valid token when ADMIN_PASSWORD is set", () => {

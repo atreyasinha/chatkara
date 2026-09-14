@@ -6,6 +6,7 @@ import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 import { notifyKitchenTelegram } from "@/lib/telegram";
 import { isProductionEnv } from "@/lib/env";
 import { RESTAURANT } from "@/lib/restaurant";
+import { tableTokenValid } from "@/lib/table-tokens";
 import type { CartItem, Order, PaymentMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -46,15 +47,6 @@ function isAuthorizedTestRequest(request: Request): boolean {
   const b = Buffer.from(secret, "utf8");
   if (a.length !== b.length) return false;
 
-  return timingSafeEqual(a, b);
-}
-
-function tableTokenValid(tableNumber: number, token: unknown): boolean {
-  const expected = RESTAURANT.tableTokens[tableNumber];
-  if (!expected || typeof token !== "string") return false;
-  const a = Buffer.from(token, "utf8");
-  const b = Buffer.from(expected, "utf8");
-  if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 }
 

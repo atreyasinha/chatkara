@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { Camera } from "lucide-react";
@@ -9,11 +9,44 @@ import { RESTAURANT } from "@/lib/restaurant";
 
 export function QrCodesClient() {
   const [origin, setOrigin] = useState("");
+  const [tableTokens, setTableTokens] = useState<Record<number, string> | null>(
+    null,
+  );
+  const [error, setError] = useState("");
+
+  const loadTableTokens = useCallback(async () => {
+    setError("");
+    try {
+      const response = await fetch("/api/admin/table-tokens", {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        tableTokens?: Record<number, string>;
+        error?: string;
+      };
+      if (!response.ok || !data.tableTokens) {
+        throw new Error(
+          response.status === 401
+            ? "Your admin session expired. Sign in again to view QR credentials."
+            : data.error || "Could not load table QR credentials.",
+        );
+      }
+      setTableTokens(data.tableTokens);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Could not load table QR credentials.",
+      );
+    }
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOrigin(window.location.origin);
-  }, []);
+    void loadTableTokens();
+  }, [loadTableTokens]);
 
   const tables = Array.from(
     { length: RESTAURANT.tableCount },
@@ -86,12 +119,26 @@ export function QrCodesClient() {
         </p>
       </div>
 
-      {!origin ? (
+      {error ? (
+        <div
+          role="alert"
+          className="rounded-2xl border border-nonveg/40 bg-nonveg/10 px-4 py-4 text-sm text-nonveg"
+        >
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadTableTokens()}
+            className="mt-3 min-h-11 rounded-xl border border-nonveg/50 px-4 py-2 font-semibold"
+          >
+            Try again
+          </button>
+        </div>
+      ) : !origin || !tableTokens ? (
         <p className="text-muted">Preparing QR codes…</p>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:grid-cols-2 print-grid">
           {tables.map((n) => {
-            const url = `${origin}/table/${n}?token=${RESTAURANT.tableTokens[n]}`;
+            const url = `${origin}/table/${n}?token=${tableTokens[n]}`;
             return (
               <div
                 key={n}

@@ -34,7 +34,11 @@ export function sanitizeOrderItems(
   const sanitized: CartItem[] = [];
   for (const item of items) {
     const itemId = String(item.itemId ?? "");
-    const quantity = Math.max(1, Math.min(20, Number(item.quantity) || 1));
+    const rawQuantity = Number(item.quantity ?? 1);
+    if (!Number.isFinite(rawQuantity) || !Number.isInteger(rawQuantity)) {
+      return { ok: false, error: "Item quantity must be a whole number" };
+    }
+    const quantity = Math.max(1, Math.min(20, rawQuantity));
     const notes = item.notes ? String(item.notes).slice(0, 120) : undefined;
 
     const dbItem = MENU.find((m) => m.id === itemId);
