@@ -34,7 +34,7 @@ export function testHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const key = process.env.E2E_TEST_SECRET;
+  const key = process.env.E2E_TEST_SECRET?.trim();
   if (key) headers["x-chatkara-test-key"] = key;
   return headers;
 }
