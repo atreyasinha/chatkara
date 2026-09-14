@@ -52,15 +52,40 @@ export async function createTestOrder(input: {
   customerPhone?: string;
   notes?: string;
   parentOrderId?: string;
+  tableToken?: string;
 }): Promise<{ status: number; order?: Order; error?: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { tableToken: _omit, ...rest } = input;
+  const payload = {
+    ...rest,
+    tableToken:
+      input.tableToken ??
+      (input.tableNumber !== 0
+        ? process.env[`TABLE_TOKEN_${input.tableNumber}`]?.trim() || legacyTableToken(input.tableNumber)
+        : undefined),
+  };
   const { status, body } = await apiJson<{ order?: Order; error?: string }>(
     "/api/orders",
     {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify(payload),
     },
   );
   return { status, order: body.order, error: body.error };
+}
+
+const LEGACY_TOKENS: Record<number, string> = {
+  1: "ck_t1_x92a",
+  2: "ck_t2_p83b",
+  3: "ck_t3_m17c",
+  4: "ck_t4_y64d",
+  5: "ck_t5_r28e",
+  6: "ck_t6_v59f",
+  7: "ck_t7_w41g",
+};
+
+function legacyTableToken(tableNumber: number): string | undefined {
+  return LEGACY_TOKENS[tableNumber];
 }
 
 export async function getOrder(id: string) {

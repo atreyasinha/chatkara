@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ShoppingBag, Monitor, Clock, Utensils, Phone } from "lucide-react";
+import { MapPin, ShoppingBag, Monitor, Clock, Utensils } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 

@@ -7,8 +7,32 @@ import {
   createAdminSessionToken,
 } from "@/lib/admin-auth";
 
+const loginRateMap = new Map<string, number[]>();
+const LOGIN_RATE_LIMIT = 10;
+const LOGIN_RATE_WINDOW_MS = 60_000;
+
+function isLoginRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const hits = (loginRateMap.get(ip) ?? []).filter(
+    (t) => now - t < LOGIN_RATE_WINDOW_MS,
+  );
+  hits.push(now);
+  loginRateMap.set(ip, hits);
+  return hits.length > LOGIN_RATE_LIMIT;
+}
+
 export async function POST(request: Request) {
   try {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "unknown";
+    if (isLoginRateLimited(ip)) {
+      return NextResponse.json(
+        { success: false, error: "Too many attempts — try again in a minute" },
+        { status: 429 },
+      );
+    }
+
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
         {

@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MENU, CATEGORIES, getMenuItem, searchMenu } from "./menu.ts";
+import { MENU, CATEGORIES, getMenuItem, searchMenu } from "./menu";
 import {
   RESTAURANT,
   formatINR,
   buildUpiLink,
-} from "./restaurant.ts";
+} from "./restaurant";
 import {
   computeOrderTotals,
   mergeCartItems,
   nextKitchenStatus,
   KITCHEN_STATUS_FLOW,
-} from "./order-math.ts";
-import type { CartItem } from "./types.ts";
+} from "./order-math";
+import type { CartItem } from "./types";
 
 describe("menu catalog", () => {
   it("has dishes across categories", () => {

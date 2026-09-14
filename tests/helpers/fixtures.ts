@@ -3,6 +3,23 @@ import { MENU } from "../../src/lib/menu.ts";
 export const TEST_PHONE = "9876543210";
 export const TEST_NAME = "E2E Nightly Customer";
 
+const LEGACY_TEST_TABLE_TOKENS: Record<number, string> = {
+  1: "ck_t1_x92a",
+  2: "ck_t2_p83b",
+  3: "ck_t3_m17c",
+  4: "ck_t4_y64d",
+  5: "ck_t5_r28e",
+  6: "ck_t6_v59f",
+  7: "ck_t7_w41g",
+};
+
+export function tableToken(tableNumber: number): string {
+  return (
+    process.env[`TABLE_TOKEN_${tableNumber}`]?.trim() ||
+    LEGACY_TEST_TABLE_TOKENS[tableNumber]
+  );
+}
+
 export function sampleMenuItems(count = 2) {
   const picks = MENU.filter((m) => m.price > 0).slice(0, Math.max(1, count));
   if (picks.length === 0) throw new Error("MENU is empty");

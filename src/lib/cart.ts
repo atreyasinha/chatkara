@@ -71,13 +71,14 @@ export const useCart = create<CartState>()(
         set({ items: nextItems, cartsByTable: carts });
       },
       setQuantity: (itemId, quantity) => {
-        if (quantity <= 0) {
+        const normalized = Math.floor(Number(quantity));
+        if (!Number.isFinite(normalized) || normalized <= 0) {
           get().removeItem(itemId);
           return;
         }
         const nextItems = get().items.map((i) =>
           i.itemId === itemId
-            ? { ...i, quantity: Math.min(20, quantity) }
+            ? { ...i, quantity: Math.min(20, normalized) }
             : i,
         );
         const tableNumber = get().tableNumber;

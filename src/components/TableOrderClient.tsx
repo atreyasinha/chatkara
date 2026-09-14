@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BrandMark } from "@/components/BrandMark";
 import { CheckoutSheet } from "@/components/CheckoutSheet";
+import { ModalDialog } from "@/components/ModalDialog";
 import { VegBadge } from "@/components/VegBadge";
 import { useCart } from "@/lib/cart";
 import { CATEGORIES, MENU, searchMenu } from "@/lib/menu";
@@ -25,6 +26,11 @@ export function TableOrderClient({
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [verifiedToken, setVerifiedToken] = useState<string | undefined>(
+    undefined,
+  );
+  const [verificationError, setVerificationError] = useState("");
+  const [verificationAttempt, setVerificationAttempt] = useState(0);
 
   // ⚡ Bolt: Defer search query updates to keep typing instantly responsive
   // while the large list filters in the background
@@ -33,38 +39,76 @@ export function TableOrderClient({
   const { setTable, addItem, items, itemCount, subtotal, setQuantity, removeItem } =
     useCart();
 
-  // Handle table token verification and silent URL cleanup
+  // Handle table token verification via server (tokens are server-only)
+  // and silent URL cleanup. Cart is scoped to this table before UI reveals
+  // so a rehydrated cart from another table never flashes or takes a stray write.
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    let cancelled = false;
+
+    async function verifyTableAccess() {
+      setTable(tableNumber);
+      setVerificationError("");
+
       if (tableNumber === 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setIsVerified(true);
+        if (!cancelled) setIsVerified(true);
         return;
       }
 
       const url = new URL(window.location.href);
       const urlToken = url.searchParams.get("token");
-      const expectedToken = RESTAURANT.tableTokens[tableNumber];
-      const savedToken = sessionStorage.getItem(`chatkara_table_${tableNumber}_token`);
+      const savedToken = sessionStorage.getItem(
+        `chatkara_table_${tableNumber}_token`,
+      );
+      const candidates = [...new Set([urlToken, savedToken].filter(Boolean))] as string[];
 
-      if (urlToken === expectedToken) {
-        sessionStorage.setItem(`chatkara_table_${tableNumber}_token`, urlToken);
-        setIsVerified(true);
-
-        // Remove token from address bar silently
-        url.searchParams.delete("token");
-        window.history.replaceState({}, "", url.pathname + url.search);
-      } else if (savedToken === expectedToken) {
-        setIsVerified(true);
-      } else {
+      try {
+        for (const token of candidates) {
+          const response = await fetch("/api/table/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tableNumber, token }),
+          });
+          const data = (await response.json().catch(() => ({}))) as {
+            valid?: boolean;
+            error?: string;
+          };
+          if (response.status === 429) {
+            throw new Error(
+              data.error || "Too many attempts — wait a moment and try again",
+            );
+          }
+          if (response.ok && data.valid) {
+            if (cancelled) return;
+            sessionStorage.setItem(
+              `chatkara_table_${tableNumber}_token`,
+              token,
+            );
+            setVerifiedToken(token);
+            setIsVerified(true);
+            if (urlToken) {
+              url.searchParams.delete("token");
+              window.history.replaceState({}, "", url.pathname + url.search);
+            }
+            return;
+          }
+        }
+        if (!cancelled) setIsVerified(false);
+      } catch (error) {
+        if (cancelled) return;
+        setVerificationError(
+          error instanceof Error
+            ? error.message
+            : "Could not verify this table. Check your connection and try again.",
+        );
         setIsVerified(false);
       }
     }
-  }, [tableNumber]);
 
-  useEffect(() => {
-    setTable(tableNumber);
-  }, [tableNumber, setTable]);
+    void verifyTableAccess();
+    return () => {
+      cancelled = true;
+    };
+  }, [tableNumber, setTable, verificationAttempt]);
 
   const filtered = useMemo(() => {
     let list = deferredQuery ? searchMenu(deferredQuery) : MENU;
@@ -140,16 +184,31 @@ export function TableOrderClient({
             </svg>
           </div>
 
-          <h2 className="font-display mt-5 text-2xl text-gold">Invalid Table Access</h2>
+          <h1 className="font-display mt-5 text-2xl text-gold">
+            {verificationError ? "Couldn’t Verify This Table" : "Invalid Table Access"}
+          </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Dine-in table ordering is restricted. To browse the menu and order, 
-            please **scan the physical QR code** placed on your table.
+            {verificationError
+              ? verificationError
+              : "Dine-in table ordering is restricted. To browse the menu and order, scan the physical QR code placed on your table."}
           </p>
 
-          <div className="mt-8 border-t border-line/45 pt-6">
+          <div className="mt-8 flex flex-col gap-3 border-t border-line/45 pt-6">
+            {verificationError && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsVerified(null);
+                  setVerificationAttempt((attempt) => attempt + 1);
+                }}
+                className="min-h-11 w-full rounded-xl border border-gold/50 px-4 py-3 text-sm font-semibold text-gold transition hover:bg-gold-dim"
+              >
+                Try verification again
+              </button>
+            )}
             <Link 
               href="/"
-              className="flame-bg block w-full rounded-xl py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
+              className="flame-bg flex min-h-11 w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[0.98]"
             >
               Go to Home Page
             </Link>
@@ -179,14 +238,14 @@ export function TableOrderClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes…"
-            className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+              className="min-h-11 w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-12 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
           />
           {query && (
             <button
               type="button"
               aria-label="Clear search"
               onClick={() => setQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted hover:bg-bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="absolute right-0.5 top-1/2 flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:bg-bg-soft hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             >
               <X className="h-4 w-4" />
             </button>
@@ -198,8 +257,9 @@ export function TableOrderClient({
             <button
               key={f}
               type="button"
+              aria-pressed={filter === f}
               onClick={() => setFilter(f)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`min-h-11 shrink-0 rounded-full px-4 py-2 text-xs font-medium transition ${
                 filter === f
                   ? "flame-bg text-white"
                   : "border border-line bg-bg-soft text-muted"
@@ -275,7 +335,7 @@ export function TableOrderClient({
       </footer>
 
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             onClick={() => setCartOpen(true)}
@@ -291,15 +351,18 @@ export function TableOrderClient({
       )}
 
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
-          <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up">
+        <ModalDialog
+          titleId="cart-dialog-title"
+          onClose={() => setCartOpen(false)}
+          panelClassName="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up"
+        >
             <div className="flex items-center justify-between border-b border-line px-4 py-3">
-              <h3 className="font-display text-xl text-gold">Your order</h3>
+              <h2 id="cart-dialog-title" className="font-display text-xl text-gold">Your order</h2>
               <button
                 type="button"
                 aria-label="Close cart"
                 onClick={() => setCartOpen(false)}
-                className="rounded-full p-2 text-muted hover:bg-bg-soft hover:text-ink focus-visible:ring-2"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted hover:bg-bg-soft hover:text-ink focus-visible:ring-2"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -334,8 +397,8 @@ export function TableOrderClient({
                       <div className="flex items-center gap-2 rounded-full border border-line px-1.5 py-1">
                         <button
                           type="button"
-                          aria-label="Decrease quantity"
-                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          aria-label={`Decrease ${item.name} quantity`}
+                          className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-gold hover:bg-gold-dim focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity - 1)}
                         >
                           <Minus className="h-3.5 w-3.5" />
@@ -343,8 +406,8 @@ export function TableOrderClient({
                         <span className="w-5 text-center text-sm">{item.quantity}</span>
                         <button
                           type="button"
-                          aria-label="Increase quantity"
-                          className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
+                          aria-label={`Increase ${item.name} quantity`}
+                          className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-gold hover:bg-gold-dim focus-visible:ring-2"
                           onClick={() => setQuantity(item.itemId, item.quantity + 1)}
                         >
                           <Plus className="h-3.5 w-3.5" />
@@ -352,8 +415,8 @@ export function TableOrderClient({
                       </div>
                       <button
                         type="button"
-                        aria-label="Remove item"
-                        className="text-xs text-muted hover:text-nonveg focus-visible:ring-2 rounded"
+                        aria-label={`Remove ${item.name}`}
+                        className="min-h-11 rounded px-1 text-xs text-muted hover:text-nonveg focus-visible:ring-2"
                         onClick={() => removeItem(item.itemId)}
                       >
                         Remove
@@ -379,13 +442,13 @@ export function TableOrderClient({
                 </div>
               </>
             )}
-          </div>
-        </div>
+        </ModalDialog>
       )}
 
       {checkoutOpen && (
         <CheckoutSheet
           tableNumber={tableNumber}
+          tableToken={verifiedToken}
           parentOrderId={parentOrderId}
           onClose={() => setCheckoutOpen(false)}
         />
@@ -406,8 +469,9 @@ function CategoryChip({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-xs transition ${
+      className={`min-h-11 shrink-0 rounded-full px-4 py-2 text-xs transition ${
         active
           ? "bg-gold text-bg font-semibold"
           : "border border-line text-muted hover:border-gold/50 hover:text-ink"
@@ -459,8 +523,8 @@ const MenuItemRow = memo(function MenuItemRow({
         <div className="flex items-center gap-2 rounded-full border border-line bg-bg-soft px-1.5 py-1">
           <button
             type="button"
-            aria-label="Decrease"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            aria-label={`Decrease ${item.name} quantity`}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-gold hover:bg-gold-dim"
             onClick={() => setQuantity(item.id, inCart.quantity - 1)}
           >
             <Minus className="h-3.5 w-3.5" />
@@ -470,8 +534,8 @@ const MenuItemRow = memo(function MenuItemRow({
           </span>
           <button
             type="button"
-            aria-label="Increase"
-            className="rounded-full p-1 text-gold hover:bg-gold-dim"
+            aria-label={`Increase ${item.name} quantity`}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-gold hover:bg-gold-dim"
             onClick={() => setQuantity(item.id, inCart.quantity + 1)}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -481,7 +545,7 @@ const MenuItemRow = memo(function MenuItemRow({
         <button
           type="button"
           onClick={() => addItem(item)}
-          className="shrink-0 rounded-full border border-gold/50 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold-dim"
+          className="min-h-11 shrink-0 rounded-full border border-gold/50 px-4 py-2 text-xs font-semibold text-gold transition hover:bg-gold-dim"
         >
           Add
         </button>

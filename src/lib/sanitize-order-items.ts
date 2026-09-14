@@ -26,13 +26,19 @@ export function sanitizeOrderItems(
     if (!dbItem) {
       return { ok: false, error: `Item not found: ${itemId}` };
     }
+    const rawQuantity = Number(item.quantity ?? 1);
+    if (!Number.isFinite(rawQuantity) || !Number.isInteger(rawQuantity)) {
+      return { ok: false, error: "Item quantity must be a whole number" };
+    }
+    const quantity = Math.max(1, Math.min(20, rawQuantity));
+    const notes = item.notes ? String(item.notes).slice(0, 120) : undefined;
     sanitized.push({
       itemId,
       name: dbItem.name,
       price: dbItem.price,
-      quantity: Math.max(1, Math.min(20, Number(item.quantity) || 1)),
+      quantity,
       veg: dbItem.veg as VegFlag,
-      notes: item.notes ? String(item.notes) : undefined,
+      notes,
     });
   }
   return { ok: true, items: sanitized };

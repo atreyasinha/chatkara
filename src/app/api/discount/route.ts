@@ -37,9 +37,10 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const phone = searchParams.get("phone");
+    const phoneRaw = searchParams.get("phone") ?? "";
+    const phone = phoneRaw.replace(/\D/g, "").slice(-10);
 
-    if (!phone || phone.trim().length !== 10) {
+    if (!/^\d{10}$/.test(phone)) {
       return NextResponse.json(
         { error: "Invalid phone number" },
         { status: 400 },
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      phone: phone.trim(),
+      phone,
       orderCount: count,
       discountPercent,
       message,

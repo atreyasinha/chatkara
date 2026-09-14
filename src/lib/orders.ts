@@ -5,6 +5,7 @@ import {
   getDocs,
   query,
   orderBy,
+  limit,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -17,6 +18,20 @@ import type { CartItem, Order, OrderStatus, PaymentMethod } from "./types";
 
 const ORDERS_COLLECTION = "orders";
 const FIRESTORE_WRITE_TIMEOUT_MS = 12_000;
+
+export class InvalidParentOrderError extends Error {
+  constructor() {
+    super("Parent order is missing, closed, paid, or belongs to another table");
+    this.name = "InvalidParentOrderError";
+  }
+}
+
+/** Normalize to 10 digits; returns null when not a valid Indian mobile. */
+export function normalizePhone(phone: unknown): string | null {
+  if (typeof phone !== "string") return null;
+  const digits = phone.replace(/\D/g, "").slice(-10);
+  return /^\d{10}$/.test(digits) ? digits : null;
+}
 
 async function withTimeout<T>(
   promise: Promise<T>,
@@ -44,12 +59,14 @@ async function withTimeout<T>(
 
 /**
  * Retrieve all orders from Firestore, ordered by creation date (newest first).
+ * Bounded to the 200 most recent to avoid O(N) reads on a growing collection.
  */
 export async function listOrders(): Promise<Order[]> {
   try {
     const q = query(
       collection(db, ORDERS_COLLECTION),
       orderBy("createdAt", "desc"),
+      limit(200),
     );
     const querySnapshot = await getDocs(q);
     const results: Order[] = [];
@@ -114,11 +131,12 @@ function cleanUndefined(obj: any): any {
  * Count prior non-cancelled orders for a given phone number.
  */
 export async function getPriorOrderCount(phone: string): Promise<number> {
-  if (!phone || phone.trim().length !== 10) return 0;
+  const normalized = normalizePhone(phone);
+  if (!normalized) return 0;
   try {
     const q = query(
       collection(db, ORDERS_COLLECTION),
-      where("customerPhone", "==", phone.trim()),
+      where("customerPhone", "==", normalized),
     );
     const snap = await getDocs(q);
     let count = 0;
@@ -152,6 +170,7 @@ export async function createOrder(input: {
       const parentOrder = await getOrder(input.parentOrderId);
       if (
         parentOrder &&
+        parentOrder.tableNumber === input.tableNumber &&
         parentOrder.status !== "served" &&
         parentOrder.status !== "cancelled" &&
         parentOrder.paymentStatus !== "paid"
@@ -192,11 +211,14 @@ export async function createOrder(input: {
         );
         return updatedOrder;
       }
+      throw new InvalidParentOrderError();
     } catch (err) {
+      if (err instanceof InvalidParentOrderError) throw err;
       console.error(
-        "Failed to append to parent order, fallback to new order:",
+        "Transaction failed to append to parent order, trying direct update:",
         err,
       );
+      throw err;
     }
   }
 

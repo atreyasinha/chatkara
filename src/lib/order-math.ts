@@ -32,9 +32,9 @@ export function mergeCartItems(
       (i) => i.itemId === newItem.itemId && i.notes === newItem.notes,
     );
     if (found) {
-      found.quantity += newItem.quantity;
+      found.quantity = Math.min(20, found.quantity + newItem.quantity);
     } else {
-      merged.push({ ...newItem });
+      merged.push({ ...newItem, quantity: Math.min(20, newItem.quantity) });
     }
   }
   return merged;

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 import { MENU } from "../../src/lib/menu.ts";
-import { RESTAURANT } from "../../src/lib/restaurant.ts";
 import {
   adminLogin,
   createTestOrder,
@@ -13,6 +12,7 @@ import {
 import {
   firebaseConfigured,
   sampleMenuItems,
+  tableToken,
   TEST_NAME,
   TEST_PHONE,
   underpricedPayload,
@@ -63,6 +63,34 @@ describe(
       items: [{ itemId: "totally-fake", quantity: 1 }],
     });
     assert.equal(badItem.status, 400);
+  });
+
+  it("rejects dine-in orders without a valid table credential", async (t) => {
+    if (!enabled) return t.skip();
+
+    const missing = await createTestOrder({
+      tableNumber: 1,
+      paymentMethod: "cash",
+      items: sampleMenuItems(1),
+      tableToken: "wrong-token",
+    });
+    assert.equal(missing.status, 403);
+  });
+
+  it("returns table QR credentials only to an authenticated admin", async (t) => {
+    if (!enabled) return t.skip();
+
+    const denied = await apiJson<{ error?: string }>(
+      "/api/admin/table-tokens",
+      { admin: false },
+    );
+    assert.equal(denied.status, 401);
+
+    const response = await apiJson<{
+      tableTokens?: Record<number, string>;
+    }>("/api/admin/table-tokens", { admin: true });
+    assert.equal(response.status, 200);
+    assert.equal(Object.keys(response.body.tableTokens ?? {}).length, 7);
   });
 
   it("reprices underpaid client payloads from MENU", async (t) => {
@@ -202,7 +230,7 @@ describe(
     assert.equal(acked.body.order?.needsKitchenAck, false);
   });
 
-  it("does not append to paid parent — creates a new order instead", async (t) => {
+  it("rejects append to a paid parent instead of silently splitting the bill", async (t) => {
     if (!enabled) return t.skip();
     const parent = await createTestOrder({
       tableNumber: 5,
@@ -218,9 +246,28 @@ describe(
       items: sampleMenuItems(1),
       parentOrderId: parent.order!.id,
     });
-    assert.equal(child.status, 201);
-    assert.ok(child.order);
-    assert.notEqual(child.order!.id, parent.order!.id);
+    assert.equal(child.status, 409);
+    assert.match(child.error || "", /can no longer be updated/i);
+    assert.equal(child.order, undefined);
+  });
+
+  it("rejects append when the parent belongs to another table", async (t) => {
+    if (!enabled) return t.skip();
+    const parent = await createTestOrder({
+      tableNumber: 5,
+      paymentMethod: "upi",
+      items: sampleMenuItems(1),
+    });
+    assert.ok(parent.order);
+
+    const child = await createTestOrder({
+      tableNumber: 6,
+      paymentMethod: "upi",
+      items: sampleMenuItems(1),
+      parentOrderId: parent.order!.id,
+    });
+    assert.equal(child.status, 409);
+    assert.match(child.error || "", /can no longer be updated/i);
   });
 
   it("GET order by id stays public; list requires admin", async (t) => {
@@ -303,8 +350,8 @@ describe(
   });
 
   it("table tokens cover all tables", () => {
-    for (let n = 1; n <= RESTAURANT.tableCount; n++) {
-      assert.ok(RESTAURANT.tableTokens[n]);
+    for (let n = 1; n <= 7; n++) {
+      assert.ok(tableToken(n));
     }
   });
 });

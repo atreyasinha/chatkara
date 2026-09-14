@@ -6,14 +6,17 @@ import { QRCodeSVG } from "qrcode.react";
 import { Banknote, Smartphone, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
+import { ModalDialog } from "@/components/ModalDialog";
 import type { Order, PaymentMethod } from "@/lib/types";
 
 export function CheckoutSheet({
   tableNumber,
+  tableToken,
   parentOrderId,
   onClose,
 }: {
   tableNumber: number;
+  tableToken?: string;
   parentOrderId?: string;
   onClose: () => void;
 }) {
@@ -43,6 +46,8 @@ export function CheckoutSheet({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
+
+  const phoneValid = /^\d{10}$/.test(phone);
 
   const [discountPercent, setDiscountPercent] = useState(0);
   const [discountMessage, setDiscountMessage] = useState("");
@@ -115,6 +120,7 @@ export function CheckoutSheet({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tableNumber,
+          tableToken: tableNumber === 0 ? undefined : tableToken,
           items,
           paymentMethod: method,
           customerName: tableNumber === 0 ? name || undefined : undefined,
@@ -166,16 +172,20 @@ export function CheckoutSheet({
 
   if (order && method === "upi") {
     return (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-        <div className="w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
+      <ModalDialog
+        titleId="upi-pay-title"
+        onClose={() => router.push(`/order/${order.id}`)}
+        overlayClassName="items-end justify-center sm:items-center"
+        panelClassName="w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up"
+      >
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="font-display text-2xl text-gold">Pay with UPI</h3>
+              <h2 id="upi-pay-title" className="font-display text-2xl text-gold">Pay with UPI</h2>
               <p className="text-sm text-muted">
                 Order #{order.id.slice(0, 8).toUpperCase()} · {formatINR(order.total)}
               </p>
             </div>
-            <button type="button" aria-label="Close UPI payment" onClick={() => router.push(`/order/${order.id}`)} className="rounded-full p-2 hover:bg-bg-soft focus-visible:ring-2">
+            <button type="button" aria-label="Close UPI payment" onClick={() => router.push(`/order/${order.id}`)} className="flex min-h-11 min-w-11 items-center justify-center rounded-full hover:bg-bg-soft focus-visible:ring-2">
               <X className="h-5 w-5 text-muted" />
             </button>
           </div>
@@ -238,12 +248,11 @@ export function CheckoutSheet({
             type="button"
             disabled={loading}
             onClick={confirmUpiPaid}
-            className="w-full rounded-xl border border-gold/50 py-3 font-semibold text-gold hover:bg-gold-dim disabled:opacity-50"
+            className="min-h-11 w-full rounded-xl border border-gold/50 py-3 font-semibold text-gold hover:bg-gold-dim disabled:opacity-50"
           >
             I&apos;ve paid — track order
           </button>
-        </div>
-      </div>
+      </ModalDialog>
     );
   }
 
@@ -252,11 +261,14 @@ export function CheckoutSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
-      <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated scrollbar-thin animate-fade-up">
+    <ModalDialog
+      titleId="checkout-title"
+      onClose={loading ? undefined : onClose}
+      panelClassName="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated scrollbar-thin animate-fade-up"
+    >
         <div className="sticky top-0 flex items-center justify-between border-b border-line bg-bg-elevated px-4 py-3">
-          <h3 className="font-display text-xl text-gold">Checkout</h3>
-          <button type="button" aria-label="Close checkout" onClick={onClose} className="p-2 text-muted rounded-full hover:bg-bg-soft focus-visible:ring-2">
+          <h2 id="checkout-title" className="font-display text-xl text-gold">Checkout</h2>
+          <button type="button" aria-label="Close checkout" onClick={onClose} disabled={loading} className="flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted hover:bg-bg-soft focus-visible:ring-2 disabled:opacity-40">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -271,7 +283,10 @@ export function CheckoutSheet({
                 id="customer-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+                autoComplete="name"
+                required
+                aria-invalid={name.trim().length === 0}
+                className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
                 placeholder="Enter name for pickup"
               />
             </div>
@@ -279,18 +294,25 @@ export function CheckoutSheet({
 
           <div>
             <label htmlFor="customer-phone" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
-              Phone number (10-digit)
+              Phone number (10-digit, required)
             </label>
             <input
               id="customer-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              type="text"
+              type="tel"
               inputMode="numeric"
+              autoComplete="tel"
+              required
+              aria-invalid={phone.length > 0 && !phoneValid}
+              aria-describedby="customer-phone-hint"
               maxLength={10}
-              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+              className="w-full rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               placeholder="Enter 10-digit mobile number"
             />
+            <p id="customer-phone-hint" className="mt-1.5 text-xs text-muted">
+              Used for order updates and your receipt.
+            </p>
           </div>
           <div>
             <label htmlFor="special-notes" className="mb-1.5 block text-xs uppercase tracking-wider text-muted">
@@ -301,7 +323,7 @@ export function CheckoutSheet({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-sm outline-none focus:border-gold"
+              className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3 py-2.5 text-base outline-none focus:border-gold"
               placeholder="Less spicy, no onion…"
             />
           </div>
@@ -321,6 +343,7 @@ export function CheckoutSheet({
                 <button
                   type="button"
                   onClick={() => setMethod("upi")}
+                  aria-pressed={method === "upi"}
                   className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
                     method === "upi"
                       ? "border-gold bg-gold-dim"
@@ -334,6 +357,7 @@ export function CheckoutSheet({
                 <button
                   type="button"
                   onClick={() => setMethod("cash")}
+                  aria-pressed={method === "cash"}
                   className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition ${
                     method === "cash"
                       ? "border-gold bg-gold-dim"
@@ -374,17 +398,17 @@ export function CheckoutSheet({
             </div>
           </div>
 
-          {error && <p className="text-sm text-nonveg">{error}</p>}
+          {error && <p role="alert" className="text-sm text-nonveg">{error}</p>}
 
           <button
             type="button"
-            disabled={loading || items.length === 0 || phone.trim().length !== 10 || (tableNumber === 0 && name.trim().length === 0)}
+            disabled={loading || items.length === 0 || !phoneValid || (tableNumber === 0 && name.trim().length === 0)}
             onClick={placeOrder}
-            className="flame-bg w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50"
+            className="flame-bg min-h-11 w-full rounded-xl py-3.5 font-semibold text-white disabled:opacity-50"
           >
             {loading
               ? "Placing order…"
-              : phone.trim().length !== 10
+              : !phoneValid
                 ? "Enter 10-digit Phone"
                 : (tableNumber === 0 && name.trim().length === 0)
                   ? "Enter Your Name"
@@ -393,7 +417,6 @@ export function CheckoutSheet({
                     : `Place order · Pay cash ${formatINR(total)}`}
           </button>
         </div>
-      </div>
-    </div>
+    </ModalDialog>
   );
 }

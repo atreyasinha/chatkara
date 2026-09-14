@@ -51,6 +51,11 @@ body {
   min-height: 100dvh;
 }
 
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 ::selection {
   background: rgba(212, 175, 55, 0.35);
   color: #fff;
@@ -128,4 +133,15 @@ body {
 
 .font-betania {
   font-family: var(--font-betania), cursive;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-up,
+  .animate-pulse-soft {
+    animation: none;
+  }
 }

@@ -93,25 +93,32 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
             <Lock className="h-5 w-5" />
           </div>
 
-          <h2 className="font-display mt-4 text-2xl text-gold">Admin Access</h2>
+          <h1 className="font-display mt-4 text-2xl text-gold">Admin Access</h1>
           <p className="mt-1.5 text-xs text-muted">
-            Please enter your administrator password to view this page.
+            Enter staff or administrator password to proceed.
           </p>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div>
+              <label htmlFor="staff-password" className="sr-only">
+                Staff or administrator password
+              </label>
               <input
+                id="staff-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
+                autoComplete="current-password"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? "staff-login-error" : undefined}
                 required
-                className="w-full rounded-xl border border-line bg-bg-soft px-4 py-3 text-sm text-ink outline-none placeholder:text-muted focus:border-gold"
+                className="w-full rounded-xl border border-line bg-bg-soft px-4 py-3 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-1.5 justify-center text-xs text-nonveg">
+              <div id="staff-login-error" role="alert" className="flex items-center gap-1.5 justify-center text-xs text-nonveg">
                 <AlertCircle className="h-3.5 w-3.5" />
                 <span>{error}</span>
               </div>
@@ -138,7 +145,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-full border border-line bg-bg-elevated/90 px-3 py-1.5 text-[11px] text-muted backdrop-blur hover:border-gold hover:text-gold"
+          className="inline-flex min-h-11 items-center rounded-full border border-line bg-bg-elevated/90 px-4 py-2 text-[11px] text-muted backdrop-blur hover:border-gold hover:text-gold"
         >
           Log out
         </button>
