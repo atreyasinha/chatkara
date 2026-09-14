@@ -582,7 +582,8 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Decrease quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
                       }
@@ -594,7 +595,8 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                      aria-label="Increase quantity"
+                      className="p-1 text-gold hover:bg-gold-dim rounded-full focus-visible:ring-2"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
                       }
@@ -666,6 +668,7 @@ export function WaiterOrderClient() {
             <div className="mb-4 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
+                aria-pressed={method === "cash"}
                 onClick={() => setMethod("cash")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "cash"
@@ -679,6 +682,7 @@ export function WaiterOrderClient() {
               </button>
               <button
                 type="button"
+                aria-pressed={method === "upi"}
                 onClick={() => setMethod("upi")}
                 className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
                   method === "upi"
@@ -694,12 +698,14 @@ export function WaiterOrderClient() {
 
             <div className="mb-4 space-y-2.5">
               <input
+                aria-label="Customer Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
+                aria-label="Customer Phone"
                 inputMode="numeric"
                 maxLength={10}
                 value={phone}
@@ -710,6 +716,7 @@ export function WaiterOrderClient() {
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <textarea
+                aria-label="Special order notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
