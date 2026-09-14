@@ -37,9 +37,9 @@ function isOrderRateLimited(ip: string): boolean {
 function isAuthorizedTestRequest(request: Request): boolean {
   // Never honor the test channel in Production, even if the secret leaks.
   if (isProductionEnv()) return false;
-  const secret = process.env.E2E_TEST_SECRET;
+  const secret = process.env.E2E_TEST_SECRET?.trim();
   if (!secret) return false;
-  const key = request.headers.get("x-chatkara-test-key");
+  const key = request.headers.get("x-chatkara-test-key")?.trim();
   if (typeof key !== "string") return false;
 
   const a = Buffer.from(key, "utf8");
