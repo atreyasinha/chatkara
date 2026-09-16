@@ -52,12 +52,16 @@ export async function createTestOrder(input: {
   customerPhone?: string;
   notes?: string;
   parentOrderId?: string;
+  tableToken?: string;
 }): Promise<{ status: number; order?: Order; error?: string }> {
   const { status, body } = await apiJson<{ order?: Order; error?: string }>(
     "/api/orders",
     {
       method: "POST",
-      body: JSON.stringify(input),
+      body: JSON.stringify({
+        ...input,
+        tableToken: input.tableToken || RESTAURANT.tableTokens[input.tableNumber],
+      }),
     },
   );
   return { status, order: body.order, error: body.error };
