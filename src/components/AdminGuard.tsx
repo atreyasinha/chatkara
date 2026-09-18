@@ -159,6 +159,7 @@ export function AdminGuard({
             <form onSubmit={handleLogin} className="mt-6 space-y-4">
               <div>
                 <input
+                  aria-label="Admin password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
