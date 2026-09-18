@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-09-18 - Missing labels in rapid-entry inputs
+**Learning:** Rapid-entry inputs relying solely on `placeholder` attributes lack semantic `<label>` associations, making them invisible or confusing to screen reader users who cannot see the placeholder text.
+**Action:** Always provide explicit `aria-label` attributes for form inputs, `textarea` elements, and `select` dropdowns when visual space constraints prevent the use of standard `<label>` tags.
