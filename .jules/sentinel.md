@@ -7,3 +7,8 @@
 **Vulnerability:** The Telegram webhook processed the request body and triggered an outbound API call (`answerTelegramCallback`) using unauthenticated, user-supplied data (`update.callback_query.id`) when the webhook secret check failed.
 **Learning:** Never use unauthenticated user-supplied data to execute backend logic or external API calls prior to validation, as this creates SSRF and API spoofing vulnerabilities.
 **Prevention:** Always verify cryptographically secure tokens in headers *before* parsing the request body and never fall back to inspecting user-supplied payloads prior to validation.
+
+## 2026-09-20 - [MEDIUM] Integration test credentials bypass
+**Vulnerability:** The integration tests bypassed the Firebase API Key check with a simple string length/truthiness validation, causing GitHub Action runs from forks to fail with 503 errors (Firestore not accessible) because they received the dummy redacted value `***`.
+**Learning:** Checking for truthiness of a credentials value does not ensure it's a valid key, which can cause downstream tests to fail inexplicably in environments (like fork CI) that redact or inject dummy values instead of empty strings.
+**Prevention:** Robustly verify real credentials in tests by checking for a known valid prefix (like `AIza` for Firebase API keys) to gracefully skip tests instead of failing.
