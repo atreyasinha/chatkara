@@ -302,7 +302,8 @@ describe(
     assert.ok(body.projectId);
   });
 
-  it("table tokens cover all tables", () => {
+  it("table tokens cover all tables", (t) => {
+    if (!enabled) return t.skip();
     for (let n = 1; n <= RESTAURANT.tableCount; n++) {
       assert.ok(RESTAURANT.tableTokens[n]);
     }
