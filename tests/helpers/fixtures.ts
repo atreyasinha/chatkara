@@ -40,9 +40,13 @@ export function testHeaders(): Record<string, string> {
 }
 
 export function firebaseConfigured(): boolean {
+  const key = process.env.FIREBASE_API_KEY || "";
   return Boolean(
     process.env.FIREBASE_PROJECT_ID &&
-      process.env.FIREBASE_API_KEY?.startsWith("AIza"),
+      key.startsWith("AIza") &&
+      key.length === 39 &&
+      !key.toLowerCase().includes("dummy") &&
+      !key.toLowerCase().includes("test"),
   );
 }
 
