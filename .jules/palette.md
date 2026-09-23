@@ -7,3 +7,9 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-09-23 - Complete Coverage for Icon Buttons
+**Learning:** It's common to miss ARIA labels on secondary or repeated instances of icon-only buttons, such as quantity modifiers within a cart summary list, or icon buttons in error/empty states.
+**Action:** Always ensure *all* instances of icon-centric action buttons, regardless of their location (primary UI or secondary states), explicitly include `aria-label` attributes for consistent screen reader accessibility.
+## 2026-09-23 - Handle Dummy Credentials in CI Tests
+**Learning:** GitHub Actions secrets might be redacted or replaced with dummy values (like `***` or empty strings) in fork PRs. If integration tests blindly rely on the presence of these environment variables without validating their format, they can attempt to connect with invalid credentials, leading to 503 errors and CI failures instead of gracefully skipping.
+**Action:** When writing tests that require external credentials (like Firebase), robustly verify the credentials are real (e.g., checking if `FIREBASE_API_KEY.startsWith("AIza")`) so the test suite can gracefully skip rather than fail unexpectedly.

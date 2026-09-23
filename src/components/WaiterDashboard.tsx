@@ -96,6 +96,7 @@ export function WaiterDashboard() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            aria-label="Refresh orders"
             onClick={() => {
               setLoading(true);
               load();

@@ -154,6 +154,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
         <p className="text-nonveg">{error}</p>
         <button
           type="button"
+          aria-label="Retry loading order"
           onClick={() => {
             failures.current = 0;
             setError("");
