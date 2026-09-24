@@ -561,76 +561,92 @@ export function WaiterOrderClient() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="max-h-[45dvh] overflow-y-auto px-5 py-3 scrollbar-thin">
-              {items.map((item) => (
-                <div
-                  key={item.itemId}
-                  className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+            {items.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                <ShoppingBag className="mb-4 h-12 w-12 text-muted/30" />
+                <p className="mb-6 text-muted">Your cart is empty.</p>
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  className="rounded-full border border-line px-6 py-2.5 text-sm font-semibold text-gold hover:border-gold hover:bg-gold-dim transition focus-visible:outline-none focus-visible:ring-2"
                 >
-                  <VegBadge veg={item.veg} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-ink">{item.name}</p>
-                    <p className="text-sm font-bold text-gold">
-                      {formatINR(item.price * item.quantity)}
-                      {item.itemId.startsWith("custom:") && (
-                        <span className="ml-2 text-[10px] uppercase text-muted">
-                          (custom)
+                  Browse menu
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="max-h-[45dvh] overflow-y-auto px-5 py-3 scrollbar-thin">
+                  {items.map((item) => (
+                    <div
+                      key={item.itemId}
+                      className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+                    >
+                      <VegBadge veg={item.veg} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-ink">{item.name}</p>
+                        <p className="text-sm font-bold text-gold">
+                          {formatINR(item.price * item.quantity)}
+                          {item.itemId.startsWith("custom:") && (
+                            <span className="ml-2 text-[10px] uppercase text-muted">
+                              (custom)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
+                        <button
+                          type="button"
+                          className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                          onClick={() =>
+                            setQuantity(item.itemId, item.quantity - 1)
+                          }
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-5 text-center font-bold text-sm">
+                          {item.quantity}
                         </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
-                    <button
-                      type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
-                      onClick={() =>
-                        setQuantity(item.itemId, item.quantity - 1)
-                      }
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-sm">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
-                      onClick={() =>
-                        setQuantity(item.itemId, item.quantity + 1)
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
+                        <button
+                          type="button"
+                          className="p-1 text-gold hover:bg-gold-dim rounded-full"
+                          onClick={() =>
+                            setQuantity(item.itemId, item.quantity + 1)
+                          }
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="border-t border-line px-5 py-4">
-              <div className="mb-1.5 flex justify-between text-sm text-muted">
-                <span>Subtotal</span>
-                <span className="font-semibold">{formatINR(subtotal)}</span>
-              </div>
-              {RESTAURANT.gstPercent > 0 && (
-                <div className="mb-1.5 flex justify-between text-sm text-muted">
-                  <span>GST</span>
-                  <span className="font-semibold">{formatINR(gst)}</span>
+                <div className="border-t border-line px-5 py-4">
+                  <div className="mb-1.5 flex justify-between text-sm text-muted">
+                    <span>Subtotal</span>
+                    <span className="font-semibold">{formatINR(subtotal)}</span>
+                  </div>
+                  {RESTAURANT.gstPercent > 0 && (
+                    <div className="mb-1.5 flex justify-between text-sm text-muted">
+                      <span>GST</span>
+                      <span className="font-semibold">{formatINR(gst)}</span>
+                    </div>
+                  )}
+                  <div className="mb-4 flex justify-between text-lg font-bold text-gold">
+                    <span>Total Amount</span>
+                    <span>{formatINR(total)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCartOpen(false);
+                      setCheckoutOpen(true);
+                    }}
+                    className="flame-bg w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg"
+                  >
+                    Proceed to Payment →
+                  </button>
                 </div>
-              )}
-              <div className="mb-4 flex justify-between text-lg font-bold text-gold">
-                <span>Total Amount</span>
-                <span>{formatINR(total)}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setCartOpen(false);
-                  setCheckoutOpen(true);
-                }}
-                className="flame-bg w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg"
-              >
-                Proceed to Payment →
-              </button>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
