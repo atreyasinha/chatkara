@@ -102,18 +102,17 @@ async function applyKitchenAction(
 }
 
 export async function POST(request: Request) {
+  // Always verify webhook secret BEFORE parsing the request body to prevent JSON parsing DoS
+  // and NEVER use unverified payload data (e.g. callback_query.id) for SSRF/API spoofing.
+  if (!verifyTelegramSecret(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let update: TelegramUpdate;
   try {
     update = (await request.json()) as TelegramUpdate;
   } catch {
     return NextResponse.json({ error: "Bad JSON" }, { status: 400 });
-  }
-
-  if (!verifyTelegramSecret(request)) {
-    if (update.callback_query?.id) {
-      await answerTelegramCallback(update.callback_query.id, "Unauthorized request");
-    }
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const cb = update.callback_query;
