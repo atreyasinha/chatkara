@@ -3,14 +3,22 @@ import { listOrders } from "@/lib/orders";
 import { isActiveOrderStatus } from "@/lib/sanitize-order-items";
 import { isAdminRequest, unauthorizedJson } from "@/lib/admin-auth";
 
+const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const monthFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+});
+
 /** Start of the current calendar day in Asia/Kolkata, as a UTC instant. */
 function startOfTodayIST(now = new Date()): Date {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(now);
+  const parts = dateFormatter.formatToParts(now);
   const y = parts.find((p) => p.type === "year")!.value;
   const m = parts.find((p) => p.type === "month")!.value;
   const d = parts.find((p) => p.type === "day")!.value;
@@ -20,11 +28,7 @@ function startOfTodayIST(now = new Date()): Date {
 
 /** Year/month in Asia/Kolkata for monthly breakdowns. */
 function istYearMonth(date: Date): { year: number; month: number } {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(date);
+  const parts = monthFormatter.formatToParts(date);
   return {
     year: Number(parts.find((p) => p.type === "year")!.value),
     month: Number(parts.find((p) => p.type === "month")!.value) - 1,
