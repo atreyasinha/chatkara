@@ -13,8 +13,9 @@ import {
   baseUrl,
 } from "../helpers/fixtures.ts";
 import { buildKitchenCallbackData } from "../../src/lib/telegram.ts";
+import { apiJson, adminLogin, waitForServer } from "../helpers/http.ts";
 
-const enabled = firebaseConfigured();
+let enabled = firebaseConfigured();
 
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
 const CHAT_ID = Number(process.env.TELEGRAM_CHAT_ID || "0");
@@ -71,6 +72,12 @@ describe(
       await waitForServer();
       const ok = await adminLogin(process.env.ADMIN_PASSWORD || "");
       assert.equal(ok, true, "admin login required to read back orders");
+
+      const check = await apiJson<{ error?: string }>("/api/orders");
+      if (check.status === 503) {
+        console.log("Database unavailable (likely a dummy API key). Skipping.");
+        enabled = false;
+      }
     });
 
     it("rejects webhook without secret", async (t) => {
