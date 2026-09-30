@@ -19,3 +19,6 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+## 2026-09-30 - Cache Intl.DateTimeFormat in Array Loops
+**Learning:** `Intl.DateTimeFormat` instantiation is surprisingly expensive. Recreating it repeatedly in a function that is mapped over a large array (like filtering orders by date) creates significant O(N) performance overhead.
+**Action:** Always instantiate `Intl.DateTimeFormat` (and other expensive `Intl` formatters) outside of iterative functions and cache the instance for reuse.
