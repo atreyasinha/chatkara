@@ -19,7 +19,9 @@ export function isOrderFromTodayIST(
   createdAt: string,
   now = new Date(),
 ): boolean {
-  return dateFormatter.format(new Date(createdAt)) === dateFormatter.format(now);
+  return (
+    dateFormatter.format(new Date(createdAt)) === dateFormatter.format(now)
+  );
 }
 
 export function todayLabelIST(now = new Date()): string {
