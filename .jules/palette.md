@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2024-10-01 - Icon Button Accessibility
+**Learning:** Icon-only buttons and interactive forms without visible labels often lack necessary ARIA attributes, making them inaccessible to screen readers. In WaiterOrderClient.tsx, the quantity adjusters, custom menu inputs, and collapsible sections were missing context.
+**Action:** Always provide `aria-label` for icon-only buttons, `aria-label` or explicitly linked labels for form inputs, and `aria-expanded` on buttons that toggle collapsible sections.
