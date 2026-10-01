@@ -7,3 +7,10 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-10-01 - WaiterOrderClient Input ARIA Labels
+**Learning:** Rapid-entry POS forms often omit explicit `<label>` elements for visual conciseness, relying instead on `placeholder` attributes. This breaks screen-reader accessibility since placeholders are not a valid substitute for a label.
+**Action:** When designing or refactoring high-density input forms that lack visual labels (like custom item creation or checkout fields), always ensure every `input`, `select`, and `textarea` has a descriptive `aria-label` attribute.
+
+## 2026-10-01 - Avoid Committing Untracked Logs
+**Learning:** Background processes like `pnpm dev > dev.log 2>&1 &` leave untracked log files that can accidentally be staged and committed, polluting the PR and causing code reviews to fail for scope boundaries.
+**Action:** When redirecting background process output to a temporary log file, explicitly remove the log file (e.g., `rm dev.log`) before finalizing tasks to prevent accidentally staging and committing untracked files.
