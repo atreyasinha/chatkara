@@ -110,9 +110,6 @@ export async function POST(request: Request) {
   }
 
   if (!verifyTelegramSecret(request)) {
-    if (update.callback_query?.id) {
-      await answerTelegramCallback(update.callback_query.id, "Unauthorized request");
-    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
