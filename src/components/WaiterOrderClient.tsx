@@ -294,6 +294,7 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setCustomOpen((prev) => !prev)}
+            aria-expanded={customOpen}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
             <span className="flex items-center gap-2">
@@ -582,6 +583,7 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
+                      aria-label="Decrease quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
@@ -594,6 +596,7 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
+                      aria-label="Increase quantity"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
