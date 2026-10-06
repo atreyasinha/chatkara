@@ -27,7 +27,28 @@ export async function POST(request: Request) {
     }
     hits.push(now);
     loginAttempts.set(ip, hits);
-    if (loginAttempts.size > 5000) loginAttempts.clear();
+    if (loginAttempts.size > 5000) {
+      // Selectively prune expired entries instead of clearing the whole Map,
+      // which would reset rate limits for all IPs and allow bypass.
+      for (const [key, timestamps] of loginAttempts.entries()) {
+        const valid = timestamps.filter((t) => now - t < 60_000);
+        if (valid.length === 0) {
+          loginAttempts.delete(key);
+        } else {
+          loginAttempts.set(key, valid);
+        }
+      }
+
+      // Enforce a strict upper bound to prevent CPU exhaustion DoS.
+      // If pruning wasn't enough, forcefully evict the oldest entries.
+      // Map iteration order is insertion order, so the first keys are the oldest.
+      if (loginAttempts.size > 5000) {
+        for (const key of loginAttempts.keys()) {
+          loginAttempts.delete(key);
+          if (loginAttempts.size <= 5000) break;
+        }
+      }
+    }
 
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
