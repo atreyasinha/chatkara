@@ -30,7 +30,10 @@ export async function POST(request: Request) {
     if (loginAttempts.size > 5000) {
       const keys = loginAttempts.keys();
       for (let i = 0; i < 500; i++) {
-        loginAttempts.delete(keys.next().value);
+        const key = keys.next().value;
+        if (key !== undefined) {
+          loginAttempts.delete(key);
+        }
       }
     }
 
