@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -55,15 +55,12 @@ export function WaiterOrderClient() {
   // Idempotency key: a retry after a client-side timeout returns the same order.
   const [requestId] = useState(() => crypto.randomUUID());
 
-  // Prevent main thread blocking when searching large menu
-  const deferredQuery = useDeferredValue(query);
-
   const filtered = useMemo(() => {
-    let list = deferredQuery ? searchMenu(deferredQuery) : MENU;
+    let list = query ? searchMenu(query) : MENU;
     if (category !== "All") list = list.filter((m) => m.category === category);
     if (filter !== "all") list = list.filter((m) => m.veg === filter);
     return list;
-  }, [deferredQuery, category, filter]);
+  }, [query, category, filter]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
