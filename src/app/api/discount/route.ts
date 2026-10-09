@@ -13,12 +13,10 @@ function isRateLimited(ip: string): boolean {
   const hits = (rateMap.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
   hits.push(now);
   rateMap.set(ip, hits);
-  // Prune old entries to avoid unbounded memory growth
+  // Prune oldest entry to avoid unbounded memory growth and O(N) CPU exhaustion
   if (rateMap.size > 5000) {
-    const cutoff = now - RATE_WINDOW_MS;
-    for (const [key, timestamps] of rateMap) {
-      if (timestamps.every((t) => t < cutoff)) rateMap.delete(key);
-    }
+    const oldestKey = rateMap.keys().next().value;
+    if (oldestKey !== undefined) rateMap.delete(oldestKey);
   }
   return hits.length > RATE_LIMIT;
 }
