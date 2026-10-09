@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-10-09 - Missing ARIA attributes in Waiter POS
+**Learning:** High-density POS interfaces in this app often omit visual labels for speed, but this creates accessibility gaps (e.g., icon-only quantity buttons and custom collapsibles without state).
+**Action:** Always explicitly verify and add `aria-expanded` to custom toggle components and `aria-label` to rapid-entry icon-only buttons in dense waiter interfaces.
