@@ -74,12 +74,14 @@ describe(
     });
 
     it("rejects webhook without secret", async (t) => {
+      if (!enabled) return t.skip();
       if (!enabled || !WEBHOOK_SECRET) return t.skip();
       const res = await postTelegramCallback({ update_id: 1 });
       assert.equal(res.status, 401);
     });
 
     it("advances status and marks paid via callback_query", async (t) => {
+      if (!enabled) return t.skip();
       if (!enabled || !WEBHOOK_SECRET || !CHAT_ID) return t.skip();
 
       const created = await createTestOrder({
@@ -118,6 +120,7 @@ describe(
     });
 
     it("cancels an order via callback_query", async (t) => {
+      if (!enabled) return t.skip();
       if (!enabled || !WEBHOOK_SECRET || !CHAT_ID) return t.skip();
 
       const created = await createTestOrder({
@@ -139,6 +142,7 @@ describe(
     });
 
     it("ignores callbacks from an unauthorized chat", async (t) => {
+      if (!enabled) return t.skip();
       if (!enabled || !WEBHOOK_SECRET || !CHAT_ID) return t.skip();
 
       const created = await createTestOrder({
