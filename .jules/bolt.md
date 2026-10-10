@@ -19,3 +19,6 @@
 ## 2024-08-05 - Pause background API polling
 **Learning:** React components using `setInterval` for polling continue to fire even when the browser tab is hidden or backgrounded on mobile devices. This causes unnecessary network requests, drains battery, and can hit server rate limits or cost constraints on API endpoints (like Firebase).
 **Action:** When implementing polling via `setInterval`, always wrap the API call in a `if (document.visibilityState === "visible")` check, and complement it with a `visibilitychange` event listener to instantly sync data when the user returns to the tab.
+## 2026-10-10 - Replace nested O(N*M) lookups with O(1) Map lookups in list rendering
+**Learning:** Found a performance bottleneck where a list map was doing an `items.find` inside a loop in WaiterOrderClient.tsx, which creates an O(N*M) complexity when evaluating items in cart. This pattern was already fixed in TableOrderClient.tsx, indicating a codebase-specific duplicated anti-pattern that needs consistent application across similar views.
+**Action:** When finding O(N^2) list rendering in one view, explicitly search for and apply identical optimizations consistently across parallel views where the anti-pattern may be duplicated. Use memoized Maps keyed by item ID to change the lookup from O(N) to O(1) and prevent performance bottlenecks during re-renders.
