@@ -1,7 +1,7 @@
 import { MENU } from "../../src/lib/menu.ts";
 
-export let TEST_PHONE = "9876543210";
-export let TEST_NAME = "E2E Nightly Customer";
+export const TEST_PHONE = "9876543210";
+export const TEST_NAME = "E2E Nightly Customer";
 
 export function sampleMenuItems(count = 2) {
   const picks = MENU.filter((m) => m.price > 0).slice(0, Math.max(1, count));
