@@ -27,7 +27,11 @@ export async function POST(request: Request) {
     }
     hits.push(now);
     loginAttempts.set(ip, hits);
-    if (loginAttempts.size > 5000) loginAttempts.clear();
+    if (loginAttempts.size > 5000) {
+      // Prevent O(N) CPU exhaustion DoS by selectively evicting oldest entry instead of clearing map
+      const oldest = loginAttempts.keys().next().value;
+      if (oldest !== undefined) loginAttempts.delete(oldest);
+    }
 
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
