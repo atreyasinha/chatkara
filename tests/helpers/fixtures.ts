@@ -1,7 +1,7 @@
 import { MENU } from "../../src/lib/menu.ts";
 
-export const TEST_PHONE = "9876543210";
-export const TEST_NAME = "E2E Nightly Customer";
+export let TEST_PHONE = "9876543210";
+export let TEST_NAME = "E2E Nightly Customer";
 
 export function sampleMenuItems(count = 2) {
   const picks = MENU.filter((m) => m.price > 0).slice(0, Math.max(1, count));
@@ -41,7 +41,9 @@ export function testHeaders(): Record<string, string> {
 
 export function firebaseConfigured(): boolean {
   return Boolean(
-    process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_API_KEY,
+    process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_API_KEY &&
+      process.env.FIREBASE_API_KEY.startsWith("AIza"),
   );
 }
 
