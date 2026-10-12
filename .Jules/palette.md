@@ -1,3 +1,6 @@
 ## 2026-07-20 - Consistent ARIA Labels on Reusable Patterns
 **Learning:** When implementing accessibility (like `aria-label`) on interactive elements such as quantity adjusters (+/- buttons), it's crucial to check all instances of those buttons across different views (e.g., both the main menu list and the cart modal) as they are often duplicated rather than extracted into a shared component.
 **Action:** Always search the file or codebase for similar patterns or duplicated HTML to ensure accessibility improvements are applied universally across all states of the component.
+## 2026-10-12 - Missing ARIA Labels in High-Density POS Interfaces
+**Learning:** High-density POS interfaces (e.g., WaiterOrderClient.tsx) often omit visual labels for rapid-entry inputs (like custom item name/price) and icon-only quantity modifiers (+/-), which severely impacts screen reader accessibility. Additionally, collapsible panels require `aria-expanded` and `aria-controls` for proper screen reader announcement of state changes.
+**Action:** Explicitly add `aria-label` attributes to all standalone rapid-entry inputs and icon-only buttons. Ensure collapsible toggle buttons use `aria-expanded` and `aria-controls` linked to the controlled container's `id`.
