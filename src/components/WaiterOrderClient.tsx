@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useDeferredValue, useMemo, useState } from "react";
+import { memo, useCallback, useDeferredValue, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -87,7 +87,7 @@ export function WaiterOrderClient() {
   const { subtotal, gst, total } = computeOrderTotals(items);
   const count = items.reduce((n, i) => n + i.quantity, 0);
 
-  function addMenuItem(item: MenuItem) {
+  const addMenuItem = useCallback((item: MenuItem) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.itemId === item.id);
       if (existing) {
@@ -108,9 +108,9 @@ export function WaiterOrderClient() {
         },
       ];
     });
-  }
+  }, []);
 
-  function setQuantity(itemId: string, quantity: number) {
+  const setQuantity = useCallback((itemId: string, quantity: number) => {
     if (quantity <= 0) {
       setItems((prev) => prev.filter((i) => i.itemId !== itemId));
       return;
@@ -122,7 +122,7 @@ export function WaiterOrderClient() {
           : i,
       ),
     );
-  }
+  }, []);
 
   function addCustomItem() {
     const price = Math.round(Number(customPrice));

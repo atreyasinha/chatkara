@@ -23,3 +23,9 @@
 ## 2026-10-13 - Waiter Order Client Menu Memoization & O(1) Lookups
 **Learning:** O(N^2) list rendering in a waiter order view was un-memoized and caused the whole ~150 item menu list to re-render on every cart update.
 **Action:** Used `useDeferredValue` on the query for responsiveness, used an O(1) Map for cart item lookups, and memoized the list item rows to reduce rendering complexity from O(M * N) to O(M).
+
+## 2026-10-13 - Stable Function References and Truthiness Bypass in CI
+**Learning:**
+1. When memoizing list items to prevent re-renders, the parent's event handlers (`setQuantity`, `addItem`) must have stable references (via `useCallback`), otherwise the `memo` breaks and the child still re-renders.
+2. Dummy secrets injected by CI runners (e.g. `***`) bypass simple truthiness checks (e.g. `process.env.SECRET`), causing skipped test suites to execute and fail unexpectedly.
+**Action:** Always wrap event handlers in `useCallback` when passing to a memoized component. Check for specific secret shapes (e.g. `?.startsWith("AIza")` for Firebase) rather than simple truthiness to reliably skip tests in CI.
