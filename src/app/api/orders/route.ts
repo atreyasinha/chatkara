@@ -30,6 +30,10 @@ function isOrderRateLimited(ip: string): boolean {
     for (const [key, timestamps] of orderRateMap) {
       if (timestamps.every((t) => t < cutoff)) orderRateMap.delete(key);
     }
+    if (orderRateMap.size > 5000) {
+      const oldest = orderRateMap.keys().next().value;
+      if (oldest !== undefined) orderRateMap.delete(oldest);
+    }
   }
   return hits.length > ORDER_RATE_LIMIT;
 }
