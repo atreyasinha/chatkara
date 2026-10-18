@@ -2,3 +2,8 @@
 **Vulnerability:** The Telegram webhook (`/api/telegram/webhook/route.ts`) verified requests by falling back to checking if the user-controlled JSON payload (`update?.callback_query?.message?.chat?.id`) matched an authorized `TELEGRAM_CHAT_ID` if the `TELEGRAM_WEBHOOK_SECRET` was missing or mismatched. Because webhooks are publicly accessible, an attacker could spoof this JSON payload to bypass authentication completely and update order states (e.g., mark as paid or cancelled).
 **Learning:** Never use data from a user-supplied JSON payload as a fallback authentication mechanism for webhooks. Secrets should be enforced strictly.
 **Prevention:** Always rely strictly on cryptographically secure tokens (like `x-telegram-bot-api-secret-token`) sent in headers and verified with a constant-time comparison (`timingSafeEqual`) to authenticate webhook calls.
+
+## 2026-10-18 - [CRITICAL] Rate Limiter DoS Bypass
+**Vulnerability:** The in-memory rate limiter for the admin login endpoint (`/api/admin/login/route.ts`) cleared the entire map when it exceeded its maximum capacity (5000 entries) by calling `loginAttempts.clear()`. An attacker could exploit this by flooding the endpoint from many different IPs to fill the map, causing it to clear and effectively resetting the rate limit for all users, enabling them to bypass the protection and brute-force the password.
+**Learning:** Never use `.clear()` when an in-memory limit reaches capacity. It introduces a systemic vulnerability where an attacker can reset limits globally.
+**Prevention:** Strictly enforce a maximum size upper bound by forcefully evicting the oldest entries (e.g., by using `map.keys().next().value`) to prevent memory exhaustion without wiping valid recent rate limit states.
