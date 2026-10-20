@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
-import { AdminGuard, LogoutButton } from "@/components/AdminGuard";
+import { LogoutButton } from "@/components/AdminGuard";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import { isOrderFromTodayIST, todayLabelIST } from "@/lib/waiter-day";
@@ -27,10 +27,13 @@ export function WaiterDashboard() {
   const load = useCallback(async () => {
     try {
       const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-      const res = await fetch(`/api/orders?since=${encodeURIComponent(since)}`, {
-        credentials: "include",
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `/api/orders?since=${encodeURIComponent(since)}`,
+        {
+          credentials: "include",
+          cache: "no-store",
+        },
+      );
       if (res.status === 401) {
         // Session expired mid-shift — bounce to the AdminGuard login.
         window.location.reload();
@@ -88,9 +91,7 @@ export function WaiterDashboard() {
           <BrandMark size="sm" href="/" />
           <div>
             <h1 className="font-display text-2xl text-gold">Waiter</h1>
-            <p className="text-xs text-muted">
-              Today · {todayLabelIST()}
-            </p>
+            <p className="text-xs text-muted">Today · {todayLabelIST()}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -102,7 +103,9 @@ export function WaiterDashboard() {
             }}
             className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </button>
           <LogoutButton />
@@ -111,9 +114,13 @@ export function WaiterDashboard() {
 
       <div className="mb-4 flex items-center justify-between text-sm">
         <p className="text-muted">
-          {todaysOrders.length} order{todaysOrders.length === 1 ? "" : "s"} today
+          {todaysOrders.length} order{todaysOrders.length === 1 ? "" : "s"}{" "}
+          today
           {activeCount > 0 ? (
-            <span className="text-gold font-semibold"> · {activeCount} active</span>
+            <span className="text-gold font-semibold">
+              {" "}
+              · {activeCount} active
+            </span>
           ) : null}
         </p>
       </div>
