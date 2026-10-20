@@ -19,6 +19,10 @@ function isRateLimited(ip: string): boolean {
     for (const [key, timestamps] of rateMap) {
       if (timestamps.every((t) => t < cutoff)) rateMap.delete(key);
     }
+    if (rateMap.size > 5000) {
+      const oldest = rateMap.keys().next().value;
+      if (oldest !== undefined) rateMap.delete(oldest);
+    }
   }
   return hits.length > RATE_LIMIT;
 }
