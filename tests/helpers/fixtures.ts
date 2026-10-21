@@ -40,8 +40,14 @@ export function testHeaders(): Record<string, string> {
 }
 
 export function firebaseConfigured(): boolean {
+  const pid = process.env.FIREBASE_PROJECT_ID;
+  const key = process.env.FIREBASE_API_KEY;
   return Boolean(
-    process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_API_KEY,
+    pid &&
+      key &&
+      pid !== "***" &&
+      key !== "***" &&
+      !key.toLowerCase().includes("dummy"),
   );
 }
 
