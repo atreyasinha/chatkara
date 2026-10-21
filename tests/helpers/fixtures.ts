@@ -40,13 +40,15 @@ export function testHeaders(): Record<string, string> {
 }
 
 export function firebaseConfigured(): boolean {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const apiKey = process.env.FIREBASE_API_KEY;
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const apiKey = process.env.FIREBASE_API_KEY?.trim();
 
   if (!projectId || !apiKey) return false;
 
+  if (!apiKey.startsWith("AIza")) return false;
+
   const isDummy = (val: string) =>
-    val === "***" || val.toLowerCase().includes("dummy");
+    val === "***" || val.toLowerCase().includes("dummy") || val.toLowerCase().includes("test") || val.toLowerCase().includes("mock");
 
   return !isDummy(projectId) && !isDummy(apiKey);
 }
