@@ -294,8 +294,6 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setCustomOpen((prev) => !prev)}
-            aria-expanded={customOpen}
-            aria-controls="custom-item-panel"
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
             <span className="flex items-center gap-2">
@@ -308,13 +306,12 @@ export function WaiterOrderClient() {
           </button>
 
           {customOpen && (
-            <div id="custom-item-panel" className="border-t border-gold/20 p-3.5 pt-2">
+            <div className="border-t border-gold/20 p-3.5 pt-2">
               <p className="mb-2 text-xs text-muted">
                 Need to add a dish not in the main menu? Enter dish name and custom price:
               </p>
               <div className="grid gap-2">
                 <input
-                  aria-label="Dish name"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
@@ -322,7 +319,6 @@ export function WaiterOrderClient() {
                 />
                 <div className="flex gap-2">
                   <input
-                    aria-label="Price"
                     inputMode="numeric"
                     value={customPrice}
                     onChange={(e) =>
@@ -586,7 +582,6 @@ export function WaiterOrderClient() {
                   <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
                     <button
                       type="button"
-                      aria-label="Decrease"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity - 1)
@@ -599,7 +594,6 @@ export function WaiterOrderClient() {
                     </span>
                     <button
                       type="button"
-                      aria-label="Increase"
                       className="p-1 text-gold hover:bg-gold-dim rounded-full"
                       onClick={() =>
                         setQuantity(item.itemId, item.quantity + 1)
@@ -700,14 +694,12 @@ export function WaiterOrderClient() {
 
             <div className="mb-4 space-y-2.5">
               <input
-                aria-label="Customer name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
-                aria-label="Customer phone"
                 inputMode="numeric"
                 maxLength={10}
                 value={phone}
@@ -718,7 +710,6 @@ export function WaiterOrderClient() {
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <textarea
-                aria-label="Special order notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
