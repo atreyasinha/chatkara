@@ -2,3 +2,7 @@
 **Vulnerability:** The Telegram webhook (`/api/telegram/webhook/route.ts`) verified requests by falling back to checking if the user-controlled JSON payload (`update?.callback_query?.message?.chat?.id`) matched an authorized `TELEGRAM_CHAT_ID` if the `TELEGRAM_WEBHOOK_SECRET` was missing or mismatched. Because webhooks are publicly accessible, an attacker could spoof this JSON payload to bypass authentication completely and update order states (e.g., mark as paid or cancelled).
 **Learning:** Never use data from a user-supplied JSON payload as a fallback authentication mechanism for webhooks. Secrets should be enforced strictly.
 **Prevention:** Always rely strictly on cryptographically secure tokens (like `x-telegram-bot-api-secret-token`) sent in headers and verified with a constant-time comparison (`timingSafeEqual`) to authenticate webhook calls.
+## 2026-10-23 - In-memory Map Clear DoS bypass
+**Vulnerability:** In-memory rate limiting map was completely cleared (`.clear()`) when reaching capacity, allowing an attacker to intentionally spam the endpoint with spoofed IPs to exhaust memory limits, which resets all active rate limits and bypasses protection for their main brute-force attempt.
+**Learning:** Using `.clear()` as an eviction strategy for security controls creates a race condition / bypass opportunity. Memory bounds are important, but they must degrade gracefully.
+**Prevention:** Evict only the oldest entries iteratively using `map.keys().next().value` to maintain the upper bound without wiping all other tracked limits.
