@@ -294,7 +294,9 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setCustomOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
+            aria-expanded={customOpen}
+            aria-controls="custom-item-panel"
+            className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold focus-visible:ring-2 focus-visible:outline-none"
           >
             <span className="flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
@@ -306,7 +308,7 @@ export function WaiterOrderClient() {
           </button>
 
           {customOpen && (
-            <div className="border-t border-gold/20 p-3.5 pt-2">
+            <div id="custom-item-panel" className="border-t border-gold/20 p-3.5 pt-2">
               <p className="mb-2 text-xs text-muted">
                 Need to add a dish not in the main menu? Enter dish name and custom price:
               </p>
@@ -315,6 +317,7 @@ export function WaiterOrderClient() {
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
+                  aria-label="Custom dish name"
                   className="w-full rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                 />
                 <div className="flex gap-2">
@@ -325,11 +328,13 @@ export function WaiterOrderClient() {
                       setCustomPrice(e.target.value.replace(/[^\d]/g, ""))
                     }
                     placeholder="Price ₹"
+                    aria-label="Custom dish price"
                     className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                   />
                   <select
                     value={customVeg}
                     onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
+                    aria-label="Dietary preference"
                     className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none focus:border-gold"
                   >
                     <option value="veg">Veg</option>
@@ -697,6 +702,7 @@ export function WaiterOrderClient() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Customer name (optional)"
+                aria-label="Customer name (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <input
@@ -707,12 +713,14 @@ export function WaiterOrderClient() {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
                 }
                 placeholder="Customer Phone (optional)"
+                aria-label="Customer Phone (optional)"
                 className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
+                aria-label="Special order notes"
                 rows={2}
                 className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
               />
