@@ -45,6 +45,8 @@ export function firebaseConfigured(): boolean {
   if (!id || !key) return false;
   if (id === "***" || key === "***") return false;
   if (id.toLowerCase().includes("dummy") || key.toLowerCase().includes("dummy")) return false;
+  if (key.includes("your_dev") || id.includes("your_dev")) return false;
+  if (!key.startsWith("AIza")) return false;
   return true;
 }
 
