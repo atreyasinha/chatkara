@@ -40,9 +40,12 @@ export function testHeaders(): Record<string, string> {
 }
 
 export function firebaseConfigured(): boolean {
-  return Boolean(
-    process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_API_KEY,
-  );
+  const id = process.env.FIREBASE_PROJECT_ID;
+  const key = process.env.FIREBASE_API_KEY;
+  if (!id || !key) return false;
+  if (id === "***" || key === "***") return false;
+  if (id.toLowerCase().includes("dummy") || key.toLowerCase().includes("dummy")) return false;
+  return true;
 }
 
 export function skipWithoutFirebase(): boolean {
