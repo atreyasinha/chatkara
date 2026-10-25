@@ -7,3 +7,6 @@
 ## 2026-08-05 - Toggle Buttons Need Explicit ARIA States
 **Learning:** In standard filter lists and category chips (e.g., TableOrderClient, WaiterOrderClient), CSS classes (like `"bg-gold text-bg font-semibold"`) handle the visual active state, but screen readers are completely unaware of this context change without explicit attributes.
 **Action:** When implementing toggle or filter buttons, always accompany visual active/selected state changes with `aria-pressed={isActive}` or `aria-current="page"` to ensure screen reader users are notified of the state toggle.
+## 2026-10-25 - Collapsible Form Sections Need Explicit ARIA States
+**Learning:** In WaiterOrderClient, CSS classes and conditionally rendered React state (like `customOpen`) handle the visual expansion of the "Add Off-Menu Custom Item" section, but screen readers are completely unaware of this context change without explicit attributes.
+**Action:** When implementing collapsible sections or accordion buttons, always accompany visual open/closed state changes with `aria-expanded={isOpen}` on the toggle button and link it to the controlled container via `aria-controls={containerId}`.
