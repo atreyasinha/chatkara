@@ -18,7 +18,9 @@ export function BrandMark({
         alt="ChatKara"
         width={dims}
         height={dims}
-        className="rounded-full object-cover"
+        className="shrink-0 rounded-full object-cover"
+        // Pin both dimensions so preflight's `height: auto` can't distort the circle.
+        style={{ width: dims, height: dims }}
         priority
       />
       {size !== "sm" && (

@@ -98,7 +98,11 @@ export async function POST(request: Request) {
       }
     }
 
-    const body = await request.json();
+    // Malformed JSON / non-object bodies are client errors, not a DB outage.
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid order" }, { status: 400 });
+    }
     const tableNumber = Number(body.tableNumber);
     const items = body.items as CartItem[];
     const paymentMethod = body.paymentMethod as PaymentMethod;
