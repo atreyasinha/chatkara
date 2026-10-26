@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -54,6 +54,28 @@ export function WaiterOrderClient() {
   const [customError, setCustomError] = useState("");
   // Idempotency key: a retry after a client-side timeout returns the same order.
   const [requestId] = useState(() => crypto.randomUUID());
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Desktop: "/" jumps to search, like most POS / web apps.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" ||
+          t.tagName === "TEXTAREA" ||
+          t.tagName === "SELECT" ||
+          t.isContentEditable)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      searchRef.current?.focus();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const filtered = useMemo(() => {
     let list = query ? searchMenu(query) : MENU;
@@ -193,8 +215,170 @@ export function WaiterOrderClient() {
     }
   }
 
+  const tableLabel = tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`;
+
+  // Plain render functions (not components) so inputs keep focus across renders.
+  function renderCartLines() {
+    if (items.length === 0) {
+      return (
+        <p className="py-8 text-center text-sm text-muted">
+          No items yet — add dishes from the menu.
+        </p>
+      );
+    }
+    return items.map((item) => (
+      <div
+        key={item.itemId}
+        className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
+      >
+        <VegBadge veg={item.veg} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-ink">{item.name}</p>
+          <p className="text-sm font-bold text-gold">
+            {formatINR(item.price * item.quantity)}
+            {item.itemId.startsWith("custom:") && (
+              <span className="ml-2 text-[10px] uppercase text-muted">
+                (custom)
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
+          <button
+            type="button"
+            aria-label={`Decrease ${item.name}`}
+            className="p-1 text-gold hover:bg-gold-dim rounded-full"
+            onClick={() => setQuantity(item.itemId, item.quantity - 1)}
+          >
+            <Minus className="h-4 w-4" />
+          </button>
+          <span className="w-5 text-center font-bold text-sm">
+            {item.quantity}
+          </span>
+          <button
+            type="button"
+            aria-label={`Increase ${item.name}`}
+            className="p-1 text-gold hover:bg-gold-dim rounded-full"
+            onClick={() => setQuantity(item.itemId, item.quantity + 1)}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    ));
+  }
+
+  function renderTotals() {
+    return (
+      <>
+        <div className="mb-1.5 flex justify-between text-sm text-muted">
+          <span>Subtotal</span>
+          <span className="font-semibold">{formatINR(subtotal)}</span>
+        </div>
+        {RESTAURANT.gstPercent > 0 && (
+          <div className="mb-1.5 flex justify-between text-sm text-muted">
+            <span>GST</span>
+            <span className="font-semibold">{formatINR(gst)}</span>
+          </div>
+        )}
+        <div className="mb-4 flex justify-between text-lg font-bold text-gold">
+          <span>Total Amount</span>
+          <span>{formatINR(total)}</span>
+        </div>
+      </>
+    );
+  }
+
+  function renderCheckoutFields() {
+    return (
+      <>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
+          Select Payment Method:
+        </p>
+        <div className="mb-4 grid grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            aria-pressed={method === "cash"}
+            onClick={() => setMethod("cash")}
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
+              method === "cash"
+                ? "border-gold bg-gold/15 shadow-sm"
+                : "border-line bg-bg-soft"
+            }`}
+          >
+            <Banknote className="h-7 w-7 text-gold" />
+            <span className="text-sm font-bold text-ink">Cash Collection</span>
+            <span className="text-[10px] text-muted">Collect at table</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={method === "upi"}
+            onClick={() => setMethod("upi")}
+            className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
+              method === "upi"
+                ? "border-gold bg-gold/15 shadow-sm"
+                : "border-line bg-bg-soft"
+            }`}
+          >
+            <Smartphone className="h-7 w-7 text-gold" />
+            <span className="text-sm font-bold text-ink">UPI / Digital</span>
+            <span className="text-[10px] text-muted">QR payment</span>
+          </button>
+        </div>
+
+        <div className="mb-4 space-y-2.5">
+          <input
+            aria-label="Customer name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Customer name (optional)"
+            className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+          />
+          <input
+            aria-label="Customer phone"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            value={phone}
+            onChange={(e) =>
+              setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+            }
+            placeholder="Customer Phone (optional)"
+            className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+          />
+          <textarea
+            aria-label="Order notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
+            rows={2}
+            className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
+          />
+        </div>
+
+        {error && (
+          <p role="alert" className="mb-3 text-sm text-nonveg font-medium">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="button"
+          disabled={loading || items.length === 0}
+          onClick={placeOrder}
+          className="flame-bg w-full rounded-xl py-4 text-base font-bold text-white shadow-lg disabled:opacity-50 transition hover:brightness-110"
+        >
+          {loading
+            ? "Submitting order…"
+            : `✅ Submit & Save Order (${formatINR(total)})`}
+        </button>
+      </>
+    );
+  }
+
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col pb-28">
+    <div className="mx-auto w-full max-w-lg lg:grid lg:max-w-7xl lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6 lg:px-6">
+      <div className="flex min-h-dvh flex-col pb-28 lg:pb-8">
       {/* Sticky Header */}
       <header className="sticky top-0 z-30 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-md">
         <div className="flex items-center justify-between gap-2">
@@ -213,7 +397,7 @@ export function WaiterOrderClient() {
           <button
             type="button"
             onClick={() => setTableModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold/20 active:scale-95"
+            className="flex items-center gap-1.5 rounded-full border border-gold/40 lg:hidden bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold transition hover:bg-gold/20 active:scale-95"
           >
             <MapPin className="h-3.5 w-3.5" />
             <span>
@@ -227,12 +411,19 @@ export function WaiterOrderClient() {
         <div className="relative mt-3">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
+            ref={searchRef}
             aria-label="Search dishes"
+            aria-keyshortcuts="/"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search dishes (e.g. Paneer, Naan, Biryani)…"
             className="w-full rounded-xl border border-line bg-bg-elevated py-2.5 pl-10 pr-10 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
           />
+          {!query && (
+            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-line px-1.5 text-xs text-muted lg:block">
+              /
+            </kbd>
+          )}
           {query && (
             <button
               type="button"
@@ -293,6 +484,7 @@ export function WaiterOrderClient() {
         <section className="mb-5 rounded-2xl border border-gold/30 bg-gold/5 overflow-hidden transition-all">
           <button
             type="button"
+            aria-expanded={customOpen}
             onClick={() => setCustomOpen((prev) => !prev)}
             className="flex w-full items-center justify-between p-3.5 text-left text-sm font-semibold text-gold"
           >
@@ -312,6 +504,7 @@ export function WaiterOrderClient() {
               </p>
               <div className="grid gap-2">
                 <input
+                  aria-label="Custom dish name"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Dish name (e.g. Special Chai)"
@@ -319,6 +512,7 @@ export function WaiterOrderClient() {
                 />
                 <div className="flex gap-2">
                   <input
+                    aria-label="Custom dish price"
                     inputMode="numeric"
                     value={customPrice}
                     onChange={(e) =>
@@ -328,6 +522,7 @@ export function WaiterOrderClient() {
                     className="w-28 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
                   />
                   <select
+                    aria-label="Custom dish type"
                     value={customVeg}
                     onChange={(e) => setCustomVeg(e.target.value as VegFlag)}
                     className="flex-1 rounded-xl border border-line bg-bg-elevated px-3 py-2 text-base text-ink outline-none focus:border-gold"
@@ -360,7 +555,7 @@ export function WaiterOrderClient() {
             style={{ animationDelay: `${idx * 40}ms` }}
           >
             <h2 className="font-display mb-3 text-lg font-bold text-gold">{cat}</h2>
-            <ul className="space-y-2.5">
+            <ul className="grid gap-2.5 xl:grid-cols-2 2xl:grid-cols-3">
               {list.map((item) => {
                 const inCart = items.find((i) => i.itemId === item.id);
                 return (
@@ -395,7 +590,7 @@ export function WaiterOrderClient() {
                       <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-bg-soft px-2 py-1.5">
                         <button
                           type="button"
-                          aria-label="Decrease"
+                          aria-label={`Decrease ${item.name}`}
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/20 text-gold transition active:scale-90"
                           onClick={() =>
                             setQuantity(item.id, inCart.quantity - 1)
@@ -408,7 +603,7 @@ export function WaiterOrderClient() {
                         </span>
                         <button
                           type="button"
-                          aria-label="Increase"
+                          aria-label={`Increase ${item.name}`}
                           className="flex h-7 w-7 items-center justify-center rounded-full flame-bg text-white transition active:scale-90"
                           onClick={() =>
                             setQuantity(item.id, inCart.quantity + 1)
@@ -421,6 +616,7 @@ export function WaiterOrderClient() {
                       <button
                         type="button"
                         onClick={() => addMenuItem(item)}
+                        aria-label={`Add ${item.name}`}
                         className="shrink-0 rounded-full border border-gold/60 bg-gold/10 px-4 py-2 text-xs font-bold text-gold transition hover:bg-gold hover:text-bg active:scale-95"
                       >
                         + ADD
@@ -441,10 +637,49 @@ export function WaiterOrderClient() {
           </div>
         )}
       </main>
+      </div>
+
+      {/* Desktop order panel — replaces the 3-step modals on wide screens */}
+      <aside className="hidden lg:block" aria-label="Current order">
+        <div className="sticky top-4 my-4 max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-line bg-bg-elevated scrollbar-thin">
+          <div className="border-b border-line px-5 py-4">
+            <h2 className="font-display text-xl text-gold">
+              Current order · {tableLabel}
+            </h2>
+            <p className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wider text-muted">
+              Order for
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[0, ...Array.from({ length: RESTAURANT.tableCount }, (_, i) => i + 1)].map(
+                (n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-pressed={tableNumber === n}
+                    onClick={() => setTableNumber(n)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      tableNumber === n
+                        ? "bg-gold text-bg"
+                        : "border border-line text-muted hover:border-gold/50 hover:text-ink"
+                    }`}
+                  >
+                    {n === 0 ? "Pickup" : `T${n}`}
+                  </button>
+                ),
+              )}
+            </div>
+          </div>
+          <div className="px-5 py-1">{renderCartLines()}</div>
+          <div className="border-t border-line px-5 py-4">
+            {renderTotals()}
+            {renderCheckoutFields()}
+          </div>
+        </div>
+      </aside>
 
       {/* Sticky Bottom Review Cart Bar */}
       {count > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-lg px-4 pb-4 lg:hidden">
           <button
             type="button"
             onClick={() => setCartOpen(true)}
@@ -463,7 +698,7 @@ export function WaiterOrderClient() {
 
       {/* STEP 1: Select Table Modal */}
       {tableModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center lg:hidden">
           <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
             <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
               <div>
@@ -541,7 +776,7 @@ export function WaiterOrderClient() {
 
       {/* STEP 2: Cart Review Modal */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm lg:hidden">
           <div className="max-h-[85dvh] w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated animate-fade-up">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <div>
@@ -549,7 +784,7 @@ export function WaiterOrderClient() {
                   Step 2 of 3
                 </span>
                 <h3 className="font-display text-xl text-gold">
-                  Review Order · {tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`}
+                  Review Order · {tableLabel}
                 </h3>
               </div>
               <button
@@ -562,64 +797,10 @@ export function WaiterOrderClient() {
               </button>
             </div>
             <div className="max-h-[45dvh] overflow-y-auto px-5 py-3 scrollbar-thin">
-              {items.map((item) => (
-                <div
-                  key={item.itemId}
-                  className="flex items-center gap-3 border-b border-line/50 py-3 last:border-0"
-                >
-                  <VegBadge veg={item.veg} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-ink">{item.name}</p>
-                    <p className="text-sm font-bold text-gold">
-                      {formatINR(item.price * item.quantity)}
-                      {item.itemId.startsWith("custom:") && (
-                        <span className="ml-2 text-[10px] uppercase text-muted">
-                          (custom)
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full border border-line px-2 py-1">
-                    <button
-                      type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
-                      onClick={() =>
-                        setQuantity(item.itemId, item.quantity - 1)
-                      }
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-sm">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      className="p-1 text-gold hover:bg-gold-dim rounded-full"
-                      onClick={() =>
-                        setQuantity(item.itemId, item.quantity + 1)
-                      }
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {renderCartLines()}
             </div>
             <div className="border-t border-line px-5 py-4">
-              <div className="mb-1.5 flex justify-between text-sm text-muted">
-                <span>Subtotal</span>
-                <span className="font-semibold">{formatINR(subtotal)}</span>
-              </div>
-              {RESTAURANT.gstPercent > 0 && (
-                <div className="mb-1.5 flex justify-between text-sm text-muted">
-                  <span>GST</span>
-                  <span className="font-semibold">{formatINR(gst)}</span>
-                </div>
-              )}
-              <div className="mb-4 flex justify-between text-lg font-bold text-gold">
-                <span>Total Amount</span>
-                <span>{formatINR(total)}</span>
-              </div>
+              {renderTotals()}
               <button
                 type="button"
                 onClick={() => {
@@ -637,7 +818,7 @@ export function WaiterOrderClient() {
 
       {/* STEP 3: Confirm & Send to Kitchen Modal */}
       {checkoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center lg:hidden">
           <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
             <div className="mb-4 flex items-start justify-between border-b border-line pb-3">
               <div>
@@ -646,7 +827,7 @@ export function WaiterOrderClient() {
                 </span>
                 <h3 className="font-display text-2xl text-gold">Confirm & Place Order</h3>
                 <p className="text-sm text-muted">
-                  {tableNumber === 0 ? "Pickup" : `Table ${tableNumber}`} ·{" "}
+                  {tableLabel} ·{" "}
                   <strong className="text-gold">{formatINR(total)}</strong>
                 </p>
               </div>
@@ -660,76 +841,7 @@ export function WaiterOrderClient() {
               </button>
             </div>
 
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">
-              Select Payment Method:
-            </p>
-            <div className="mb-4 grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => setMethod("cash")}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
-                  method === "cash"
-                    ? "border-gold bg-gold/15 shadow-sm"
-                    : "border-line bg-bg-soft"
-                }`}
-              >
-                <Banknote className="h-7 w-7 text-gold" />
-                <span className="text-sm font-bold text-ink">Cash Collection</span>
-                <span className="text-[10px] text-muted">Collect at table</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMethod("upi")}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3.5 transition ${
-                  method === "upi"
-                    ? "border-gold bg-gold/15 shadow-sm"
-                    : "border-line bg-bg-soft"
-                }`}
-              >
-                <Smartphone className="h-7 w-7 text-gold" />
-                <span className="text-sm font-bold text-ink">UPI / Digital</span>
-                <span className="text-[10px] text-muted">QR payment</span>
-              </button>
-            </div>
-
-            <div className="mb-4 space-y-2.5">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Customer name (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
-              />
-              <input
-                inputMode="numeric"
-                maxLength={10}
-                value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
-                placeholder="Customer Phone (optional)"
-                className="w-full rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
-              />
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Special order notes (e.g. Less spicy, Extra gravy)"
-                rows={2}
-                className="w-full resize-none rounded-xl border border-line bg-bg-soft px-3.5 py-2.5 text-base text-ink outline-none placeholder:text-muted focus:border-gold"
-              />
-            </div>
-
-            {error && <p className="mb-3 text-sm text-nonveg font-medium">{error}</p>}
-
-            <button
-              type="button"
-              disabled={loading || items.length === 0}
-              onClick={placeOrder}
-              className="flame-bg w-full rounded-xl py-4 text-base font-bold text-white shadow-lg disabled:opacity-50 transition hover:brightness-110"
-            >
-              {loading
-                ? "Submitting order…"
-                : `✅ Submit & Save Order (${formatINR(total)})`}
-            </button>
+            {renderCheckoutFields()}
           </div>
         </div>
       )}

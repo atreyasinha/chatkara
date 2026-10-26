@@ -1,5 +1,14 @@
 import type { Order } from "./types";
 
+/** Short human-friendly order reference, e.g. "3F9A1C2B". */
+export function orderRef(order: Pick<Order, "id">): string {
+  return order.id.slice(0, 8).toUpperCase();
+}
+
+export function orderTypeLabel(order: Pick<Order, "tableNumber">): string {
+  return order.tableNumber === 0 ? "Pickup" : `Table ${order.tableNumber}`;
+}
+
 /**
  * Formats a WhatsApp-ready bill receipt for a given order.
  * Uses WhatsApp markdown: *bold*, no HTML.
@@ -16,7 +25,7 @@ export function formatWhatsAppReceipt(order: Order): string {
   const orderType =
     order.tableNumber === 0 ? "Online Pickup" : `Table ${order.tableNumber}`;
 
-  const formattedId = order.id.slice(0, 8).toUpperCase();
+  const formattedId = orderRef(order);
 
   let discountLines = "";
   if (order.discountAmount) {

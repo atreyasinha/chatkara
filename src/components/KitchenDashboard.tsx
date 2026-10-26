@@ -6,14 +6,22 @@ import { BrandMark } from "@/components/BrandMark";
 import { VegBadge } from "@/components/VegBadge";
 import { formatINR } from "@/lib/restaurant";
 import { shareReceiptOnWhatsApp } from "@/lib/receipt";
+import { usePrintSlip } from "@/components/PrintSlip";
 import {
   flushKitchenQueue,
   kitchenPatch,
   queueLength,
 } from "@/lib/kitchen-queue";
 import type { Order, OrderStatus } from "@/lib/types";
-import { Bell, RefreshCw, MessageSquare, WifiOff, X } from "lucide-react";
-
+import {
+  Bell,
+  ChefHat,
+  MessageSquare,
+  Printer,
+  RefreshCw,
+  WifiOff,
+  X,
+} from "lucide-react";
 
 const NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   pending: "confirmed",
@@ -100,6 +108,7 @@ export function KitchenDashboard() {
   /** Order awaiting WhatsApp phone entry via modal */
   const [whatsappOrder, setWhatsappOrder] = useState<Order | null>(null);
   const [whatsappPhone, setWhatsappPhone] = useState("");
+  const { print, slip } = usePrintSlip();
 
   const refreshQueueCount = useCallback(() => {
     setQueued(queueLength());
@@ -348,7 +357,8 @@ export function KitchenDashboard() {
   ).length;
 
   return (
-    <div className="mx-auto min-h-dvh max-w-6xl px-4 py-6">
+    <div className="mx-auto min-h-dvh max-w-7xl px-4 py-6 lg:px-6">
+      {slip}
       {/* WhatsApp phone modal */}
       {whatsappOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -499,7 +509,7 @@ export function KitchenDashboard() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {visible.map((order) => {
             const next = NEXT[order.status];
             return (
@@ -584,6 +594,24 @@ export function KitchenDashboard() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => print(order, "kot")}
+                    aria-label={`Print kitchen ticket for ${order.tableNumber === 0 ? "pickup" : `table ${order.tableNumber}`}`}
+                    className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+                  >
+                    <ChefHat className="h-3.5 w-3.5" />
+                    KOT
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => print(order, "bill")}
+                    aria-label={`Print bill for ${order.tableNumber === 0 ? "pickup" : `table ${order.tableNumber}`}`}
+                    className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted hover:border-gold hover:text-gold"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                    Bill
+                  </button>
                   <button
                     type="button"
                     onClick={() => openWhatsAppModal(order)}
