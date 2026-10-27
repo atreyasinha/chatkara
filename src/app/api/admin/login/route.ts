@@ -27,7 +27,12 @@ export async function POST(request: Request) {
     }
     hits.push(now);
     loginAttempts.set(ip, hits);
-    if (loginAttempts.size > 5000) loginAttempts.clear();
+    if (loginAttempts.size > 5000) {
+      const oldestKey = loginAttempts.keys().next().value;
+      if (oldestKey !== undefined) {
+        loginAttempts.delete(oldestKey);
+      }
+    }
 
     if (!adminPasswordConfigured()) {
       return NextResponse.json(
