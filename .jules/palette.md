@@ -1,4 +1,8 @@
-## $(date +%Y-%m-%d) - Added helpful CTA to empty search state
+## 2026-07-20 - Consistent ARIA Labels on Reusable Patterns
+**Learning:** When implementing accessibility (like `aria-label`) on interactive elements such as quantity adjusters (+/- buttons), it's crucial to check all instances of those buttons across different views (e.g., both the main menu list and the cart modal) as they are often duplicated rather than extracted into a shared component.
+**Action:** Always search the file or codebase for similar patterns or duplicated HTML to ensure accessibility improvements are applied universally across all states of the component.
+
+## 2026-08-05 - Added helpful CTA to empty search state
 **Learning:** Empty states caused by restrictive filters/searches are a common UX dead end. Providing a single "Clear search & filters" button drastically improves the user's ability to recover from overly specific queries.
 **Action:** Always include a way to easily reset applied filters when presenting a "no results" state to the user.
 ## 2024-07-25 - Cart Empty State Message and Call to Action

@@ -176,3 +176,83 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* Receipt / KOT printing — see PrintSlip.tsx. Hidden on screen. */
+.print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 4mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* While a slip is mounted, print only the slip. */
+  body:has(> .print-root) > :not(.print-root) {
+    display: none !important;
+  }
+
+  .print-root {
+    display: block;
+    width: 72mm; /* printable width of 80mm thermal paper */
+    color: #000;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .print-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .print-big {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .print-strong {
+    font-weight: 700;
+  }
+
+  .print-muted {
+    font-size: 10px;
+  }
+
+  .print-rule {
+    border-top: 1px dashed #000;
+    margin: 4px 0;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-table th,
+  .print-table td {
+    padding: 1px 0;
+    vertical-align: top;
+  }
+
+  .print-table th {
+    border-bottom: 1px solid #000;
+  }
+
+  .print-qty {
+    width: 3em;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .print-total {
+    font-size: 14px;
+    font-weight: 700;
+  }
+}

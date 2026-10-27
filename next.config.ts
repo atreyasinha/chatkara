@@ -35,8 +35,9 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Fonts: Google Fonts
       "font-src 'self' https://fonts.gstatic.com",
-      // Images: self + data URIs (QR) + Google Maps tiles
-      "img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://maps.gstatic.com",
+      // Images: self + data URIs (QR) + Google Maps tiles + canonical-domain icons
+      // (layout.tsx uses absolute icon URLs for SEO; without this, previews/dev block them)
+      "img-src 'self' data: https://chatkara.lagardenia.in https://*.googleapis.com https://*.gstatic.com https://maps.gstatic.com",
       // Frames: Google Maps embeds only
       "frame-src https://maps.google.com https://www.google.com",
       // API calls: self + Firebase + Telegram + Google Analytics
