@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { Banknote, Smartphone, X } from "lucide-react";
+import { Banknote, Check, Copy, Smartphone, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { buildUpiLink, formatINR, RESTAURANT } from "@/lib/restaurant";
+import {
+  buildUpiAppLink,
+  buildUpiLink,
+  detectUpiPlatform,
+  formatINR,
+  isInAppBrowser,
+  RESTAURANT,
+  type UpiApp,
+} from "@/lib/restaurant";
 import type { Order, PaymentMethod } from "@/lib/types";
 
 export function CheckoutSheet({
@@ -100,25 +108,63 @@ export function CheckoutSheet({
   const gst = Math.round((taxableSubtotal * RESTAURANT.gstPercent) / 100);
   const total = taxableSubtotal + gst;
 
-  const upiLinks = useMemo(() => {
-    if (!order) return { generic: "", gpay: "", phonepe: "", paytm: "", bhim: "" };
-    const isIOS =
-      typeof navigator !== "undefined" &&
-      /iPad|iPhone|iPod/.test(navigator.userAgent);
+  // Only computed once an order exists (client-side), so no hydration mismatch.
+  const upi = useMemo(() => {
+    if (!order) return null;
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const touch = typeof navigator !== "undefined" ? navigator.maxTouchPoints : 0;
+    const platform = detectUpiPlatform(ua, touch);
+    const apps = UPI_APPS.map((a) => ({
+      ...a,
+      href: buildUpiAppLink(order.total, order.id, a.app, platform),
+    })).filter((a): a is typeof a & { href: string } => a.href !== null);
     return {
-      generic: buildUpiLink(order.total, order.id, "generic"),
-      // gpay:// is Android-only; Google Pay on iOS registers tez://
-      gpay: isIOS
-        ? buildUpiLink(order.total, order.id, "generic").replace(
-            "upi://pay",
-            "tez://upi/pay",
-          )
-        : buildUpiLink(order.total, order.id, "gpay"),
-      phonepe: buildUpiLink(order.total, order.id, "phonepe"),
-      paytm: buildUpiLink(order.total, order.id, "paytm"),
-      bhim: buildUpiLink(order.total, order.id, "bhim"),
+      qr: buildUpiLink(order.total, order.id),
+      platform,
+      inAppBrowser: isInAppBrowser(ua),
+      apps,
+      generic: buildUpiAppLink(order.total, order.id, "generic", platform),
     };
   }, [order]);
+
+  const [upiIdCopied, setUpiIdCopied] = useState(false);
+  const [appDidNotOpen, setAppDidNotOpen] = useState<string | null>(null);
+  const openCheck = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // If the page is still visible ~2s after tapping an app link, the app didn't
+  // launch (not installed / blocked) — tell the customer instead of silently failing.
+  useEffect(() => {
+    function cancel() {
+      if (document.visibilityState === "hidden" && openCheck.current) {
+        clearTimeout(openCheck.current);
+        openCheck.current = null;
+      }
+    }
+    document.addEventListener("visibilitychange", cancel);
+    return () => {
+      document.removeEventListener("visibilitychange", cancel);
+      if (openCheck.current) clearTimeout(openCheck.current);
+    };
+  }, []);
+
+  function watchAppLaunch(label: string) {
+    setAppDidNotOpen(null);
+    if (openCheck.current) clearTimeout(openCheck.current);
+    openCheck.current = setTimeout(() => {
+      openCheck.current = null;
+      if (document.visibilityState === "visible") setAppDidNotOpen(label);
+    }, 2000);
+  }
+
+  async function copyUpiId() {
+    try {
+      await navigator.clipboard.writeText(RESTAURANT.upiId);
+      setUpiIdCopied(true);
+      setTimeout(() => setUpiIdCopied(false), 2000);
+    } catch {
+      // Clipboard blocked — the ID is visible on screen to type manually.
+    }
+  }
 
   async function placeOrder() {
     setLoading(true);
@@ -192,7 +238,7 @@ export function CheckoutSheet({
   if (order && method === "upi") {
     return (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center">
-        <div className="w-full max-w-lg overflow-hidden rounded-t-3xl border border-line bg-bg-elevated p-5 sm:rounded-3xl animate-fade-up">
+        <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-line bg-bg-elevated p-5 scrollbar-thin sm:rounded-3xl animate-fade-up">
           <div className="mb-4 flex items-start justify-between">
             <div>
               <h3 className="font-display text-2xl text-gold">Pay with UPI</h3>
@@ -206,15 +252,26 @@ export function CheckoutSheet({
           </div>
 
           <div className="mx-auto mb-4 flex w-fit justify-center rounded-2xl bg-white p-4">
-            <QRCodeSVG value={upiLinks.generic} size={200} level="M" />
+            <QRCodeSVG value={upi?.qr ?? ""} size={200} level="M" />
           </div>
 
           <p className="mb-1 text-center text-sm text-muted">
-            Scan QR code or select your preferred payment app below
+            {upi && upi.apps.length > 0
+              ? "Scan the QR code or open your UPI app below"
+              : "Scan this QR code with any UPI app on your phone"}
           </p>
-          <p className="mb-2 text-center text-xs text-muted">
-            UPI ID: {RESTAURANT.upiId}
-          </p>
+          <div className="mb-2 flex items-center justify-center gap-2 text-xs text-muted">
+            <span>UPI ID: {RESTAURANT.upiId}</span>
+            <button
+              type="button"
+              onClick={copyUpiId}
+              aria-label="Copy UPI ID"
+              className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[11px] text-gold hover:border-gold"
+            >
+              {upiIdCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {upiIdCopied ? "Copied" : "Copy"}
+            </button>
+          </div>
           <p className="mb-4 text-center text-xs text-gold/90">
             After you pay, staff will confirm it on the kitchen board. Your order
             is already with the kitchen.
@@ -226,44 +283,49 @@ export function CheckoutSheet({
             </p>
           )}
 
-          <div className="mb-3 space-y-2">
-            <p className="text-center text-xs font-semibold text-gold">
-              Open directly in your app:
+          {upi?.inAppBrowser && (
+            <p className="mb-3 rounded-xl border border-flame-from/40 bg-flame-from/10 px-3 py-2 text-center text-xs text-flame-from">
+              Payment apps can&apos;t open from inside this app. Open this page in
+              Chrome or Safari, or pay {formatINR(order.total)} to the UPI ID above.
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              <a
-                href={upiLinks.gpay}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
-              >
-                Google Pay
-              </a>
-              <a
-                href={upiLinks.phonepe}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
-              >
-                PhonePe
-              </a>
-              <a
-                href={upiLinks.paytm}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
-              >
-                Paytm
-              </a>
-              <a
-                href={upiLinks.bhim}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
-              >
-                BHIM
-              </a>
+          )}
+
+          {upi && upi.apps.length > 0 && (
+            <div className="mb-3 space-y-2">
+              <p className="text-center text-xs font-semibold text-gold">
+                Open directly in your app:
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {upi.apps.map((a) => (
+                  <a
+                    key={a.app}
+                    href={a.href}
+                    onClick={() => watchAppLaunch(a.label)}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-line bg-bg-soft py-2.5 text-xs font-semibold text-ink hover:border-gold hover:text-gold transition-colors"
+                  >
+                    {a.label}
+                  </a>
+                ))}
+              </div>
+              {upi.generic && (
+                <a
+                  href={upi.generic}
+                  onClick={() => watchAppLaunch("your UPI app")}
+                  className="flame-bg flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold text-white mt-2"
+                >
+                  <Smartphone className="h-4 w-4" />
+                  Other UPI App
+                </a>
+              )}
             </div>
-            <a
-              href={upiLinks.generic}
-              className="flame-bg flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-semibold text-white mt-2"
-            >
-              <Smartphone className="h-4 w-4" />
-              Other / Default UPI App
-            </a>
-          </div>
+          )}
+
+          {appDidNotOpen && (
+            <p role="status" className="mb-3 rounded-xl border border-line bg-bg-soft px-3 py-2 text-center text-xs text-muted">
+              Couldn&apos;t open {appDidNotOpen}. Make sure it&apos;s installed, try
+              another app, or pay {formatINR(order.total)} to the UPI ID above.
+            </p>
+          )}
 
           <button
             type="button"
@@ -436,3 +498,10 @@ export function CheckoutSheet({
     </div>
   );
 }
+
+const UPI_APPS: { app: Exclude<UpiApp, "generic">; label: string }[] = [
+  { app: "gpay", label: "Google Pay" },
+  { app: "phonepe", label: "PhonePe" },
+  { app: "paytm", label: "Paytm" },
+  { app: "bhim", label: "BHIM" },
+];

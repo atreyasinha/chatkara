@@ -5,6 +5,9 @@ import {
   RESTAURANT,
   formatINR,
   buildUpiLink,
+  buildUpiAppLink,
+  detectUpiPlatform,
+  isInAppBrowser,
 } from "./restaurant.ts";
 import {
   computeOrderTotals,
@@ -71,10 +74,38 @@ describe("restaurant config", () => {
     assert.match(link, /am=250\.50/);
     assert.match(link, /cu=INR/);
 
-    assert.match(buildUpiLink(100, "12345678", "gpay"), /^gpay:\/\/upi\/pay\?/);
-    assert.match(buildUpiLink(100, "12345678", "phonepe"), /^phonepe:\/\/upi\/pay\?/);
-    assert.match(buildUpiLink(100, "12345678", "paytm"), /^paytmmp:\/\/upi\/pay\?/);
-    assert.match(buildUpiLink(100, "12345678", "bhim"), /^bhim:\/\/upi\/pay\?/);
+  });
+
+  it("Android app links use Chrome intents with the app package", () => {
+    const gpay = buildUpiAppLink(100, "12345678", "gpay", "android")!;
+    assert.match(gpay, /^intent:\/\/pay\?/);
+    assert.match(gpay, /#Intent;scheme=upi;package=com\.google\.android\.apps\.nbu\.paisa\.user;end$/);
+    assert.match(gpay, /am=100\.00/);
+    assert.match(buildUpiAppLink(100, "12345678", "phonepe", "android")!, /package=com\.phonepe\.app;/);
+    assert.match(buildUpiAppLink(100, "12345678", "paytm", "android")!, /package=net\.one97\.paytm;/);
+    assert.match(buildUpiAppLink(100, "12345678", "bhim", "android")!, /package=in\.org\.npci\.upiapp;/);
+    assert.match(buildUpiAppLink(100, "12345678", "generic", "android")!, /^upi:\/\/pay\?/);
+  });
+
+  it("iOS app links use per-app schemes; unsupported ones are null", () => {
+    assert.match(buildUpiAppLink(100, "12345678", "gpay", "ios")!, /^gpay:\/\/upi\/pay\?/);
+    assert.match(buildUpiAppLink(100, "12345678", "phonepe", "ios")!, /^phonepe:\/\/pay\?/);
+    assert.match(buildUpiAppLink(100, "12345678", "paytm", "ios")!, /^paytmmp:\/\/pay\?/);
+    assert.equal(buildUpiAppLink(100, "12345678", "bhim", "ios"), null);
+    assert.equal(buildUpiAppLink(100, "12345678", "generic", "ios"), null);
+    assert.equal(buildUpiAppLink(100, "12345678", "gpay", "other"), null);
+  });
+
+  it("detects UPI platform and in-app browsers", () => {
+    const android = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36";
+    const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1";
+    const mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15";
+    assert.equal(detectUpiPlatform(android), "android");
+    assert.equal(detectUpiPlatform(iphone), "ios");
+    assert.equal(detectUpiPlatform(mac, 5), "ios"); // iPadOS
+    assert.equal(detectUpiPlatform(mac, 0), "other");
+    assert.equal(isInAppBrowser(`${iphone} Instagram 300.0`), true);
+    assert.equal(isInAppBrowser(iphone), false);
   });
 });
 

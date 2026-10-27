@@ -38,32 +38,72 @@ export function formatINR(amount: number): string {
 }
 
 export type UpiApp = "generic" | "gpay" | "phonepe" | "paytm" | "bhim";
+export type UpiPlatform = "android" | "ios" | "other";
 
-export function buildUpiLink(
-  amount: number,
-  orderId: string,
-  app: UpiApp = "generic"
-): string {
-  const params = new URLSearchParams({
+/** Android package ids — Chrome only opens a specific app via intent:// + package. */
+const UPI_ANDROID_PACKAGES: Record<Exclude<UpiApp, "generic">, string> = {
+  gpay: "com.google.android.apps.nbu.paisa.user",
+  phonepe: "com.phonepe.app",
+  paytm: "net.one97.paytm",
+  bhim: "in.org.npci.upiapp",
+};
+
+/**
+ * iOS has no system handler for upi://, so each app must be opened by its own
+ * scheme. gpay:// is from Google's iOS docs; BHIM has no documented scheme.
+ */
+const UPI_IOS_PREFIXES: Partial<Record<UpiApp, string>> = {
+  gpay: "gpay://upi/pay",
+  phonepe: "phonepe://pay",
+  paytm: "paytmmp://pay",
+};
+
+function upiQuery(amount: number, orderId: string): string {
+  return new URLSearchParams({
     pa: RESTAURANT.upiId,
     pn: RESTAURANT.upiPayeeName,
     am: amount.toFixed(2),
     cu: "INR",
     tn: `ChatKara Order ${orderId.slice(0, 8).toUpperCase()}`,
-  });
-  const query = params.toString();
-
-  switch (app) {
-    case "gpay":
-      return `gpay://upi/pay?${query}`;
-    case "phonepe":
-      return `phonepe://upi/pay?${query}`;
-    case "paytm":
-      return `paytmmp://upi/pay?${query}`;
-    case "bhim":
-      return `bhim://upi/pay?${query}`;
-    default:
-      return `upi://pay?${query}`;
-  }
+  }).toString();
 }
 
+/** Standard NPCI link — used for the QR code and the Android "any UPI app" chooser. */
+export function buildUpiLink(amount: number, orderId: string): string {
+  return `upi://pay?${upiQuery(amount, orderId)}`;
+}
+
+/**
+ * Link that opens a specific UPI app on the given platform, or null when that
+ * combination can't work (desktop, BHIM / generic on iOS) so the UI can hide it.
+ */
+export function buildUpiAppLink(
+  amount: number,
+  orderId: string,
+  app: UpiApp,
+  platform: UpiPlatform,
+): string | null {
+  const query = upiQuery(amount, orderId);
+  if (platform === "android") {
+    if (app === "generic") return `upi://pay?${query}`;
+    return `intent://pay?${query}#Intent;scheme=upi;package=${UPI_ANDROID_PACKAGES[app]};end`;
+  }
+  if (platform === "ios") {
+    const prefix = UPI_IOS_PREFIXES[app];
+    return prefix ? `${prefix}?${query}` : null;
+  }
+  return null;
+}
+
+export function detectUpiPlatform(userAgent: string, maxTouchPoints = 0): UpiPlatform {
+  if (/Android/i.test(userAgent)) return "android";
+  // iPadOS 13+ reports itself as a Mac; touch support gives it away.
+  if (/iPad|iPhone|iPod/.test(userAgent)) return "ios";
+  if (/Macintosh/.test(userAgent) && maxTouchPoints > 1) return "ios";
+  return "other";
+}
+
+/** Social-app webviews (Instagram, Facebook, …) block custom-scheme navigation. */
+export function isInAppBrowser(userAgent: string): boolean {
+  return /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat/i.test(userAgent);
+}
