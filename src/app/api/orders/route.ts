@@ -87,8 +87,10 @@ export async function POST(request: Request) {
 
     // Staff and the test harness are exempt — the limiter guards the public path.
     if (!isAdmin && !isTest) {
+      const forwardedFor = request.headers.get("x-forwarded-for");
       const ip =
-        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        request.headers.get("x-real-ip")?.trim() ??
+        (forwardedFor ? forwardedFor.split(",").pop()?.trim() : null) ??
         "unknown";
       if (isOrderRateLimited(ip)) {
         return NextResponse.json(
