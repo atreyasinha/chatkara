@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Source_Sans_3, Caveat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -9,24 +9,28 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-const display = Cormorant_Garamond({
+// Self-hosted (Fontsource, OFL-1.1) instead of next/font/google: Turbopack
+// intermittently fails to parse Google's font URLs at build time on Vercel
+// (vercel/next.js#99114). Variable latin files cover every weight we use.
+const display = localFont({
+  src: "./fonts/cormorant-garamond-latin-wght-normal.woff2",
   variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "300 700",
   display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
-const body = Source_Sans_3({
+const body = localFont({
+  src: "./fonts/source-sans-3-latin-wght-normal.woff2",
   variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "200 900",
   display: "swap",
 });
 
-const betania = Caveat({
+const betania = localFont({
+  src: "./fonts/caveat-latin-wght-normal.woff2",
   variable: "--font-betania",
-  subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: "400 700",
   display: "swap",
 });
 
