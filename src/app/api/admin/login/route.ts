@@ -14,8 +14,10 @@ const loginAttempts = new Map<string, number[]>();
 export async function POST(request: Request) {
   try {
     // Throttle brute-force attempts — 5 tries/min per IP.
+    const forwarded = request.headers.get("x-forwarded-for");
     const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip")?.trim() ??
+      (forwarded ? forwarded.split(",").pop()?.trim() : null) ??
       "unknown";
     const now = Date.now();
     const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
