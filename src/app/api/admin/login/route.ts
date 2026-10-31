@@ -15,7 +15,8 @@ export async function POST(request: Request) {
   try {
     // Throttle brute-force attempts — 5 tries/min per IP.
     const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip")?.trim() ??
+      request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() ??
       "unknown";
     const now = Date.now();
     const hits = (loginAttempts.get(ip) ?? []).filter((t) => now - t < 60_000);
