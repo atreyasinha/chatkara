@@ -2,3 +2,7 @@
 **Vulnerability:** The Telegram webhook (`/api/telegram/webhook/route.ts`) verified requests by falling back to checking if the user-controlled JSON payload (`update?.callback_query?.message?.chat?.id`) matched an authorized `TELEGRAM_CHAT_ID` if the `TELEGRAM_WEBHOOK_SECRET` was missing or mismatched. Because webhooks are publicly accessible, an attacker could spoof this JSON payload to bypass authentication completely and update order states (e.g., mark as paid or cancelled).
 **Learning:** Never use data from a user-supplied JSON payload as a fallback authentication mechanism for webhooks. Secrets should be enforced strictly.
 **Prevention:** Always rely strictly on cryptographically secure tokens (like `x-telegram-bot-api-secret-token`) sent in headers and verified with a constant-time comparison (`timingSafeEqual`) to authenticate webhook calls.
+## 2026-11-07 - Insecure Client IP Extraction in Rate Limiting
+**Vulnerability:** Client IPs were extracted from the first element of the `x-forwarded-for` header, which is user-controllable and can be easily spoofed to bypass rate limits.
+**Learning:** In Next.js environments (like Vercel), `x-forwarded-for` can contain spoofed IPs in the first position if the attacker includes their own header. The infrastructure appends the real client IP to the end of the list or provides it in `x-real-ip`.
+**Prevention:** Always prioritize `x-real-ip`, and if parsing `x-forwarded-for`, use the last IP in the list (`split(",").pop()`) as it represents the immediate downstream connection to the infrastructure.
