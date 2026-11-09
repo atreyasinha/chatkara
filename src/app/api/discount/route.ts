@@ -26,7 +26,8 @@ function isRateLimited(ip: string): boolean {
 export async function GET(request: Request) {
   try {
     const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip")?.trim() ??
+      request.headers.get("x-forwarded-for")?.split(",").pop()?.trim() ??
       "unknown";
 
     if (isRateLimited(ip)) {
